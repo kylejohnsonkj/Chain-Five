@@ -25,26 +25,34 @@ class ViewController: UIViewController {
                  "B0", "H10", "H9", "H8", "H7", "C7", "C8", "C9", "C10", "B0"]
     
     // 10x10 grid -- 100 cards total (ignoring jacks)
-    var cardsOnBoard = [UIImageView]()
+    var cardsOnBoard = [Card]()
     
     // 2 decks -- 104 cards total (ignoring blanks)
-    var cardsInDeck = [UIImageView]()
+    var cardsInDeck = [Card]()
     
     // 5 at any time
-    var cardsInHand = [UIImageView]()
+    var cardsInHand = [Card]()
+    
+    var chosenCardId = ""
+    var currentPlayer = 1
         
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let table = UIView()
+        table.frame = CGRect(x: 11, y: 133, width: 354, height: 354)
+        table.layer.borderColor = UIColor.green.cgColor
+        table.layer.borderWidth = 0
+        view.addSubview(table)
         
         // add the 100 cards to board in correct order
         var i = 0
         for row in 1...10 {
             for col in 1...10 {
-                let cardImage = UIImage(named: cardsLayout[i])
-                let cardView = UIImageView(image: cardImage)
-                cardView.frame = CGRect(x: (col * 35) - 22, y: (row * 35) + 100, width: 35, height: 35)
-                view.addSubview(cardView)
-                cardsOnBoard.append(cardView)
+                let card = Card(named: cardsLayout[i])
+                card.frame = CGRect(x: (col * 35) - 22, y: (row * 35) + 100, width: 35, height: 35)
+                view.addSubview(card)
+                cardsOnBoard.append(card)
                 i += 1
             }
         }
@@ -54,36 +62,81 @@ class ViewController: UIViewController {
         while (j < 2) {
             for suit in 0..<suits.count {
                 for rank in 1...13 {
-                    let cardImage = UIImage(named: "\(suits[suit])\(rank)-")
-                    let cardView = UIImageView(image: cardImage)
-                    cardsInDeck.append(cardView)
+                    let card = Card(named: "\(suits[suit])\(rank)-")
+                    cardsInDeck.append(card)
                 }
             }
             j += 1
         }
         
         // shuffle the cards
-        cardsInDeck = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [UIImageView]
+        cardsInDeck = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
         
         // choose five cards from the deck
         for col in 1...5 {
-            if let cardView = cardsInDeck.popLast() {
-                cardView.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
-                view.addSubview(cardView)
-                cardsInHand.append(cardView)
+            if let card = cardsInDeck.popLast() {
+                card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
+                view.addSubview(card)
+                cardsInHand.append(card)
             }
         }
         
         // add blank card to represent pile
-        let cardImage = UIImage(named: "B0-")
-        let cardView = UIImageView(image: cardImage)
-        cardView.frame = CGRect(x: 293, y: 520, width: 35, height: 43)
-        view.addSubview(cardView)
+        let card = Card(named: "B0-")
+        card.frame = CGRect(x: 293, y: 520, width: 35, height: 43)
+        view.addSubview(card)
         
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if let touch = touches.first {
+            let touchLocation = touch.location(in: self.view)
+            
+            for c in cardsOnBoard {
+                if (c.isSelected && c.frame.contains(touchLocation)) {
+                    c.mark(player: currentPlayer)
+                    if currentPlayer == 1 {
+                        currentPlayer = 2
+                    } else {
+                        currentPlayer = 1
+                    }
+                    for id in 0..<cardsInHand.count {
+                        if chosenCardId == cardsInHand[id].id {
+                            cardsInHand[id].removeFromSuperview()
+                            if let nextCard = cardsInDeck.popLast() {
+                                nextCard.frame = CGRect(x: ((id+1) * 35) + 13, y: 520, width: 35, height: 43)
+                                view.addSubview(nextCard)
+                                cardsInHand[id] = nextCard
+                            }
+                        }
+                    }
+                }
+            }
+            
+            var cardChosen = false
+            chosenCardId = ""
+            for card in cardsInHand {
+                card.isSelected = false
+                if (card.frame.contains(touchLocation)) {
+                    card.isSelected = true
+                    cardChosen = true
+                    chosenCardId = card.id
+                    for c in cardsOnBoard {
+                        c.isSelected = false
+                        if !c.isMarked && card.id == "\(c.id)-" {
+                            c.isSelected = true
+                        }
+                    }
+                }
+            }
+            
+            if cardChosen == false {
+                for c in cardsOnBoard {
+                    c.isSelected = false
+                }
+            }
         
+        }
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -96,5 +149,55 @@ class ViewController: UIViewController {
     }
 
 
+}
+
+class Card: UIImageView {
+    var id: String
+    var isSelected: Bool {
+        didSet {
+            if isSelected == true {
+                self.layer.borderWidth = 2
+            } else {
+                self.layer.borderWidth = 0
+            }
+        }
+    }
+    
+    var owner: Int
+    var isMarked: Bool {
+        didSet {
+            guard owner != 0 else { return }
+            var color = ""
+            if owner == 1 {
+                color = "orange"
+            } else if owner == 2 {
+                color = "blue"
+            }
+            let image = UIImage(named: color)
+            let marker = UIImageView(image: image)
+            marker.frame = CGRect(x: 0, y: 0, width: 35, height: 35)
+            self.addSubview(marker)
+        }
+    }
+    
+    init(named id: String) {
+        self.id = id
+        self.isSelected = false
+        self.isMarked = false
+        self.owner = 0
+        let image = UIImage(named: id)
+        super.init(image: image)
+        
+        self.layer.borderColor = UIColor.green.cgColor
+    }
+    
+    func mark(player: Int) {
+        self.owner = player
+        self.isMarked = true
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
