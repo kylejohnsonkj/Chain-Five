@@ -11,6 +11,9 @@ import GameplayKit
 
 class ViewController: UIViewController {
     
+    @IBOutlet weak var playerTurnLabel: UILabel!
+    @IBOutlet weak var cardsLeftLabel: UILabel!
+    
     let suits = ["C", "D", "H", "S"]
 
     let cardsLayout = ["B0", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "B0",
@@ -31,15 +34,26 @@ class ViewController: UIViewController {
     var cardsInDeck = [Card]()
     
     // 5 at any time
-    var cardsInHand = [Card]()
+    var cardsInHand1 = [Card]()
+    var cardsInHand2 = [Card]()
+    
+    var table = UIView()
     
     var chosenCardId = ""
-    var currentPlayer = 1
+    var currentPlayer = 0 {
+        didSet {
+            playerTurnLabel.text = "Player \(currentPlayer)'s turn"
+//            for card in cardsOnBoard {
+//                if card.id == "B0" {
+//                    card.mark(player: currentPlayer)
+//                }
+//            }
+        }
+    }
         
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let table = UIView()
         table.frame = CGRect(x: 11, y: 133, width: 354, height: 354)
         table.layer.borderColor = UIColor.green.cgColor
         table.layer.borderWidth = 0
@@ -57,6 +71,8 @@ class ViewController: UIViewController {
             }
         }
         
+        currentPlayer = 1
+        
         // generate two decks
         var j = 0
         while (j < 2) {
@@ -72,14 +88,23 @@ class ViewController: UIViewController {
         // shuffle the cards
         cardsInDeck = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
         
-        // choose five cards from the deck
+        // choose five cards from the deck for player 1
         for col in 1...5 {
             if let card = cardsInDeck.popLast() {
                 card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
+                cardsInHand1.append(card)
                 view.addSubview(card)
-                cardsInHand.append(card)
             }
         }
+        // choose five cards from the deck for player 2
+        for col in 1...5 {
+            if let card = cardsInDeck.popLast() {
+                card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
+                cardsInHand2.append(card)
+            }
+        }
+        
+        cardsLeftLabel.text = "\(cardsInDeck.count) left"
         
         // add blank card to represent pile
         let card = Card(named: "B0-")
@@ -92,22 +117,49 @@ class ViewController: UIViewController {
         if let touch = touches.first {
             let touchLocation = touch.location(in: self.view)
             
+            var cardsInHand: [Card] = []
+            if currentPlayer == 1 {
+                cardsInHand = cardsInHand1
+            } else {
+                cardsInHand = cardsInHand2
+            }
+            
             for c in cardsOnBoard {
-                if (c.isSelected && c.frame.contains(touchLocation)) {
+                if ((c.isSelected || (chosenCardId == "C11-" || chosenCardId == "D11-" || chosenCardId == "H11-" || chosenCardId == "S11-")) && c.frame.contains(touchLocation)) {
                     c.mark(player: currentPlayer)
-                    if currentPlayer == 1 {
-                        currentPlayer = 2
-                    } else {
-                        currentPlayer = 1
-                    }
                     for id in 0..<cardsInHand.count {
                         if chosenCardId == cardsInHand[id].id {
                             cardsInHand[id].removeFromSuperview()
+                            
+                            // check for win
+                            
+                            
+                            
+                            
                             if let nextCard = cardsInDeck.popLast() {
                                 nextCard.frame = CGRect(x: ((id+1) * 35) + 13, y: 520, width: 35, height: 43)
                                 view.addSubview(nextCard)
                                 cardsInHand[id] = nextCard
+                                cardsLeftLabel.text = "\(cardsInDeck.count) left"
                             }
+                        }
+                    }
+                    for card in cardsInHand {
+                        card.removeFromSuperview()
+                    }
+                    if currentPlayer == 1 {
+                        cardsInHand1 = cardsInHand
+                        currentPlayer = 2
+                        for i in 0..<5 {
+                            cardsInHand2[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
+                            view.addSubview(cardsInHand2[i])
+                        }
+                    } else {
+                        cardsInHand2 = cardsInHand
+                        currentPlayer = 1
+                        for i in 0..<5 {
+                            cardsInHand1[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
+                            view.addSubview(cardsInHand1[i])
                         }
                     }
                 }
@@ -127,6 +179,12 @@ class ViewController: UIViewController {
                             c.isSelected = true
                         }
                     }
+                    // special case for jacks
+                    if chosenCardId == "C11-" || chosenCardId == "D11-" || chosenCardId == "H11-" || chosenCardId == "S11-" {
+                        table.layer.borderWidth = 2
+                    } else {
+                        table.layer.borderWidth = 0
+                    }
                 }
             }
             
@@ -134,6 +192,7 @@ class ViewController: UIViewController {
                 for c in cardsOnBoard {
                     c.isSelected = false
                 }
+                table.layer.borderWidth = 0
             }
         
         }
