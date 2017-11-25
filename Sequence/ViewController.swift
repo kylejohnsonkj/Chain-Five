@@ -13,6 +13,7 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var playerTurnLabel: UILabel!
     @IBOutlet weak var cardsLeftLabel: UILabel!
+    @IBOutlet weak var playerIndicator: UIImageView!
     
     let suits = ["C", "D", "H", "S"]
 
@@ -43,11 +44,11 @@ class ViewController: UIViewController {
     var currentPlayer = 0 {
         didSet {
             playerTurnLabel.text = "Player \(currentPlayer)'s turn"
-//            for card in cardsOnBoard {
-//                if card.id == "B0" {
-//                    card.mark(player: currentPlayer)
-//                }
-//            }
+            if currentPlayer == 1 {
+                playerIndicator.image = UIImage(named: "orange")
+            } else {
+                playerIndicator.image = UIImage(named: "blue")
+            }
         }
     }
         
@@ -90,12 +91,13 @@ class ViewController: UIViewController {
         
         // choose five cards from the deck for player 1
         for col in 1...5 {
-            if let card = cardsInDeck.popLast() {
+            if let card = self.cardsInDeck.popLast() {
                 card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
-                cardsInHand1.append(card)
-                view.addSubview(card)
+                self.cardsInHand1.append(card)
+                self.view.addSubview(card)
             }
         }
+        
         // choose five cards from the deck for player 2
         for col in 1...5 {
             if let card = cardsInDeck.popLast() {
@@ -107,9 +109,9 @@ class ViewController: UIViewController {
         cardsLeftLabel.text = "\(cardsInDeck.count) left"
         
         // add blank card to represent pile
-        let card = Card(named: "B0-")
-        card.frame = CGRect(x: 293, y: 520, width: 35, height: 43)
-        view.addSubview(card)
+        let blank = Card(named: "B0-")
+        blank.frame = CGRect(x: 293, y: 520, width: 35, height: 43)
+        view.addSubview(blank)
         
     }
     
@@ -126,42 +128,59 @@ class ViewController: UIViewController {
             
             for c in cardsOnBoard {
                 if ((c.isSelected || (chosenCardId == "C11-" || chosenCardId == "D11-" || chosenCardId == "H11-" || chosenCardId == "S11-")) && c.frame.contains(touchLocation)) {
+                    
                     c.mark(player: currentPlayer)
+                    
                     for id in 0..<cardsInHand.count {
                         if chosenCardId == cardsInHand[id].id {
-                            cardsInHand[id].removeFromSuperview()
+                            
+                            let blank = Card(named: "B0-")
+                            blank.frame = CGRect(x: 293, y: 520, width: 35, height: 43)
+                            view.addSubview(blank)
                             
                             // check for win
-                            
-                            
-                            
-                            
-                            if let nextCard = cardsInDeck.popLast() {
-                                nextCard.frame = CGRect(x: ((id+1) * 35) + 13, y: 520, width: 35, height: 43)
-                                view.addSubview(nextCard)
-                                cardsInHand[id] = nextCard
-                                cardsLeftLabel.text = "\(cardsInDeck.count) left"
+                            UIView.animate(withDuration: 1, delay: 0.75, options: [.curveEaseOut], animations: {
+                                blank.frame.origin = cardsInHand[id].frame.origin
+                            }, completion: { _ in
+                                cardsInHand[id].removeFromSuperview()
+                                blank.removeFromSuperview()
+                                
+                                if let nextCard = self.cardsInDeck.popLast() {
+                                    nextCard.frame = CGRect(x: ((id+1) * 35) + 13, y: 520, width: 35, height: 43)
+                                    self.view.addSubview(nextCard)
+                                    cardsInHand[id] = nextCard
+                                    self.cardsLeftLabel.text = "\(self.cardsInDeck.count) left"
+                                }
+                            })
+                            break   // this shouldn't need to be in a for loop, save index instead
+                        }
+                    }
+                    
+                    UIView.animate(withDuration: 2.75, delay: 0, options: [], animations: {
+                        c.alpha = 0.99
+                        c.alpha = 1.0
+                    }, completion: { _ in
+
+                        for card in cardsInHand {
+                            card.removeFromSuperview()
+                        }
+                        
+                        if self.currentPlayer == 1 {
+                            self.cardsInHand1 = cardsInHand
+                            self.currentPlayer = 2
+                            for i in 0..<5 {
+                                self.cardsInHand2[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
+                                self.view.addSubview(self.cardsInHand2[i])
+                            }
+                        } else {
+                            self.cardsInHand2 = cardsInHand
+                            self.currentPlayer = 1
+                            for i in 0..<5 {
+                                self.cardsInHand1[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
+                                self.view.addSubview(self.cardsInHand1[i])
                             }
                         }
-                    }
-                    for card in cardsInHand {
-                        card.removeFromSuperview()
-                    }
-                    if currentPlayer == 1 {
-                        cardsInHand1 = cardsInHand
-                        currentPlayer = 2
-                        for i in 0..<5 {
-                            cardsInHand2[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
-                            view.addSubview(cardsInHand2[i])
-                        }
-                    } else {
-                        cardsInHand2 = cardsInHand
-                        currentPlayer = 1
-                        for i in 0..<5 {
-                            cardsInHand1[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
-                            view.addSubview(cardsInHand1[i])
-                        }
-                    }
+                    })
                 }
             }
             

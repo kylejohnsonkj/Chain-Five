@@ -44,12 +44,17 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="orange" translatesAutoresizingMaskIntoConstraints="NO" id="PhI-tk-Dw8">
+                                <rect key="frame" x="16" y="573" width="30" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" red="0.81568627450980391" green="0.78532271228004391" blue="0.68005572629056099" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                     <connections>
                         <outlet property="cardsLeftLabel" destination="nRH-Zs-5ce" id="hWs-hq-P97"/>
+                        <outlet property="playerIndicator" destination="PhI-tk-Dw8" id="eCe-Zx-7j0"/>
                         <outlet property="playerTurnLabel" destination="al7-SU-r3a" id="CqK-04-n8B"/>
                     </connections>
                 </viewController>
@@ -58,4 +63,7 @@
             <point key="canvasLocation" x="37.600000000000001" y="31.934032983508249"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="orange" width="100" height="100"/>
+    </resources>
 </document>
