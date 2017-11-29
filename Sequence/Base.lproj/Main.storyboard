@@ -59,7 +59,7 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Rewritten for iOS by Kyle Johnson" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oB6-j5-lex">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Rewritten for iOS" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="oB6-j5-lex">
                                 <rect key="frame" x="99" y="83" width="177" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="Optima-Regular" family="Optima" pointSize="11"/>
@@ -72,6 +72,8 @@
                     </view>
                     <connections>
                         <outlet property="cardsLeftLabel" destination="nRH-Zs-5ce" id="hWs-hq-P97"/>
+                        <outlet property="gameHeader" destination="oB6-j5-lex" id="iny-06-UK4"/>
+                        <outlet property="gameTitle" destination="xDi-XU-bZt" id="FpL-1L-jmB"/>
                         <outlet property="menuIconLabel" destination="4Mt-Zq-18K" id="f4o-WM-UrS"/>
                         <outlet property="menuLabel" destination="Yap-Ty-fdB" id="RsZ-7u-EQP"/>
                         <outlet property="playerIndicator" destination="PhI-tk-Dw8" id="eCe-Zx-7j0"/>

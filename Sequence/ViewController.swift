@@ -13,6 +13,8 @@ import GameplayKit
 
 class ViewController: UIViewController {
     
+    @IBOutlet weak var gameTitle: UIImageView!
+    @IBOutlet weak var gameHeader: UILabel!
     @IBOutlet weak var playerTurnLabel: UILabel!
     @IBOutlet weak var cardsLeftLabel: UILabel!
     @IBOutlet weak var playerIndicator: UIImageView!
@@ -108,6 +110,9 @@ class ViewController: UIViewController {
             i += 1
         }
         
+//        gameTitle.layer.zPosition = 1
+//        gameHeader.layer.zPosition = 1
+        
         // animate cards into center of screen
         i = 0
         UIView.animate(withDuration: 1, animations: {
@@ -145,9 +150,8 @@ class ViewController: UIViewController {
     }
     
     func createDeckImage() {
-        let deck = Card(named: "B0-")
-        deck.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
-        deck.layer.zPosition = 1
+        let deck = Card(named: "B1-")
+        deck.frame = CGRect(x: 293, y: 566, width: 35, height: 49)
         view.addSubview(deck)
     }
     
@@ -162,17 +166,18 @@ class ViewController: UIViewController {
         // choose five cards from the deck for player 1
         for col in 1...5 {
             
-            let deck = Card(named: "B0-")
-            deck.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
-            view.addSubview(deck)
+            let back = Card(named: "B0-")
+            back.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
+            back.layer.zPosition = 6 - CGFloat(col)
+            view.addSubview(back)
             
             if let card = self.cardsInDeck.popLast() {
                 
                 UIView.animate(withDuration: 1, delay: TimeInterval(0.75 * Double(col)), options: [.curveEaseOut], animations: {
-                    deck.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
+                    back.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
                     
                 }, completion: { _ in
-                    deck.removeFromSuperview()
+                    back.removeFromSuperview()
                     card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
                     self.cardsInHand1.append(card)
                     self.view.addSubview(card)      // show Player 1's cards first
@@ -242,6 +247,7 @@ class ViewController: UIViewController {
                     }
                     
                     guard isValidSequence() == false else { return }
+                    cardsLeftLabel.text = "\(cardsInDeck.count - 1)"
                     
                     UIView.animate(withDuration: 1, delay: 0.75, options: [.curveEaseOut], animations: {
                         blank.frame.origin = cardsInHand[self.chosenCardIndex].frame.origin
