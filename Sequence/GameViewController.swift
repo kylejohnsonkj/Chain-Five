@@ -26,8 +26,8 @@ class GameViewController: UIViewController {
     let cardsLayout = ["F0", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "F0",
                  "D10", "D13", "C6", "C5", "C4", "H4", "H5", "H6", "S13", "S10",
                  "D9", "D6", "D12", "C3", "C2", "H2", "H3", "S12", "S6", "S9",
-                 "D8", "D5", "D3", "C12", "C1", "H1", "H12", "S3", "S5", "S8",
-                 "D7", "D4", "D2", "D1", "C13", "H13", "S1", "S2", "S4", "S7",
+                  "D8", "D5", "D3", "C12", "C1", "H1", "H12", "S3", "S5", "S8",
+                "D7", "D4", "D2", "D1", "C13", "H13", "S1", "S2", "S4", "S7",
                  "S7", "S4", "S2", "S1", "H13", "C13", "D1", "D2", "D4", "D7",
                  "S8", "S5", "S3", "H12", "H1", "C1", "C12", "D3", "D5", "D8",
                  "S9", "S6", "S12", "H3", "H2", "C2", "C3", "D12", "D6", "D9",
@@ -61,6 +61,7 @@ class GameViewController: UIViewController {
     var chosenCardId = ""
 
     var jackOutline = UIView()
+    var gameOver = UIView()
     
     var currentPlayer = 0 {
         didSet {
@@ -165,7 +166,7 @@ class GameViewController: UIViewController {
                 
                 UIView.animate(withDuration: 1, delay: TimeInterval(0.75 * Double(col)), options: [.curveEaseOut], animations: {
                     back.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
-                    print("move!")
+                    
                 }, completion: { _ in
                     back.removeFromSuperview()
                     card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
@@ -227,6 +228,12 @@ class GameViewController: UIViewController {
         if let touch = touches.first {
             let touchLocation = touch.location(in: self.view)
             
+            if menuLabel.frame.contains(touchLocation) || menuIconLabel.frame.contains(touchLocation) {
+                self.modalPresentationStyle = .overCurrentContext
+                dismiss(animated: true)
+            }
+            
+            
             var cardsInHand = getCurrentHand()
             for c in cardsOnBoard {
                 if ((c.isSelected || isJack()) && !c.isFreeSpace && c.frame.contains(touchLocation)) {
@@ -240,10 +247,9 @@ class GameViewController: UIViewController {
                     
                     if isValidSequence() {
                         let ac = UIAlertController(title: "It's a Sequence!", message: "Player \(currentPlayer) has won the game.", preferredStyle: .alert)
-                        ac.addAction(UIAlertAction(title: "OK", style: .default))
+                        ac.addAction(UIAlertAction(title: "OK", style: .default, handler: hitOk))
                         self.present(ac, animated: true)
                         
-                        let gameOver = UIView()
                         gameOver.frame = view.frame
                         var bgColor: CGColor
                         if currentPlayer == 1 {
@@ -251,13 +257,14 @@ class GameViewController: UIViewController {
                         } else {
                             bgColor = UIColor(red: 94/255, green: 208/255, blue: 255/255, alpha: 1).cgColor
                         }
+                        
                         gameOver.layer.backgroundColor = bgColor
                         gameOver.layer.zPosition = 2
                         view.addSubview(gameOver)
                         gameOver.alpha = 0
                         
                         UIView.animate(withDuration: 1.0, animations: {
-                            gameOver.alpha = 1
+                            self.gameOver.alpha = 1
                         })
                     }
                     
@@ -319,10 +326,21 @@ class GameViewController: UIViewController {
         }
     }
     
+    func hitOk(action: UIAlertAction) {
+        UIView.animate(withDuration: 1, delay: 0, options: [.curveEaseOut], animations: {
+            self.gameOver.alpha = 0.99
+            self.gameOver.alpha = 1
+        }, completion: { _ in
+            self.gameOver.removeFromSuperview()
+            self.modalPresentationStyle = .overCurrentContext
+            self.dismiss(animated: true)
+        })
+    }
+    
     func isValidSequence() -> Bool {
         
         var length = 0
-        let sequence = 5
+        let sequence = 2    // TODO: Set to 5 for release
         
         // horizontal sequences
         for column in 0..<10 {
@@ -357,6 +375,7 @@ class GameViewController: UIViewController {
         }
         
         // TODO: diagonal sequences
+        
         
         return false
     }

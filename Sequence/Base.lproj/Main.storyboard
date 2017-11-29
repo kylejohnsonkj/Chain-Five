@@ -18,7 +18,7 @@
         <!--Main-->
         <scene sceneID="Wzs-14-rAT">
             <objects>
-                <viewController title="Main" id="Eal-4D-Xr4" customClass="MainViewController" customModule="Sequence" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController title="Main" modalTransitionStyle="crossDissolve" id="Eal-4D-Xr4" customClass="MainViewController" customModule="Sequence" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="7AK-OD-jif">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -42,7 +42,7 @@
                                     <color key="titleColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
                                 <connections>
-                                    <segue destination="BYZ-38-t0r" kind="show" animates="NO" id="tFm-r7-yOK"/>
+                                    <segue destination="BYZ-38-t0r" kind="presentation" modalPresentationStyle="overCurrentContext" modalTransitionStyle="crossDissolve" id="tFm-r7-yOK"/>
                                 </connections>
                             </button>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZIs-Aq-rAz">
@@ -70,7 +70,7 @@
         <!--Game-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController title="Game" id="BYZ-38-t0r" customClass="GameViewController" customModule="Sequence" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController title="Game" modalTransitionStyle="crossDissolve" id="BYZ-38-t0r" customClass="GameViewController" customModule="Sequence" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
