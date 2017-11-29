@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  GameViewController.swift
 //  Sequence
 //
 //  Created by Kyle Johnson on 11/23/17.
@@ -11,7 +11,7 @@ import GameplayKit
 
 // MARK: - Main Class
 
-class ViewController: UIViewController {
+class GameViewController: UIViewController {
     
     @IBOutlet weak var gameTitle: UIImageView!
     @IBOutlet weak var gameHeader: UILabel!
@@ -82,10 +82,21 @@ class ViewController: UIViewController {
         currentPlayer = 1
         cardsInDeck = generateAndShuffleDeck()
         createDeckImage()
-        drawCardsForHands()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
+            self.drawCardsForPlayer1()
+        }
+        
     }
     
     func generateBoard() {
+        
+        playerIndicator.alpha = 0
+        playerTurnLabel.alpha = 0
+        cardsLeftLabel.alpha = 0
+        menuLabel.alpha = 0
+        menuIconLabel.alpha = 0
+        
         // used for jack highlighting
         jackOutline.frame = CGRect(x: 10, y: 132, width: 356, height: 357)
         jackOutline.layer.borderColor = UIColor.green.cgColor
@@ -98,33 +109,18 @@ class ViewController: UIViewController {
         bottomBorder.layer.borderColor = UIColor.black.cgColor
         bottomBorder.layer.borderWidth = 1
         view.addSubview(bottomBorder)
-        bottomBorder.alpha = 0
         
         // load the 100 cards
         var i = 0
-        while i < 100 {
-            let card = Card(named: self.cardsLayout[i])
-            card.frame = CGRect(x: 30, y: 50, width: 35, height: 35)
-            self.view.addSubview(card)
-            self.cardsOnBoard.append(card)
-            i += 1
-        }
-        
-//        gameTitle.layer.zPosition = 1
-//        gameHeader.layer.zPosition = 1
-        
-        // animate cards into center of screen
-        i = 0
-        UIView.animate(withDuration: 1, animations: {
-            for row in 1...10 {
-                for col in 1...10 {
-                    self.cardsOnBoard[i].frame = CGRect(x: (col * 35) - 22, y: (row * 35) + 100, width: 35, height: 35)
-                    i += 1
-                }
+        for row in 1...10 {
+            for col in 1...10 {
+                let card = Card(named: self.cardsLayout[i])
+                card.frame = CGRect(x: (col * 35) - 22, y: (row * 35) + 100, width: 35, height: 35)
+                self.view.addSubview(card)
+                self.cardsOnBoard.append(card)
+                i += 1
             }
-        }, completion: { _ in
-            bottomBorder.alpha = 1
-        })
+        }
 
         cardsOnBoard[0].isFreeSpace = true      // top left
         cardsOnBoard[9].isFreeSpace = true      // top right
@@ -155,14 +151,8 @@ class ViewController: UIViewController {
         view.addSubview(deck)
     }
     
-    func drawCardsForHands() {
-        playerIndicator.alpha = 0
-        playerTurnLabel.alpha = 0
-        cardsLeftLabel.alpha = 0
-        menuLabel.alpha = 0
-        menuIconLabel.alpha = 0
-        
-        
+    func drawCardsForPlayer1() {
+
         // choose five cards from the deck for player 1
         for col in 1...5 {
             
@@ -175,7 +165,7 @@ class ViewController: UIViewController {
                 
                 UIView.animate(withDuration: 1, delay: TimeInterval(0.75 * Double(col)), options: [.curveEaseOut], animations: {
                     back.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
-                    
+                    print("move!")
                 }, completion: { _ in
                     back.removeFromSuperview()
                     card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
@@ -192,16 +182,41 @@ class ViewController: UIViewController {
                         }
                     }
                 })
-                
-                
             }
         }
-        
-        // choose five cards from the deck for player 2
+    }
+    
+    func drawCardsForPlayer2() {
+        // choose five cards from the deck for player 1
         for col in 1...5 {
-            if let card = cardsInDeck.popLast() {
-                card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
-                cardsInHand2.append(card)
+            
+            let back = Card(named: "B0-")
+            back.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
+            back.layer.zPosition = 6 - CGFloat(col)
+            view.addSubview(back)
+            
+            if let card = self.cardsInDeck.popLast() {
+                
+                UIView.animate(withDuration: 1, delay: TimeInterval(0.75 * Double(col)), options: [.curveEaseOut], animations: {
+                    back.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
+                    
+                }, completion: { _ in
+                    back.removeFromSuperview()
+                    card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
+                    self.cardsInHand2.append(card)
+                    self.view.addSubview(card)      // show Player 1's cards first
+                    
+                    if col == 5 {
+                        UIView.animate(withDuration: 1) {
+                            self.playerIndicator.alpha = 1
+                            self.playerTurnLabel.alpha = 1
+                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count)"
+                            self.cardsLeftLabel.alpha = 1
+                        }
+                    }
+                })
+                
+                
             }
         }
     }
@@ -261,6 +276,11 @@ class ViewController: UIViewController {
                             } else {
                                 self.cardsInHand2[self.chosenCardIndex] = nextCard
                             }
+                        }
+                        
+                        if self.cardsInDeck.count >= 93 {
+                            self.drawCardsForPlayer2()
+                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
                         }
                         self.swapPlayers(cardsInHand)
                     })
@@ -362,6 +382,9 @@ class ViewController: UIViewController {
         UIView.animate(withDuration: 0.5, delay: 0.75, options: [], animations: {
             self.playerIndicator.alpha = 0
             self.playerTurnLabel.alpha = 0
+            if self.cardsInDeck.count >= 93 {
+                self.cardsLeftLabel.alpha = 0
+            }
             
             for card in cardsInHand {
                 card.alpha = 0
@@ -376,9 +399,11 @@ class ViewController: UIViewController {
             if self.currentPlayer == 1 {
                 self.cardsInHand1 = hand
                 self.currentPlayer = 2
-                for i in 0..<5 {
-                    self.cardsInHand2[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
-                    self.view.addSubview(self.cardsInHand2[i])
+                if self.cardsInDeck.count < 93 {
+                    for i in 0..<5 {
+                        self.cardsInHand2[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
+                        self.view.addSubview(self.cardsInHand2[i])
+                    }
                 }
             } else {
                 self.cardsInHand2 = hand
@@ -400,8 +425,11 @@ class ViewController: UIViewController {
                     card.alpha = 1
                 }
                 
-                self.playerIndicator.alpha = 1
-                self.playerTurnLabel.alpha = 1
+                if self.cardsInDeck.count < 93 {
+                    self.playerIndicator.alpha = 1
+                    self.playerTurnLabel.alpha = 1
+                }
+
             })
             
         })
