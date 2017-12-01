@@ -217,7 +217,6 @@ class GameViewController: UIViewController {
                     }
                 })
                 
-                
             }
         }
     }
@@ -232,7 +231,6 @@ class GameViewController: UIViewController {
                 self.modalPresentationStyle = .overCurrentContext
                 dismiss(animated: true)
             }
-            
             
             var cardsInHand = getCurrentHand()
             for c in cardsOnBoard {

@@ -26,9 +26,7 @@ class MainViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
         generateBoard()
-        showButtons()
     }
     
     func generateBoard() {
@@ -65,10 +63,6 @@ class MainViewController: UIViewController {
         })
     }
 
-    func showButtons() {
-        
-    }
-    
     /*
     // MARK: - Navigation
 
