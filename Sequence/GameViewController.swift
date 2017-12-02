@@ -85,7 +85,7 @@ class GameViewController: UIViewController {
         createDeckImage()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-            self.drawCardsForPlayer1()
+            self.drawCardsForPlayer(player: 1)
         }
         
     }
@@ -152,26 +152,41 @@ class GameViewController: UIViewController {
         view.addSubview(deck)
     }
     
-    func drawCardsForPlayer1() {
-
+    func drawCardsForPlayer(player: Int) {
+        
         // choose five cards from the deck for player 1
         for col in 1...5 {
             
+            let container = UIView()
+            container.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
+            container.layer.zPosition = 6 - CGFloat(col)
+            view.addSubview(container)
+            
             let back = Card(named: "B0-")
-            back.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
+            back.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
             back.layer.zPosition = 6 - CGFloat(col)
-            view.addSubview(back)
+            container.addSubview(back)
             
             if let card = self.cardsInDeck.popLast() {
                 
                 UIView.animate(withDuration: 1, delay: TimeInterval(0.75 * Double(col)), options: [.curveEaseOut], animations: {
-                    back.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
+                    container.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
                     
                 }, completion: { _ in
-                    back.removeFromSuperview()
-                    card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
-                    self.cardsInHand1.append(card)
-                    self.view.addSubview(card)      // show Player 1's cards first
+                    
+                    container.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
+                    card.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
+                    
+                    if player == 1 {
+                        self.cardsInHand1.append(card)
+                    } else {
+                        self.cardsInHand2.append(card)
+                    }
+                    
+                    UIView.transition(from: back, to: card, duration: 1, options: [.transitionFlipFromRight], completion: { _ in
+                        card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
+                        self.view.addSubview(card)
+                    })
                     
                     if col == 5 {
                         UIView.animate(withDuration: 1) {
@@ -183,40 +198,6 @@ class GameViewController: UIViewController {
                         }
                     }
                 })
-            }
-        }
-    }
-    
-    func drawCardsForPlayer2() {
-        // choose five cards from the deck for player 1
-        for col in 1...5 {
-            
-            let back = Card(named: "B0-")
-            back.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
-            back.layer.zPosition = 6 - CGFloat(col)
-            view.addSubview(back)
-            
-            if let card = self.cardsInDeck.popLast() {
-                
-                UIView.animate(withDuration: 1, delay: TimeInterval(0.75 * Double(col)), options: [.curveEaseOut], animations: {
-                    back.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
-                    
-                }, completion: { _ in
-                    back.removeFromSuperview()
-                    card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
-                    self.cardsInHand2.append(card)
-                    self.view.addSubview(card)      // show Player 1's cards first
-                    
-                    if col == 5 {
-                        UIView.animate(withDuration: 1) {
-                            self.playerIndicator.alpha = 1
-                            self.playerTurnLabel.alpha = 1
-                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count)"
-                            self.cardsLeftLabel.alpha = 1
-                        }
-                    }
-                })
-                
             }
         }
     }
@@ -239,9 +220,13 @@ class GameViewController: UIViewController {
                     c.owner = currentPlayer
                     c.isMarked = true
                     
+                    let container = UIView()
+                    container.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
+                    view.addSubview(container)
+                    
                     let blank = Card(named: "B0-")
-                    blank.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
-                    view.addSubview(blank)
+                    blank.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
+                    container.addSubview(blank)
                     
                     if isValidSequence() {
                         let ac = UIAlertController(title: "It's a Sequence!", message: "Player \(currentPlayer) has won the game.", preferredStyle: .alert)
@@ -270,22 +255,28 @@ class GameViewController: UIViewController {
                     cardsLeftLabel.text = "\(cardsInDeck.count - 1)"
                     
                     UIView.animate(withDuration: 1, delay: 0.75, options: [.curveEaseOut], animations: {
-                        blank.frame.origin = cardsInHand[self.chosenCardIndex].frame.origin
+                        container.frame.origin = cardsInHand[self.chosenCardIndex].frame.origin
                         cardsInHand[self.chosenCardIndex].removeFromSuperview()
                         
                     }, completion: { _ in
-                        blank.removeFromSuperview()
+//                        blank.removeFromSuperview()
                         if let nextCard = self.getNextCardFromDeck() {
                             if self.currentPlayer == 1 {
                                 self.cardsInHand1[self.chosenCardIndex] = nextCard
                             } else {
                                 self.cardsInHand2[self.chosenCardIndex] = nextCard
                             }
+                        
+                            nextCard.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
+                            
+                            UIView.transition(from: blank, to: nextCard, duration: 1, options: [.transitionFlipFromRight], completion: nil)
                         }
                         
                         if self.cardsInDeck.count >= 93 {
-                            self.drawCardsForPlayer2()
-                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [unowned self] in
+                                self.drawCardsForPlayer(player: 2)
+                                self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
+                            }
                         }
                         self.swapPlayers(cardsInHand)
                     })
@@ -396,7 +387,7 @@ class GameViewController: UIViewController {
         
         var cardsInHand = getCurrentHand()
         
-        UIView.animate(withDuration: 0.5, delay: 0.75, options: [], animations: {
+        UIView.animate(withDuration: 0.5, delay: 1.5, options: [], animations: {
             self.playerIndicator.alpha = 0
             self.playerTurnLabel.alpha = 0
             if self.cardsInDeck.count >= 93 {
@@ -454,56 +445,6 @@ class GameViewController: UIViewController {
     
     func isJack() -> Bool {
         return (chosenCardId == "C11-" || chosenCardId == "D11-" || chosenCardId == "H11-" || chosenCardId == "S11-")
-    }
-}
-
-// MARK: - Card Class
-
-class Card: UIImageView {
-    var id: String
-    var isSelected: Bool {
-        didSet {
-            if isSelected == true {
-                self.layer.borderWidth = 3
-            } else {
-                self.layer.borderWidth = 0
-            }
-        }
-    }
-    
-    var owner: Int
-    var isMarked: Bool {
-        didSet {
-            guard owner != 0 else { return }
-            var color = ""
-            if owner == 1 {
-                color = "orange"
-            } else {
-                color = "blue"
-            }
-            let image = UIImage(named: color)
-            let marker = UIImageView(image: image)
-            marker.frame = CGRect(x: 0, y: 0, width: 35, height: 35)
-            self.addSubview(marker)
-        }
-    }
-    var isFreeSpace: Bool
-    
-    init(named id: String) {
-        self.id = id
-        self.isSelected = false
-        self.owner = 0
-        self.isMarked = false
-        self.isFreeSpace = false
-        
-        let image = UIImage(named: id)
-        super.init(image: image)
-        
-        self.layer.borderColor = UIColor.green.cgColor
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }
 

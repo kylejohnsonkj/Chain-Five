@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = E505403D1FD25B2F0040F5F4 /* Card.swift */; };
 		E56AD0581FCF2CA900F0E1E8 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56AD0571FCF2CA900F0E1E8 /* MainViewController.swift */; };
 		E5EF7C6D1FC7C4DE00E09193 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5EF7C6C1FC7C4DE00E09193 /* AppDelegate.swift */; };
 		E5EF7C6F1FC7C4DE00E09193 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5EF7C6E1FC7C4DE00E09193 /* GameViewController.swift */; };
@@ -16,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E505403D1FD25B2F0040F5F4 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		E56AD0571FCF2CA900F0E1E8 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		E5EF7C691FC7C4DE00E09193 /* Sequence.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sequence.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5EF7C6C1FC7C4DE00E09193 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -59,6 +61,7 @@
 				E5EF7C6C1FC7C4DE00E09193 /* AppDelegate.swift */,
 				E56AD0571FCF2CA900F0E1E8 /* MainViewController.swift */,
 				E5EF7C6E1FC7C4DE00E09193 /* GameViewController.swift */,
+				E505403D1FD25B2F0040F5F4 /* Card.swift */,
 				E5EF7C701FC7C4DE00E09193 /* Main.storyboard */,
 				E5EF7C731FC7C4DE00E09193 /* Assets.xcassets */,
 				E5EF7C751FC7C4DE00E09193 /* LaunchScreen.storyboard */,
@@ -142,6 +145,7 @@
 				E56AD0581FCF2CA900F0E1E8 /* MainViewController.swift in Sources */,
 				E5EF7C6F1FC7C4DE00E09193 /* GameViewController.swift in Sources */,
 				E5EF7C6D1FC7C4DE00E09193 /* AppDelegate.swift in Sources */,
+				E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
