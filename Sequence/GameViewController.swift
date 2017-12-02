@@ -85,7 +85,7 @@ class GameViewController: UIViewController {
         createDeckImage()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-            self.drawCardsForPlayer(player: 1)
+            self.drawCardsForPlayer(1)
         }
         
     }
@@ -107,7 +107,7 @@ class GameViewController: UIViewController {
         // aesthetics
         let bottomBorder = UIView()
         bottomBorder.frame = CGRect(x: 13, y: 485, width: 350, height: 1)
-        bottomBorder.layer.borderColor = UIColor.black.cgColor
+        bottomBorder.layer.borderColor = UIColor(red: 63/255, green: 63/255, blue: 63/255, alpha: 1).cgColor
         bottomBorder.layer.borderWidth = 1
         view.addSubview(bottomBorder)
         
@@ -152,7 +152,7 @@ class GameViewController: UIViewController {
         view.addSubview(deck)
     }
     
-    func drawCardsForPlayer(player: Int) {
+    func drawCardsForPlayer(_ player: Int) {
         
         // choose five cards from the deck for player 1
         for col in 1...5 {
@@ -274,7 +274,7 @@ class GameViewController: UIViewController {
                         
                         if self.cardsInDeck.count >= 93 {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [unowned self] in
-                                self.drawCardsForPlayer(player: 2)
+                                self.drawCardsForPlayer(2)
                                 self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
                             }
                         }
@@ -287,6 +287,7 @@ class GameViewController: UIViewController {
             cardChosen = false
             chosenCardId = ""
             
+            // needed for grabbing indices
             for i in 0..<cardsInHand.count {
                 cardsInHand[i].isSelected = false
                 
