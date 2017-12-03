@@ -6,9 +6,9 @@
 //  Copyright © 2017 Kyle Johnson. All rights reserved.
 //
 
-import UIKit
+// Just a fancy UIImageView. Stores details with card such as ID, and whether it is selected, marked and by which player.
 
-// MARK: - Card Class
+import UIKit
 
 class Card: UIImageView {
     var id: String

@@ -34,7 +34,7 @@ class MainViewController: UIViewController {
     
     func generateBoard() {
 
-        // aesthetics
+        // adds black line below bottom row of cards
         let bottomBorder = UIView()
         bottomBorder.frame = CGRect(x: 13, y: 485, width: 350, height: 1)
         bottomBorder.layer.borderColor = UIColor.black.cgColor
@@ -64,6 +64,7 @@ class MainViewController: UIViewController {
         }, completion: { _ in
             bottomBorder.alpha = 1
         })
+        
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -74,7 +75,6 @@ class MainViewController: UIViewController {
                 performSegue(withIdentifier: "toGame", sender: self)
             }
         }
-        
     }
 
 }

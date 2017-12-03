@@ -34,10 +34,12 @@ class GameViewController: UIViewController {
                  "S10", "S13", "H6", "H5", "H4", "C4", "C5", "C6", "D13", "D10",
                  "F0", "H10", "H9", "H8", "H7", "C7", "C8", "C9", "C10", "F0"]
 
+    let detector = SequenceDetector()
+    
     // 10x10 grid -- 100 cards total (ignoring jacks)
     var cardsOnBoard = [Card]()
     
-    // 2 decks -- 104 cards total (ignoring blanks)
+    // 2 decks -- 104 cards total (ignoring backs)
     var cardsInDeck = [Card]() {
         didSet {
             cardsLeftLabel.text = "\(cardsInDeck.count)"
@@ -57,12 +59,12 @@ class GameViewController: UIViewController {
             }
         }
     }
+    
     var chosenCardIndex = -1
     var chosenCardId = ""
 
     var jackOutline = UIView()
     var gameOver = UIView()
-    let detector = SequenceDetector()
     
     var currentPlayer = 0 {
         didSet {
@@ -82,13 +84,17 @@ class GameViewController: UIViewController {
         
         generateBoard()
         currentPlayer = 1
-        cardsInDeck = generateAndShuffleDeck()
-        createDeckImage()
+        
+        // load the deck image
+        let deck = Card(named: "B1-")
+        deck.frame = CGRect(x: 293, y: 566, width: 35, height: 49)
+        view.addSubview(deck)
+        
+        cardsInDeck = createAndShuffleDeck()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-            self.drawCardsForPlayer(1)
+            self.drawCards(forPlayer: 1)
         }
-        
     }
     
     func generateBoard() {
@@ -96,16 +102,14 @@ class GameViewController: UIViewController {
         playerIndicator.alpha = 0
         playerTurnLabel.alpha = 0
         cardsLeftLabel.alpha = 0
-//        menuLabel.alpha = 0
-//        menuIconLabel.alpha = 0
-        
+
         // used for jack highlighting
         jackOutline.frame = CGRect(x: 10, y: 132, width: 356, height: 357)
         jackOutline.layer.borderColor = UIColor.green.cgColor
         jackOutline.layer.borderWidth = 0
         view.addSubview(jackOutline)
         
-        // aesthetics
+        // adds black line below bottom row of cards
         let bottomBorder = UIView()
         bottomBorder.frame = CGRect(x: 13, y: 485, width: 350, height: 1)
         bottomBorder.layer.borderColor = UIColor(red: 63/255, green: 63/255, blue: 63/255, alpha: 1).cgColor
@@ -124,13 +128,15 @@ class GameViewController: UIViewController {
             }
         }
 
+        // mark the free spaces
         cardsOnBoard[0].isFreeSpace = true      // top left
         cardsOnBoard[9].isFreeSpace = true      // top right
         cardsOnBoard[90].isFreeSpace = true     // btm left
         cardsOnBoard[99].isFreeSpace = true     // btm right
     }
     
-    func generateAndShuffleDeck() -> [Card] {
+    func createAndShuffleDeck() -> [Card] {
+        
         // generate two decks
         var j = 0
         while (j < 2) {
@@ -147,17 +153,12 @@ class GameViewController: UIViewController {
         return GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
     }
     
-    func createDeckImage() {
-        let deck = Card(named: "B1-")
-        deck.frame = CGRect(x: 293, y: 566, width: 35, height: 49)
-        view.addSubview(deck)
-    }
-    
-    func drawCardsForPlayer(_ player: Int) {
+    func drawCards(forPlayer player: Int) {
         
-        // choose five cards from the deck for player 1
+        // choose five cards from the deck
         for col in 1...5 {
             
+            // need image container for flipping animation
             let container = UIView()
             container.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
             container.layer.zPosition = 6 - CGFloat(col)
@@ -190,13 +191,11 @@ class GameViewController: UIViewController {
                     })
                     
                     if col == 5 {
+                        self.cardsLeftLabel.text = "\(self.cardsInDeck.count)"
                         UIView.animate(withDuration: 1) {
                             self.playerIndicator.alpha = 1
                             self.playerTurnLabel.alpha = 1
-                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count)"
                             self.cardsLeftLabel.alpha = 1
-//                            self.menuLabel.alpha = 1
-//                            self.menuIconLabel.alpha = 1
                         }
                     }
                 })
@@ -210,6 +209,7 @@ class GameViewController: UIViewController {
         if let touch = touches.first {
             let touchLocation = touch.location(in: self.view)
             
+            // go back to main menu
             if menuLabel.frame.contains(touchLocation) || menuIconLabel.frame.contains(touchLocation) {
                 self.modalPresentationStyle = .overCurrentContext
                 dismiss(animated: false)
@@ -226,35 +226,42 @@ class GameViewController: UIViewController {
                     container.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
                     view.addSubview(container)
                     
-                    let blank = Card(named: "B0-")
-                    blank.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
-                    container.addSubview(blank)
+                    let back = Card(named: "B0-")
+                    back.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
+                    container.addSubview(back)
                     
                     if detector.isValidSequence(cardsOnBoard, currentPlayer) {
                         let ac = UIAlertController(title: "It's a Sequence!", message: "Player \(currentPlayer) has won the game.", preferredStyle: .alert)
-                        ac.addAction(UIAlertAction(title: "OK", style: .default, handler: hitOk))
+                        ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                            self.gameOver.removeFromSuperview()
+                            self.modalPresentationStyle = .overCurrentContext
+                            self.dismiss(animated: false)
+                        })
                         self.present(ac, animated: true)
                         
-                        gameOver.frame = view.frame
-                        var bgColor: CGColor
+                        var gameOverColor: CGColor
                         if currentPlayer == 1 {
-                            bgColor = UIColor(red: 255/255, green: 180/255, blue: 1/255, alpha: 1).cgColor
+                            gameOverColor = UIColor(red: 255/255, green: 180/255, blue: 1/255, alpha: 1).cgColor
                         } else {
-                            bgColor = UIColor(red: 94/255, green: 208/255, blue: 255/255, alpha: 1).cgColor
+                            gameOverColor = UIColor(red: 94/255, green: 208/255, blue: 255/255, alpha: 1).cgColor
                         }
                         
-                        gameOver.layer.backgroundColor = bgColor
+                        gameOver.frame = view.frame
+                        gameOver.layer.backgroundColor = gameOverColor
                         gameOver.layer.zPosition = 2
                         view.addSubview(gameOver)
                         gameOver.alpha = 0
                         
+                        // fade in color
                         UIView.animate(withDuration: 1.0, animations: {
                             self.gameOver.alpha = 1
                         })
                     }
                     
+                    // only continue from here if no valid sequence was found
                     guard detector.isValidSequence(cardsOnBoard, currentPlayer) == false
                         else { return }
+                    
                     cardsLeftLabel.text = "\(cardsInDeck.count - 1)"
                     
                     UIView.animate(withDuration: 1, delay: 0.75, options: [.curveEaseOut], animations: {
@@ -262,10 +269,10 @@ class GameViewController: UIViewController {
                         cardsInHand[self.chosenCardIndex].removeFromSuperview()
                         
                     }, completion: { _ in
-//                        blank.removeFromSuperview()
+                        
                         if let nextCard = self.getNextCardFromDeck() {
-                            
                             cardsInHand[self.chosenCardIndex] = nextCard
+                            
                             if self.currentPlayer == 1 {
                                 self.cardsInHand1[self.chosenCardIndex] = nextCard
                             } else {
@@ -274,25 +281,25 @@ class GameViewController: UIViewController {
                         
                             nextCard.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
                             
-                            UIView.transition(from: blank, to: nextCard, duration: 1, options: [.transitionFlipFromRight], completion: nil)
+                            UIView.transition(from: back, to: nextCard, duration: 1, options: [.transitionFlipFromRight], completion: nil)
                         }
                         
+                        // if it's player 2's turn to draw their cards
                         if self.cardsInDeck.count == 98 {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [unowned self] in
-                                self.drawCardsForPlayer(2)
+                                self.drawCards(forPlayer: 2)
                                 self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
                             }
                         }
                         self.swapPlayers(cardsInHand)
                     })
-                    
                 }
             }
             
             cardChosen = false
             chosenCardId = ""
             
-            // needed for grabbing indices
+            // used for highlighting cards on game board when selected in deck
             for i in 0..<cardsInHand.count {
                 cardsInHand[i].isSelected = false
                 
@@ -321,15 +328,8 @@ class GameViewController: UIViewController {
         }
     }
     
-    func hitOk(action: UIAlertAction) {
-        UIView.animate(withDuration: 1, delay: 0, options: [.curveEaseOut], animations: {
-            self.gameOver.alpha = 0.99
-            self.gameOver.alpha = 1
-        }, completion: { _ in
-            self.gameOver.removeFromSuperview()
-            self.modalPresentationStyle = .overCurrentContext
-            self.dismiss(animated: false)
-        })
+    func isJack() -> Bool {
+        return (chosenCardId == "C11-" || chosenCardId == "D11-" || chosenCardId == "H11-" || chosenCardId == "S11-")
     }
     
     func getCurrentHand() -> [Card] {
@@ -337,14 +337,14 @@ class GameViewController: UIViewController {
     }
     
     func getNextCardFromDeck() -> Card? {
-        // grab next card from deck
         if let nextCard = self.cardsInDeck.popLast() {
             nextCard.frame = CGRect(x: ((self.chosenCardIndex+1) * 35) + 13, y: 520, width: 35, height: 43)
             self.view.addSubview(nextCard)
             return nextCard
         } else {
-            // generate new two decks and grab card from that
-            cardsInDeck = generateAndShuffleDeck()
+            // if out of cards, generate and shuffle new deck
+            // then recursively grab next card
+            cardsInDeck = createAndShuffleDeck()
             return getNextCardFromDeck()
         }
     }
@@ -354,11 +354,11 @@ class GameViewController: UIViewController {
         var cardsInHand = getCurrentHand()
         
         UIView.animate(withDuration: 0.5, delay: 1.5, options: [], animations: {
+            
+            // fade out cards and player indicator label
             self.playerIndicator.alpha = 0
             self.playerTurnLabel.alpha = 0
-            if self.cardsInDeck.count >= 93 {
-                self.cardsLeftLabel.alpha = 0
-            }
+            self.cardsLeftLabel.alpha = self.cardsInDeck.count >= 93 ? 0 : self.cardsLeftLabel.alpha
             
             for card in cardsInHand {
                 card.alpha = 0
@@ -369,10 +369,11 @@ class GameViewController: UIViewController {
             for card in cardsInHand {
                 card.removeFromSuperview()
             }
-            
+
             if self.currentPlayer == 1 {
                 self.cardsInHand1 = hand
                 self.currentPlayer = 2
+                
                 if self.cardsInDeck.count < 93 {
                     for i in 0..<5 {
                         self.cardsInHand2[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
@@ -382,6 +383,7 @@ class GameViewController: UIViewController {
             } else {
                 self.cardsInHand2 = hand
                 self.currentPlayer = 1
+                
                 for i in 0..<5 {
                     self.cardsInHand1[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
                     self.view.addSubview(self.cardsInHand1[i])
@@ -403,14 +405,8 @@ class GameViewController: UIViewController {
                     self.playerIndicator.alpha = 1
                     self.playerTurnLabel.alpha = 1
                 }
-
             })
-            
         })
-    }
-    
-    func isJack() -> Bool {
-        return (chosenCardId == "C11-" || chosenCardId == "D11-" || chosenCardId == "H11-" || chosenCardId == "S11-")
     }
 }
 

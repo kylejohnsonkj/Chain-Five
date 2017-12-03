@@ -10,7 +10,7 @@
 
 class SequenceDetector {
     
-    let sequence = 5
+    let sequence = 3
     
     func isValidSequence(_ cardsOnBoard: [Card], _ currentPlayer: Int) -> Bool {
         
