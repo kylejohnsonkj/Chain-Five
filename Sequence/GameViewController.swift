@@ -284,7 +284,7 @@ class GameViewController: UIViewController {
                         
                         // if it's player 2's turn to draw their cards
                         if self.cardsInDeck.count == 98 {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [unowned self] in
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [unowned self] in
                                 self.drawCards(forPlayer: 2)
                                 self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
                             }

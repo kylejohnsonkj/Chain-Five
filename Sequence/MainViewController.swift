@@ -120,14 +120,22 @@ class MainViewController: UIViewController {
                 let container = UIView()
                 container.frame = view.frame
                 view.addSubview(container)
-                container.addSubview(leftImage)
-                container.addSubview(leftText)
+                
                 container.addSubview(rightImage)
                 container.addSubview(rightText)
                 container.addSubview(divider)
                 container.addSubview(kjappsLabel)
                 
                 UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+                    let left = UIView()
+                    left.frame = self.view.frame
+                    self.view.addSubview(left)
+                    left.addSubview(self.leftImage)
+                    left.addSubview(self.leftText)
+                    left.frame.origin.y += 200
+                })
+                    
+                UIView.animate(withDuration: 0.5, delay: 0.1, options: [], animations: {
                     container.frame.origin.y += 200
                 }, completion: { _ in
                     self.performSegue(withIdentifier: "toGame", sender: self)
