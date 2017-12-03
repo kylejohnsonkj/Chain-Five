@@ -11,7 +11,12 @@ import UIKit
 class MainViewController: UIViewController {
 
     @IBOutlet weak var leftImage: UIImageView!
-    @IBOutlet weak var leftText: UIButton!
+    @IBOutlet weak var leftText: UILabel!
+    @IBOutlet weak var rightImage: UIImageView!
+    @IBOutlet weak var rightText: UILabel!
+    @IBOutlet weak var divider: UIView!
+    @IBOutlet weak var gameTitle: UILabel!
+    @IBOutlet weak var kjappsLabel: UILabel!
     
     let cardsLayout = ["F0", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "F0",
                        "D10", "D13", "C6", "C5", "C4", "H4", "H5", "H6", "S13", "S10",
@@ -42,11 +47,19 @@ class MainViewController: UIViewController {
         view.addSubview(bottomBorder)
         bottomBorder.alpha = 0
         
+        leftImage.frame.origin.x -= 175
+        leftText.frame.origin.x -= 175
+        rightImage.frame.origin.x += 175
+        rightText.frame.origin.x += 175
+        divider.alpha = 0
+        gameTitle.frame.origin.y -= 200
+        kjappsLabel.frame.origin.y += 20
+        
         // load the 100 cards
         var i = 0
         while i < 100 {
             let card = Card(named: self.cardsLayout[i])
-            card.frame = CGRect(x: 30, y: 50, width: 35, height: 35)
+            card.frame = CGRect(x: view.frame.midX - (35 / 2), y: view.frame.midY - (35 / 2), width: 35, height: 35)
             self.view.addSubview(card)
             self.cardsOnBoard.append(card)
             i += 1
@@ -61,10 +74,41 @@ class MainViewController: UIViewController {
                     i += 1
                 }
             }
+            
         }, completion: { _ in
             bottomBorder.alpha = 1
         })
+
+        UIView.animate(withDuration: 0.5, delay: 0.5, options: [], animations: {
+            self.leftImage.frame.origin.x += 175
+            self.leftText.frame.origin.x += 175
+            self.rightImage.frame.origin.x -= 175
+            self.rightText.frame.origin.x -= 175
+            self.kjappsLabel.frame.origin.y -= 20
+            self.gameTitle.frame.origin.y += 200
+        }, completion: { _ in
+            UIView.animate(withDuration: 0.5, animations: {
+                self.divider.alpha = 1
+            })
+        })
         
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        let container = UIView()
+        container.frame = view.frame
+        view.addSubview(container)
+        container.addSubview(leftImage)
+        container.addSubview(leftText)
+        container.addSubview(rightImage)
+        container.addSubview(rightText)
+        container.addSubview(divider)
+        container.addSubview(kjappsLabel)
+        container.frame.origin.y += 200
+        
+        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+            container.frame.origin.y -= 200
+        })
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -72,7 +116,22 @@ class MainViewController: UIViewController {
             let touchLocation = touch.location(in: self.view)
             
             if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
-                performSegue(withIdentifier: "toGame", sender: self)
+                
+                let container = UIView()
+                container.frame = view.frame
+                view.addSubview(container)
+                container.addSubview(leftImage)
+                container.addSubview(leftText)
+                container.addSubview(rightImage)
+                container.addSubview(rightText)
+                container.addSubview(divider)
+                container.addSubview(kjappsLabel)
+                
+                UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+                    container.frame.origin.y += 200
+                }, completion: { _ in
+                    self.performSegue(withIdentifier: "toGame", sender: self)
+                })
             }
         }
     }

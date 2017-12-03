@@ -211,8 +211,7 @@ class GameViewController: UIViewController {
             
             // go back to main menu
             if menuLabel.frame.contains(touchLocation) || menuIconLabel.frame.contains(touchLocation) {
-                self.modalPresentationStyle = .overCurrentContext
-                dismiss(animated: false)
+                self.performSegue(withIdentifier: "toMain", sender: self)
             }
             
             var cardsInHand = getCurrentHand()
@@ -234,8 +233,7 @@ class GameViewController: UIViewController {
                         let ac = UIAlertController(title: "It's a Sequence!", message: "Player \(currentPlayer) has won the game.", preferredStyle: .alert)
                         ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
                             self.gameOver.removeFromSuperview()
-                            self.modalPresentationStyle = .overCurrentContext
-                            self.dismiss(animated: false)
+                            self.performSegue(withIdentifier: "toMain", sender: self)
                         })
                         self.present(ac, animated: true)
                         
