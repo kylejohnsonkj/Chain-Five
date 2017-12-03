@@ -24,15 +24,12 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jnN-81-6EK">
-                                <rect key="frame" x="61" y="559" width="104" height="30"/>
+                                <rect key="frame" x="60" y="578" width="104" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="Optima-Regular" family="Optima" pointSize="17"/>
                                 <state key="normal" title="Local 2 Player">
                                     <color key="titleColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
-                                <connections>
-                                    <segue destination="BYZ-38-t0r" kind="presentation" modalPresentationStyle="overCurrentContext" modalTransitionStyle="crossDissolve" id="tFm-r7-yOK"/>
-                                </connections>
                             </button>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ZIs-Aq-rAz">
                                 <rect key="frame" x="186" y="539" width="1" height="70"/>
@@ -40,7 +37,7 @@
                                 <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8vA-es-EvL">
-                                <rect key="frame" x="208" y="559" width="115" height="30"/>
+                                <rect key="frame" x="208" y="578" width="115" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="Optima-Regular" family="Optima" pointSize="17"/>
                                 <state key="normal" title="Online 2 Player">
@@ -54,10 +51,23 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="cards" translatesAutoresizingMaskIntoConstraints="NO" id="ftE-VA-jw9">
+                                <rect key="frame" x="81" y="541" width="63" height="38"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="globe" translatesAutoresizingMaskIntoConstraints="NO" id="ZrY-Ks-Zsp">
+                                <rect key="frame" x="243" y="539" width="44" height="44"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" red="0.81568627449999997" green="0.78532271229999995" blue="0.6800557263" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <viewLayoutGuide key="safeArea" id="UoX-Aa-7q1"/>
                     </view>
+                    <connections>
+                        <outlet property="leftImage" destination="ftE-VA-jw9" id="sIw-GN-XvX"/>
+                        <outlet property="leftText" destination="jnN-81-6EK" id="1Qs-Lf-hN0"/>
+                        <segue destination="BYZ-38-t0r" kind="presentation" identifier="toGame" animates="NO" modalPresentationStyle="overCurrentContext" id="5aj-C8-5io"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="esk-Dc-o7k" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -128,6 +138,8 @@
         </scene>
     </scenes>
     <resources>
+        <image name="cards" width="250" height="150"/>
+        <image name="globe" width="600" height="600"/>
         <image name="orange" width="100" height="100"/>
     </resources>
 </document>

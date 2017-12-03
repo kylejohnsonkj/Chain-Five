@@ -10,6 +10,9 @@ import UIKit
 
 class MainViewController: UIViewController {
 
+    @IBOutlet weak var leftImage: UIImageView!
+    @IBOutlet weak var leftText: UIButton!
+    
     let cardsLayout = ["F0", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "F0",
                        "D10", "D13", "C6", "C5", "C4", "H4", "H5", "H6", "S13", "S10",
                        "D9", "D6", "D12", "C3", "C2", "H2", "H3", "S12", "S6", "S9",
@@ -63,14 +66,16 @@ class MainViewController: UIViewController {
         })
     }
     
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if let touch = touches.first {
+            let touchLocation = touch.location(in: self.view)
+            
+            if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
+                performSegue(withIdentifier: "toGame", sender: self)
+            }
+        }
+        
     }
-    */
 
 }
+
