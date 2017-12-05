@@ -8,6 +8,7 @@
 
 import UIKit
 import GameplayKit
+import AudioToolbox
 
 // MARK: - Main Class
 
@@ -212,6 +213,7 @@ class GameViewController: UIViewController {
             
             // go back to main menu
             if menuLabel.frame.contains(touchLocation) || menuIconLabel.frame.contains(touchLocation) {
+                AudioServicesPlaySystemSound(1521)
                 self.performSegue(withIdentifier: "toMain", sender: self)
             }
             
@@ -232,6 +234,9 @@ class GameViewController: UIViewController {
                     container.addSubview(back)
                     
                     if detector.isValidSequence(cardsOnBoard, currentPlayer) {
+                        
+                        AudioServicesPlaySystemSound(1521)
+                        
                         let ac = UIAlertController(title: "It's a Sequence!", message: "Player \(currentPlayer) has won the game.", preferredStyle: .alert)
                         ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
                             self.gameOver.removeFromSuperview()
@@ -261,6 +266,8 @@ class GameViewController: UIViewController {
                     // only continue from here if no valid sequence was found
                     guard detector.isValidSequence(cardsOnBoard, currentPlayer) == false
                         else { return }
+                    
+                    AudioServicesPlaySystemSound(1520)
                     
                     cardsLeftLabel.text = "\(cardsInDeck.count - 1)"
                     
@@ -305,6 +312,8 @@ class GameViewController: UIViewController {
                 
                 if (cardsInHand[i].frame.contains(touchLocation)) {
                     cardsInHand[i].isSelected = true
+                    
+                    AudioServicesPlaySystemSound(1519)
                     
                     cardChosen = true
                     chosenCardIndex = i

@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import AudioToolbox
 
 class MainViewController: UIViewController {
 
@@ -116,6 +117,8 @@ class MainViewController: UIViewController {
             let touchLocation = touch.location(in: self.view)
             
             if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
+                
+                AudioServicesPlaySystemSound(1521)
                 
                 let container = UIView()
                 container.frame = view.frame
