@@ -69,6 +69,7 @@ class GameViewController: UIViewController {
     var currentPlayer = 0 {
         didSet {
             playerTurnLabel.text = "Player \(currentPlayer)'s turn"
+            view.isUserInteractionEnabled = true
             if currentPlayer == 1 {
                 playerIndicator.image = UIImage(named: "orange")
             } else {
@@ -220,6 +221,7 @@ class GameViewController: UIViewController {
                     
                     c.owner = currentPlayer
                     c.isMarked = true
+                    view.isUserInteractionEnabled = false
                     
                     let container = UIView()
                     container.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
