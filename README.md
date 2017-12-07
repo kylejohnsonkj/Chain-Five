@@ -1,4 +1,4 @@
-# Sequence*
+# SEQUENCE*
 WIP: Recreating one of my favorite board games, Sequence. Now in Swift!
 
 *Name is temporary until I think of a better, non-copyrighted one. :)
