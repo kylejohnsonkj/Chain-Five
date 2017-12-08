@@ -1,6 +1,6 @@
 //
 //  GameViewController.swift
-//  Sequence
+//  Chain Five
 //
 //  Created by Kyle Johnson on 11/23/17.
 //  Copyright © 2017 Kyle Johnson. All rights reserved.
@@ -35,7 +35,7 @@ class GameViewController: UIViewController {
                  "S10", "S13", "H6", "H5", "H4", "C4", "C5", "C6", "D13", "D10",
                  "F0", "H10", "H9", "H8", "H7", "C7", "C8", "C9", "C10", "F0"]
 
-    let detector = SequenceDetector()
+    let detector = ChainDetector()
     
     // 10x10 grid -- 100 cards total (ignoring jacks)
     var cardsOnBoard = [Card]()
@@ -233,11 +233,11 @@ class GameViewController: UIViewController {
                     back.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
                     container.addSubview(back)
                     
-                    if detector.isValidSequence(cardsOnBoard, currentPlayer) {
+                    if detector.isValidChain(cardsOnBoard, currentPlayer) {
                         
                         AudioServicesPlaySystemSound(1521)
                         
-                        let ac = UIAlertController(title: "It's a Sequence!", message: "Player \(currentPlayer) has won the game.", preferredStyle: .alert)
+                        let ac = UIAlertController(title: "It's a Chain!", message: "Player \(currentPlayer) has won the game.", preferredStyle: .alert)
                         ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
                             self.gameOver.removeFromSuperview()
                             self.performSegue(withIdentifier: "toMain", sender: self)
@@ -263,8 +263,8 @@ class GameViewController: UIViewController {
                         })
                     }
                     
-                    // only continue from here if no valid sequence was found
-                    guard detector.isValidSequence(cardsOnBoard, currentPlayer) == false
+                    // only continue from here if no valid chain was found
+                    guard detector.isValidChain(cardsOnBoard, currentPlayer) == false
                         else { return }
                     
                     AudioServicesPlaySystemSound(1520)

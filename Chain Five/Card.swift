@@ -1,6 +1,6 @@
 //
 //  Card.swift
-//  Sequence
+//  Chain Five
 //
 //  Created by Kyle Johnson on 12/1/17.
 //  Copyright © 2017 Kyle Johnson. All rights reserved.

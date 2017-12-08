@@ -1,20 +1,20 @@
 //
-//  SequenceDetector.swift
-//  Sequence
+//  chainDetector.swift
+//  Chain Five
 //
 //  Created by Kyle Johnson on 12/3/17.
 //  Copyright © 2017 Kyle Johnson. All rights reserved.
 //
 
-// This class was created to hold one gigantic method to detect any length of sequence on a 10x10 game board. Detects horizontal, vertical, and diagonal sequences.
+// This class was created to hold one gigantic method to detect any length of chain on a 10x10 game board. Detects horizontal, vertical, and diagonal chains.
 
-class SequenceDetector {
+class ChainDetector {
     
-    let sequence = 3
+    let chain = 3
     
-    func isValidSequence(_ cardsOnBoard: [Card], _ currentPlayer: Int) -> Bool {
+    func isValidChain(_ cardsOnBoard: [Card], _ currentPlayer: Int) -> Bool {
         
-        // MARK: - Horizontal Sequences
+        // MARK: - Horizontal Chains
         
         var length = 0
         for column in 0..<10 {
@@ -25,14 +25,14 @@ class SequenceDetector {
                 } else {
                     length = 0
                 }
-                if length == sequence {
+                if length == chain {
                     return true
                 }
             }
             length = 0
         }
         
-        // MARK: - Vertical Sequences
+        // MARK: - Vertical Chains
         
         length = 0
         for row in 0..<10 {
@@ -43,14 +43,14 @@ class SequenceDetector {
                 } else {
                     length = 0
                 }
-                if length == sequence {
+                if length == chain {
                     return true
                 }
             }
             length = 0
         }
         
-        // MARK: - Diagonal Sequences
+        // MARK: - Diagonal Chains
         
         // MARK: left up right
         length = 0
@@ -62,7 +62,7 @@ class SequenceDetector {
                 } else {
                     length = 0
                 }
-                if length == sequence {
+                if length == chain {
                     return true
                 }
                 current -= 9
@@ -79,7 +79,7 @@ class SequenceDetector {
                 } else {
                     length = 0
                 }
-                if length == sequence {
+                if length == chain {
                     return true
                 }
                 current -= 9
@@ -96,7 +96,7 @@ class SequenceDetector {
                 } else {
                     length = 0
                 }
-                if length == sequence {
+                if length == chain {
                     return true
                 }
                 current += 11
@@ -113,7 +113,7 @@ class SequenceDetector {
                 } else {
                     length = 0
                 }
-                if length == sequence {
+                if length == chain {
                     return true
                 }
                 current += 11

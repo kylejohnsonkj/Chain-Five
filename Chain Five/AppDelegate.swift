@@ -1,6 +1,6 @@
 //
 //  AppDelegate.swift
-//  Sequence
+//  Chain Five
 //
 //  Created by Kyle Johnson on 11/23/17.
 //  Copyright © 2017 Kyle Johnson. All rights reserved.

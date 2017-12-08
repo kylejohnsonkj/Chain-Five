@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:Sequence.xcodeproj">
+      location = "self:/Users/kylejohnson/Developer/HWS/Sequence/Chain Five.xcodeproj">
    </FileRef>
 </Workspace>

@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = E505403D1FD25B2F0040F5F4 /* Card.swift */; };
 		E56AD0581FCF2CA900F0E1E8 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56AD0571FCF2CA900F0E1E8 /* MainViewController.swift */; };
-		E5A53F851FD3D14E00B109A1 /* SequenceDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A53F841FD3D14E00B109A1 /* SequenceDetector.swift */; };
+		E5A53F851FD3D14E00B109A1 /* ChainDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */; };
 		E5EF7C6D1FC7C4DE00E09193 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5EF7C6C1FC7C4DE00E09193 /* AppDelegate.swift */; };
 		E5EF7C6F1FC7C4DE00E09193 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5EF7C6E1FC7C4DE00E09193 /* GameViewController.swift */; };
 		E5EF7C721FC7C4DE00E09193 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E5EF7C701FC7C4DE00E09193 /* Main.storyboard */; };
@@ -20,8 +20,8 @@
 /* Begin PBXFileReference section */
 		E505403D1FD25B2F0040F5F4 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		E56AD0571FCF2CA900F0E1E8 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
-		E5A53F841FD3D14E00B109A1 /* SequenceDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceDetector.swift; sourceTree = "<group>"; };
-		E5EF7C691FC7C4DE00E09193 /* Sequence.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sequence.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChainDetector.swift; sourceTree = "<group>"; };
+		E5EF7C691FC7C4DE00E09193 /* Chain Five.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Chain Five.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5EF7C6C1FC7C4DE00E09193 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E5EF7C6E1FC7C4DE00E09193 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		E5EF7C711FC7C4DE00E09193 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -44,7 +44,7 @@
 		E5EF7C601FC7C4DD00E09193 = {
 			isa = PBXGroup;
 			children = (
-				E5EF7C6B1FC7C4DE00E09193 /* Sequence */,
+				E5EF7C6B1FC7C4DE00E09193 /* Chain Five */,
 				E5EF7C6A1FC7C4DE00E09193 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -52,33 +52,33 @@
 		E5EF7C6A1FC7C4DE00E09193 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E5EF7C691FC7C4DE00E09193 /* Sequence.app */,
+				E5EF7C691FC7C4DE00E09193 /* Chain Five.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		E5EF7C6B1FC7C4DE00E09193 /* Sequence */ = {
+		E5EF7C6B1FC7C4DE00E09193 /* Chain Five */ = {
 			isa = PBXGroup;
 			children = (
 				E5EF7C6C1FC7C4DE00E09193 /* AppDelegate.swift */,
 				E56AD0571FCF2CA900F0E1E8 /* MainViewController.swift */,
 				E5EF7C6E1FC7C4DE00E09193 /* GameViewController.swift */,
 				E505403D1FD25B2F0040F5F4 /* Card.swift */,
-				E5A53F841FD3D14E00B109A1 /* SequenceDetector.swift */,
+				E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */,
 				E5EF7C701FC7C4DE00E09193 /* Main.storyboard */,
 				E5EF7C731FC7C4DE00E09193 /* Assets.xcassets */,
 				E5EF7C751FC7C4DE00E09193 /* LaunchScreen.storyboard */,
 				E5EF7C781FC7C4DE00E09193 /* Info.plist */,
 			);
-			path = Sequence;
+			path = "Chain Five";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E5EF7C681FC7C4DD00E09193 /* Sequence */ = {
+		E5EF7C681FC7C4DD00E09193 /* Chain Five */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E5EF7C7B1FC7C4DE00E09193 /* Build configuration list for PBXNativeTarget "Sequence" */;
+			buildConfigurationList = E5EF7C7B1FC7C4DE00E09193 /* Build configuration list for PBXNativeTarget "Chain Five" */;
 			buildPhases = (
 				E5EF7C651FC7C4DD00E09193 /* Sources */,
 				E5EF7C661FC7C4DD00E09193 /* Frameworks */,
@@ -88,9 +88,9 @@
 			);
 			dependencies = (
 			);
-			name = Sequence;
+			name = "Chain Five";
 			productName = Sequence;
-			productReference = E5EF7C691FC7C4DE00E09193 /* Sequence.app */;
+			productReference = E5EF7C691FC7C4DE00E09193 /* Chain Five.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -109,7 +109,7 @@
 					};
 				};
 			};
-			buildConfigurationList = E5EF7C641FC7C4DD00E09193 /* Build configuration list for PBXProject "Sequence" */;
+			buildConfigurationList = E5EF7C641FC7C4DD00E09193 /* Build configuration list for PBXProject "Chain Five" */;
 			compatibilityVersion = "Xcode 8.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -122,7 +122,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E5EF7C681FC7C4DD00E09193 /* Sequence */,
+				E5EF7C681FC7C4DD00E09193 /* Chain Five */,
 			);
 		};
 /* End PBXProject section */
@@ -148,7 +148,7 @@
 				E56AD0581FCF2CA900F0E1E8 /* MainViewController.swift in Sources */,
 				E5EF7C6F1FC7C4DE00E09193 /* GameViewController.swift in Sources */,
 				E5EF7C6D1FC7C4DE00E09193 /* AppDelegate.swift in Sources */,
-				E5A53F851FD3D14E00B109A1 /* SequenceDetector.swift in Sources */,
+				E5A53F851FD3D14E00B109A1 /* ChainDetector.swift in Sources */,
 				E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -288,9 +288,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = GP799FVH94;
-				INFOPLIST_FILE = Sequence/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Chain Five/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.kjapps.Sequence;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.kjapps.Chain-Five";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -303,9 +303,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = GP799FVH94;
-				INFOPLIST_FILE = Sequence/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Chain Five/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.kjapps.Sequence;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.kjapps.Chain-Five";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -315,7 +315,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E5EF7C641FC7C4DD00E09193 /* Build configuration list for PBXProject "Sequence" */ = {
+		E5EF7C641FC7C4DD00E09193 /* Build configuration list for PBXProject "Chain Five" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E5EF7C791FC7C4DE00E09193 /* Debug */,
@@ -324,7 +324,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E5EF7C7B1FC7C4DE00E09193 /* Build configuration list for PBXNativeTarget "Sequence" */ = {
+		E5EF7C7B1FC7C4DE00E09193 /* Build configuration list for PBXNativeTarget "Chain Five" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E5EF7C7C1FC7C4DE00E09193 /* Debug */,
