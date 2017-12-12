@@ -63,14 +63,16 @@ class GameViewController: UIViewController {
     
     var chosenCardIndex = -1
     var chosenCardId = ""
+    var lastSelectedCardId = ""
 
     var jackOutline = UIView()
     var gameOver = UIView()
+    var waitForAnimations = false
     
     var currentPlayer = 0 {
         didSet {
+            waitForAnimations = false
             playerTurnLabel.text = "Player \(currentPlayer)'s turn"
-            view.isUserInteractionEnabled = true
             if currentPlayer == 1 {
                 playerIndicator.image = UIImage(named: "orange")
             } else {
@@ -207,23 +209,40 @@ class GameViewController: UIViewController {
     
     // MARK: - Gameplay
     
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        touchesBegan(touches, with: event)
+    }
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
             let touchLocation = touch.location(in: self.view)
             
             // go back to main menu
             if menuLabel.frame.contains(touchLocation) || menuIconLabel.frame.contains(touchLocation) {
-                AudioServicesPlaySystemSound(1521)
+                AudioServicesPlaySystemSound(1520)
                 self.performSegue(withIdentifier: "toMain", sender: self)
             }
             
             var cardsInHand = getCurrentHand()
+            
+            // reset taptic feedback if no cards in hand are selected
+            for i in 0..<cardsInHand.count {
+                if (cardsInHand[i].frame.contains(touchLocation)) {
+                    break
+                } else {
+                    if i == cardsInHand.count - 1 {
+                        lastSelectedCardId = ""
+                    }
+                }
+            }
+            
             for c in cardsOnBoard {
                 if ((c.isSelected || isJack()) && !c.isFreeSpace && c.frame.contains(touchLocation)) {
                     
                     c.owner = currentPlayer
                     c.isMarked = true
-                    view.isUserInteractionEnabled = false
+                    waitForAnimations = true
                     
                     let container = UIView()
                     container.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
@@ -235,7 +254,7 @@ class GameViewController: UIViewController {
                     
                     if detector.isValidChain(cardsOnBoard, currentPlayer) {
                         
-                        AudioServicesPlaySystemSound(1521)
+                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
                         
                         let ac = UIAlertController(title: "It's a Chain!", message: "Player \(currentPlayer) has won the game.", preferredStyle: .alert)
                         ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
@@ -267,10 +286,12 @@ class GameViewController: UIViewController {
                     guard detector.isValidChain(cardsOnBoard, currentPlayer) == false
                         else { return }
                     
-                    AudioServicesPlaySystemSound(1520)
+                    AudioServicesPlaySystemSound(1519)
                     
-                    cardsLeftLabel.text = "\(cardsInDeck.count - 1)"
-                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [unowned self] in
+                        self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
+                    }
+
                     UIView.animate(withDuration: 1, delay: 0.75, options: [.curveEaseOut], animations: {
                         container.frame.origin = cardsInHand[self.chosenCardIndex].frame.origin
                         cardsInHand[self.chosenCardIndex].removeFromSuperview()
@@ -310,10 +331,13 @@ class GameViewController: UIViewController {
             for i in 0..<cardsInHand.count {
                 cardsInHand[i].isSelected = false
                 
-                if (cardsInHand[i].frame.contains(touchLocation)) {
+                if (waitForAnimations == false && cardsInHand[i].frame.contains(touchLocation)) {
                     cardsInHand[i].isSelected = true
                     
-                    AudioServicesPlaySystemSound(1519)
+                    if cardsInHand[i].id != lastSelectedCardId {
+                        lastSelectedCardId = cardsInHand[i].id
+                        AudioServicesPlaySystemSound(1519)
+                    }
                     
                     cardChosen = true
                     chosenCardIndex = i

@@ -118,7 +118,7 @@ class MainViewController: UIViewController {
             
             if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
                 
-                AudioServicesPlaySystemSound(1521)
+                AudioServicesPlaySystemSound(1520)
                 
                 let container = UIView()
                 container.frame = view.frame
