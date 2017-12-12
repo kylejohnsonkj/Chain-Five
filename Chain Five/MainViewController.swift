@@ -8,8 +8,9 @@
 
 import UIKit
 import AudioToolbox
+import MultipeerConnectivity
 
-class MainViewController: UIViewController {
+class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
 
     @IBOutlet weak var leftImage: UIImageView!
     @IBOutlet weak var leftText: UILabel!
@@ -33,9 +34,18 @@ class MainViewController: UIViewController {
     // 10x10 grid -- 100 cards total (ignoring jacks)
     var cardsOnBoard = [Card]()
     
+    var appDelegate: AppDelegate!
+    var prepareMPCGame = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         generateBoard()
+        
+        // for Multiplayer, show device to others
+        appDelegate = UIApplication.shared.delegate as! AppDelegate
+        appDelegate.mpcHandler.setupPeerWithDisplayName(displayName: UIDevice.current.name)
+        appDelegate.mpcHandler.setupSession()
+        appDelegate.mpcHandler.advertiseSelf(advertise: true)
     }
     
     func generateBoard() {
@@ -144,8 +154,35 @@ class MainViewController: UIViewController {
                     self.performSegue(withIdentifier: "toGame", sender: self)
                 })
             }
+            
+            if rightImage.frame.contains(touchLocation) || rightText.frame.contains(touchLocation) {
+                
+                AudioServicesPlaySystemSound(1520)
+                
+                if appDelegate.mpcHandler.session != nil {
+                    appDelegate.mpcHandler.setupBrowser()
+                    appDelegate.mpcHandler.browser.delegate = self
+                    present(appDelegate.mpcHandler.browser, animated: true)
+                }
+            }
         }
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "toGame" && prepareMPCGame == true {
+            let gameViewController = (segue.destination as! GameViewController)
+            gameViewController.isMPCGame = true
+        }
+    }
+    
+    func browserViewControllerDidFinish(_ browserViewController: MCBrowserViewController) {
+        appDelegate.mpcHandler.browser.dismiss(animated: true)
+        prepareMPCGame = true
+        self.performSegue(withIdentifier: "toGame", sender: self)
+    }
 
+    func browserViewControllerWasCancelled(_ browserViewController: MCBrowserViewController) {
+        appDelegate.mpcHandler.browser.dismiss(animated: true)
+    }
 }
 

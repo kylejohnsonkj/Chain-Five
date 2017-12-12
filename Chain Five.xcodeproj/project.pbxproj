@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E50306B51FDF8A4200412C83 /* MPCHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E50306B41FDF8A4200412C83 /* MPCHandler.swift */; };
 		E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = E505403D1FD25B2F0040F5F4 /* Card.swift */; };
 		E56AD0581FCF2CA900F0E1E8 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56AD0571FCF2CA900F0E1E8 /* MainViewController.swift */; };
 		E5A53F851FD3D14E00B109A1 /* ChainDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E50306B41FDF8A4200412C83 /* MPCHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPCHandler.swift; sourceTree = "<group>"; };
 		E505403D1FD25B2F0040F5F4 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		E56AD0571FCF2CA900F0E1E8 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChainDetector.swift; sourceTree = "<group>"; };
@@ -65,6 +67,7 @@
 				E5EF7C6E1FC7C4DE00E09193 /* GameViewController.swift */,
 				E505403D1FD25B2F0040F5F4 /* Card.swift */,
 				E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */,
+				E50306B41FDF8A4200412C83 /* MPCHandler.swift */,
 				E5EF7C701FC7C4DE00E09193 /* Main.storyboard */,
 				E5EF7C731FC7C4DE00E09193 /* Assets.xcassets */,
 				E5EF7C751FC7C4DE00E09193 /* LaunchScreen.storyboard */,
@@ -150,6 +153,7 @@
 				E5EF7C6D1FC7C4DE00E09193 /* AppDelegate.swift in Sources */,
 				E5A53F851FD3D14E00B109A1 /* ChainDetector.swift in Sources */,
 				E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */,
+				E50306B51FDF8A4200412C83 /* MPCHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
