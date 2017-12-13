@@ -38,6 +38,7 @@ class GameViewController: UIViewController {
 
     var isMPCGame = false
     let detector = ChainDetector()
+    var appDelegate: AppDelegate!
     
     // 10x10 grid -- 100 cards total (ignoring jacks)
     var cardsOnBoard = [Card]()
@@ -88,6 +89,8 @@ class GameViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        appDelegate = UIApplication.shared.delegate as! AppDelegate
+        
         print("isMPCGame: \(isMPCGame)")
         
         if isMPCGame == true {
@@ -126,7 +129,27 @@ class GameViewController: UIViewController {
     }
     
     @objc func handleReceivedDataWithNotification(notification: Notification) {
+        let userInfo = NSDictionary(dictionary: notification.userInfo!)
+        let receivedData: NSData = userInfo["data"] as! NSData
         
+        do {
+            
+            let message = try JSONSerialization.jsonObject(with: receivedData as Data, options: JSONSerialization.ReadingOptions.allowFragments) as! NSDictionary
+            let senderPeerID: MCPeerID = userInfo["peerID"] as! MCPeerID
+            let senderDisplayName = senderPeerID.displayName
+            print(senderDisplayName)
+            
+            let cardIndex: Int? = (message.object(forKey: "cardIndex") as? NSString)?.integerValue
+            let player: Int? = (message.object(forKey: "player") as? NSString)?.integerValue
+            
+            print("cardIndex: \(String(describing: cardIndex)) player: \(String(describing: player))")
+            
+            cardsOnBoard[cardIndex!].isMarked = true
+            cardsOnBoard[cardIndex!].owner = player!
+            
+        } catch {
+            // whatever
+        }
     }
     
     func generateBoard() {
@@ -272,6 +295,19 @@ class GameViewController: UIViewController {
                     c.isMarked = true
                     waitForAnimations = true
                     
+                    if isMPCGame {
+                        let cardIndexDict = ["cardIndex": c.id, "player": currentPlayer] as [String : Any]
+                        let cardIndexData = try! JSONSerialization.data(withJSONObject: cardIndexDict, options: .prettyPrinted)
+                        
+                        do {
+                            try appDelegate.mpcHandler.session.send(cardIndexData, toPeers: appDelegate.mpcHandler.session.connectedPeers, with: .reliable)
+                        } catch {
+                            // whatever
+                        }
+ 
+                        
+                    }
+
                     let container = UIView()
                     container.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
                     view.addSubview(container)
