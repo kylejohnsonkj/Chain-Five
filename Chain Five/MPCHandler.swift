@@ -16,7 +16,7 @@ import MultipeerConnectivity
 // should be able to combine these two into one update
 
 extension Notification.Name {
-    static let didChange = Notification.Name("MPC_DidChangeStateNotification")
+    static let didChangeState = Notification.Name("MPC_DidChangeStateNotification")
     static let didReceive = Notification.Name("MPC_DidReceiveDataNotification")
 }
 
@@ -26,6 +26,20 @@ class MPCHandler: NSObject, MCSessionDelegate {
     var session: MCSession!
     var browser: MCBrowserViewController!
     var advertiser: MCAdvertiserAssistant? = nil
+    
+    var state: Int! = 0 {
+        didSet {
+            if state == 0 {
+                print("NOT CONNECTED.")
+            }
+            if state == 1 {
+                print("CONNECTING...")
+            }
+            if state == 2 {
+                print("CONNECTED!")
+            }
+        }
+    }
     
     override init() {
         super.init()
@@ -58,7 +72,7 @@ class MPCHandler: NSObject, MCSessionDelegate {
     func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
         let userInfo = ["peerID": peerID, "state": state.rawValue] as [String : Any]
         DispatchQueue.main.async {
-            NotificationCenter.default.post(name: .didChange, object: nil, userInfo: userInfo)
+            NotificationCenter.default.post(name: .didChangeState, object: nil, userInfo: userInfo)
         }
     }
     

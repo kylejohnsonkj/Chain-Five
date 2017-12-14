@@ -15,8 +15,6 @@ import MultipeerConnectivity
 
 class GameViewController: UIViewController {
     
-    @IBOutlet weak var gameTitle: UIImageView!
-    @IBOutlet weak var gameHeader: UILabel!
     @IBOutlet weak var playerTurnLabel: UILabel!
     @IBOutlet weak var cardsLeftLabel: UILabel!
     @IBOutlet weak var playerIndicator: UIImageView!
@@ -37,6 +35,9 @@ class GameViewController: UIViewController {
                        "F0", "H10", "H9", "H8", "H7", "C7", "C8", "C9", "C10", "F0"]
 
     var isMPCGame = false
+    var isHost = false
+    var needSeedForShuffle = false
+    
     let detector = ChainDetector()
     var appDelegate: AppDelegate!
     
@@ -72,15 +73,38 @@ class GameViewController: UIViewController {
     var gameOver = UIView()
     var waitForAnimations = false
     
+    var playerID = 0
     var currentPlayer = 0 {
         didSet {
-            waitForAnimations = false
-            playerTurnLabel.text = "Player \(currentPlayer)'s turn"
-            if currentPlayer == 1 {
-                playerIndicator.image = UIImage(named: "orange")
+            if isMPCGame {
+                if playerID == currentPlayer {
+                    
+                    playerTurnLabel.text = "Your turn"
+                    if playerID == 1 {
+                        playerIndicator.image = UIImage(named: "orange")
+                    } else {
+                        playerIndicator.image = UIImage(named: "blue")
+                    }
+                } else {
+                    
+                    playerTurnLabel.text = "Their turn"
+                    if playerID != 1 {
+                        playerIndicator.image = UIImage(named: "orange")
+                    } else {
+                        playerIndicator.image = UIImage(named: "blue")
+                    }
+                }
+                
             } else {
-                playerIndicator.image = UIImage(named: "blue")
+                playerTurnLabel.text = "Player \(currentPlayer)'s turn"
+                if currentPlayer == 1 {
+                    playerIndicator.image = UIImage(named: "orange")
+                } else {
+                    playerIndicator.image = UIImage(named: "blue")
+                }
             }
+            
+            waitForAnimations = false
         }
     }
     
@@ -89,66 +113,111 @@ class GameViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        appDelegate = UIApplication.shared.delegate as! AppDelegate
-        
-        print("isMPCGame: \(isMPCGame)")
-        
-        if isMPCGame == true {
-
-            NotificationCenter.default.addObserver(self,
-                selector: #selector(peerChangedStateWithNotification(notification:)),
-                name: .didChange,
-                object: nil)
-            
-            NotificationCenter.default.addObserver(self,
-                selector: #selector(handleReceivedDataWithNotification(notification:)),
-                name: .didReceive,
-                object: nil)
-        }
-        
         generateBoard()
-        currentPlayer = 1
         
         // load the deck image
         let deck = Card(named: "B1-")
         deck.frame = CGRect(x: 293, y: 566, width: 35, height: 49)
         view.addSubview(deck)
         
-        cardsInDeck = createAndShuffleDeck()
+        appDelegate = UIApplication.shared.delegate as! AppDelegate
+        NotificationCenter.default.addObserver(self, selector: #selector(peerChangedStateWithNotification(notification:)), name: .didChangeState, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleReceivedDataWithNotification(notification:)), name: .didReceive, object: nil)
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-            self.drawCards(forPlayer: 1)
+        print("isMPCGame: \(isMPCGame)")
+        print("isHost? \(isHost)")
+        
+        if isMPCGame {
+            if isHost {
+                playerID = 1
+                generateDeckWithSeedAndSend()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
+                    self.drawCards(forPlayer: 1)
+                }
+            } else {
+                playerID = 2
+                needSeedForShuffle = true
+            }
+            
+        } else {
+            cardsInDeck = createAndShuffleDeck(seed: nil)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
+                self.drawCards(forPlayer: 1)
+            }
+        }
+        currentPlayer = 1
+    }
+    
+    func generateDeckWithSeedAndSend() {
+        
+        let seed = Int(arc4random_uniform(1000000))  // 1 million
+        
+        // convert data to json
+        let seedDict = ["seed": seed] as [String : Int]
+        let seedData = try! JSONSerialization.data(withJSONObject: seedDict, options: .prettyPrinted)
+        
+        cardsInDeck = createAndShuffleDeck(seed: seed)
+        
+        // try to send the data
+        do {
+            try appDelegate.mpcHandler.session.send(seedData, toPeers: appDelegate.mpcHandler.session.connectedPeers, with: .reliable)
+        } catch let error as NSError {
+            let ac = UIAlertController(title: "Send error", message: error.localizedDescription, preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            present(ac, animated: true)
         }
     }
     
+    // only called in multiplayer
     @objc func peerChangedStateWithNotification(notification: Notification) {
         let userInfo = NSDictionary(dictionary: notification.userInfo!)
-        let state = userInfo.object(forKey: "state") as! Int
+        appDelegate.mpcHandler.state = userInfo.object(forKey: "state") as? Int
         
-        print("state: \(state)")
+        if appDelegate.mpcHandler.state != 2 {
+            let ac = UIAlertController(title: "Connection Lost", message: "A player has left the game.", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                self.performSegue(withIdentifier: "toMain", sender: self)
+            })
+            self.present(ac, animated: true)
+        }
     }
     
+    // only called in multiplayer
     @objc func handleReceivedDataWithNotification(notification: Notification) {
         let userInfo = NSDictionary(dictionary: notification.userInfo!)
         let receivedData: NSData = userInfo["data"] as! NSData
-        
+
         do {
-            
-            let message = try JSONSerialization.jsonObject(with: receivedData as Data, options: JSONSerialization.ReadingOptions.allowFragments) as! NSDictionary
+            let data = try JSONSerialization.jsonObject(with: receivedData as Data, options: JSONSerialization.ReadingOptions.allowFragments) as! NSDictionary
             let senderPeerID: MCPeerID = userInfo["peerID"] as! MCPeerID
             let senderDisplayName = senderPeerID.displayName
             print(senderDisplayName)
             
-            let cardIndex: Int? = (message.object(forKey: "cardIndex") as? NSString)?.integerValue
-            let player: Int? = (message.object(forKey: "player") as? NSString)?.integerValue
+            // receiving seed
+            if data.count == 1 {
+                if needSeedForShuffle {
+                    let seed = (data.object(forKey: "seed") as AnyObject).integerValue
+                    cardsInDeck = createAndShuffleDeck(seed: seed!)
+                    self.drawCards(forPlayer: 1)
+                    needSeedForShuffle = false
+                }
+            }
             
-            print("cardIndex: \(String(describing: cardIndex)) player: \(String(describing: player))")
-            
-            cardsOnBoard[cardIndex!].isMarked = true
-            cardsOnBoard[cardIndex!].owner = player!
-            
-        } catch {
-            // whatever
+            // receiving placed card info
+            if data.count == 2 {
+                let cardIndex = (data.object(forKey: "cardIndex") as AnyObject).integerValue
+                let owner = (data.object(forKey: "owner") as AnyObject).integerValue
+                
+                print("cardIndex: \(cardIndex!)  owner: \(owner!)")
+                cardsOnBoard[cardIndex!].owner = owner!
+                cardsOnBoard[cardIndex!].isMarked = true
+                changeTurns()
+            }
+
+        } catch let error as NSError {
+            let ac = UIAlertController(title: "Receive error", message: error.localizedDescription, preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            present(ac, animated: true)
         }
     }
     
@@ -179,6 +248,7 @@ class GameViewController: UIViewController {
                 card.frame = CGRect(x: (col * 35) - 22, y: (row * 35) + 100, width: 35, height: 35)
                 self.view.addSubview(card)
                 self.cardsOnBoard.append(card)
+                card.index = i
                 i += 1
             }
         }
@@ -190,7 +260,7 @@ class GameViewController: UIViewController {
         cardsOnBoard[99].isFreeSpace = true     // btm right
     }
     
-    func createAndShuffleDeck() -> [Card] {
+    func createAndShuffleDeck(seed: Int?) -> [Card] {
         
         // generate two decks
         var j = 0
@@ -204,8 +274,13 @@ class GameViewController: UIViewController {
             j += 1
         }
         
-        // shuffle and return the cards
-        return GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
+        if seed == nil {
+            return GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
+        } else {
+            let lcg = GKLinearCongruentialRandomSource(seed: UInt64(seed!))
+            return lcg.arrayByShufflingObjects(in: cardsInDeck) as! [Card]
+        }
+        
     }
     
     func drawCards(forPlayer player: Int) {
@@ -271,6 +346,7 @@ class GameViewController: UIViewController {
             
             // go back to main menu
             if menuLabel.frame.contains(touchLocation) || menuIconLabel.frame.contains(touchLocation) {
+                
                 AudioServicesPlaySystemSound(1520)
                 self.performSegue(withIdentifier: "toMain", sender: self)
             }
@@ -291,20 +367,33 @@ class GameViewController: UIViewController {
             for c in cardsOnBoard {
                 if ((c.isSelected || isJack()) && !c.isFreeSpace && c.frame.contains(touchLocation)) {
                     
-                    c.owner = currentPlayer
-                    c.isMarked = true
+                    if isMPCGame && currentPlayer != playerID {
+                        break
+                    }
+                    
                     waitForAnimations = true
                     
                     if isMPCGame {
-                        let cardIndexDict = ["cardIndex": c.id, "player": currentPlayer] as [String : Any]
+                        c.owner = playerID
+                    } else {
+                        c.owner = currentPlayer
+                    }
+                    c.isMarked = true
+
+                    if isMPCGame && appDelegate.mpcHandler.session.connectedPeers.count > 0 {
+                        
+                        // convert data to json
+                        let cardIndexDict = ["cardIndex": c.index, "owner": c.owner] as [String : Int]
                         let cardIndexData = try! JSONSerialization.data(withJSONObject: cardIndexDict, options: .prettyPrinted)
                         
+                        // try to send the data
                         do {
                             try appDelegate.mpcHandler.session.send(cardIndexData, toPeers: appDelegate.mpcHandler.session.connectedPeers, with: .reliable)
-                        } catch {
-                            // whatever
+                        } catch let error as NSError {
+                            let ac = UIAlertController(title: "Send error", message: error.localizedDescription, preferredStyle: .alert)
+                            ac.addAction(UIAlertAction(title: "OK", style: .default))
+                            present(ac, animated: true)
                         }
- 
                         
                     }
 
@@ -365,7 +454,7 @@ class GameViewController: UIViewController {
                         if let nextCard = self.getNextCardFromDeck() {
                             cardsInHand[self.chosenCardIndex] = nextCard
                             
-                            if self.currentPlayer == 1 {
+                            if self.currentPlayer == 1 || self.isMPCGame {
                                 self.cardsInHand1[self.chosenCardIndex] = nextCard
                             } else {
                                 self.cardsInHand2[self.chosenCardIndex] = nextCard
@@ -376,14 +465,18 @@ class GameViewController: UIViewController {
                             UIView.transition(from: back, to: nextCard, duration: 1, options: [.transitionFlipFromRight], completion: nil)
                         }
                         
-                        // if it's player 2's turn to draw their cards
-                        if self.cardsInDeck.count == 98 {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [unowned self] in
-                                self.drawCards(forPlayer: 2)
-                                self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
+                        if self.isMPCGame {
+                            self.changeTurns()
+                        } else {
+                            // if it's player 2's turn to draw their cards
+                            if self.cardsInDeck.count == 98 {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [unowned self] in
+                                    self.drawCards(forPlayer: 2)
+                                    self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
+                                }
                             }
+                            self.swapHands(cardsInHand)
                         }
-                        self.swapPlayers(cardsInHand)
                     })
                 }
             }
@@ -393,6 +486,7 @@ class GameViewController: UIViewController {
             
             // used for highlighting cards on game board when selected in deck
             for i in 0..<cardsInHand.count {
+                
                 cardsInHand[i].isSelected = false
                 
                 if (waitForAnimations == false && cardsInHand[i].frame.contains(touchLocation)) {
@@ -425,12 +519,43 @@ class GameViewController: UIViewController {
         }
     }
     
+    func changeTurns() {
+        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+            // fade out player indicator
+            self.playerIndicator.alpha = 0
+            self.playerTurnLabel.alpha = 0
+        }, completion: { _ in
+            
+            if self.currentPlayer == 1 {
+                self.currentPlayer = 2
+            } else {
+                self.currentPlayer = 1
+            }
+            
+            UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+                // fade in player indicator
+                self.playerIndicator.alpha = 1
+                self.playerTurnLabel.alpha = 1
+            }, completion: { _ in
+
+                for i in 0..<5 {
+                    self.cardsInHand1[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
+                    self.view.addSubview(self.cardsInHand1[i])
+                }
+            })
+        })
+    }
+    
     func isJack() -> Bool {
         return (chosenCardId == "C11-" || chosenCardId == "D11-" || chosenCardId == "H11-" || chosenCardId == "S11-")
     }
     
     func getCurrentHand() -> [Card] {
-        return currentPlayer == 1 ? cardsInHand1 : cardsInHand2
+        if isMPCGame == true {
+            return cardsInHand1
+        } else {
+            return currentPlayer == 1 ? cardsInHand1 : cardsInHand2
+        }
     }
     
     func getNextCardFromDeck() -> Card? {
@@ -439,14 +564,15 @@ class GameViewController: UIViewController {
             self.view.addSubview(nextCard)
             return nextCard
         } else {
-            // if out of cards, generate and shuffle new deck
-            // then recursively grab next card
-            cardsInDeck = createAndShuffleDeck()
+            // return blank for now
+            if isHost && appDelegate.mpcHandler.session.connectedPeers.count > 0 {
+                generateDeckWithSeedAndSend()
+            }
             return getNextCardFromDeck()
         }
     }
     
-    func swapPlayers(_ hand: [Card]) {
+    func swapHands(_ hand: [Card]) {
         
         var cardsInHand = getCurrentHand()
         

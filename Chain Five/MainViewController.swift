@@ -34,18 +34,57 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     // 10x10 grid -- 100 cards total (ignoring jacks)
     var cardsOnBoard = [Card]()
     
+    // for MultipeerConnectivity purposes
     var appDelegate: AppDelegate!
     var prepareMPCGame = false
+    var isHost = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
         generateBoard()
         
-        // for Multiplayer, show device to others
+        prepareMPCGame = false
+        isHost = false
+        
         appDelegate = UIApplication.shared.delegate as! AppDelegate
+        
+        appDelegate.mpcHandler.peerID = nil
+        appDelegate.mpcHandler.session = nil
+        appDelegate.mpcHandler.browser = nil
+        appDelegate.mpcHandler.advertiser = nil
+        
+        // for Multiplayer, show device to others
         appDelegate.mpcHandler.setupPeerWithDisplayName(displayName: UIDevice.current.name)
         appDelegate.mpcHandler.setupSession()
         appDelegate.mpcHandler.advertiseSelf(advertise: true)
+        
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(peerChangedStateWithNotification(notification:)), name: .didChangeState, object: nil)
+    }
+    
+    @objc func peerChangedStateWithNotification(notification: Notification) {
+        let userInfo = NSDictionary(dictionary: notification.userInfo!)
+        appDelegate.mpcHandler.state = userInfo.object(forKey: "state") as? Int
+        
+        if appDelegate.mpcHandler.state == 2 {
+            prepareMPCGame = true
+            if appDelegate.mpcHandler.browser != nil {
+                isHost = true
+                appDelegate.mpcHandler.browser.dismiss(animated: true)
+            }
+            
+            if isHost == false {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
+                    self.performSegue(withIdentifier: "toGame", sender: self)
+                }
+            } else {
+                self.performSegue(withIdentifier: "toGame", sender: self)
+            }
+        }
+    }
+    
+    @objc func handleReceivedDataWithNotification(notification: Notification) {
+
     }
     
     func generateBoard() {
@@ -172,17 +211,19 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         if segue.identifier == "toGame" && prepareMPCGame == true {
             let gameViewController = (segue.destination as! GameViewController)
             gameViewController.isMPCGame = true
+            if isHost {
+                gameViewController.isHost = true
+            }
         }
     }
     
     func browserViewControllerDidFinish(_ browserViewController: MCBrowserViewController) {
-        appDelegate.mpcHandler.browser.dismiss(animated: true)
-        prepareMPCGame = true
-        self.performSegue(withIdentifier: "toGame", sender: self)
+
     }
 
     func browserViewControllerWasCancelled(_ browserViewController: MCBrowserViewController) {
         appDelegate.mpcHandler.browser.dismiss(animated: true)
+        appDelegate.mpcHandler.browser = nil
     }
 }
 

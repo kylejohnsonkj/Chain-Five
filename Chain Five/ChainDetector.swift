@@ -1,5 +1,5 @@
 //
-//  chainDetector.swift
+//  ChainDetector.swift
 //  Chain Five
 //
 //  Created by Kyle Johnson on 12/3/17.

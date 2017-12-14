@@ -22,7 +22,9 @@ class Card: UIImageView {
         }
     }
     
+    var index: Int
     var owner: Int
+    
     var isMarked: Bool {
         didSet {
             guard owner != 0 else { return }
@@ -46,6 +48,7 @@ class Card: UIImageView {
         self.owner = 0
         self.isMarked = false
         self.isFreeSpace = false
+        self.index = -1
         
         let image = UIImage(named: id)
         super.init(image: image)
