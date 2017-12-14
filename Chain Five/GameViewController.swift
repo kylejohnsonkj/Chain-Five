@@ -36,7 +36,6 @@ class GameViewController: UIViewController {
 
     var isMPCGame = false
     var isHost = false
-    var needSeedForShuffle = false
     
     let detector = ChainDetector()
     var appDelegate: AppDelegate!
@@ -78,7 +77,6 @@ class GameViewController: UIViewController {
         didSet {
             if isMPCGame {
                 if playerID == currentPlayer {
-                    
                     playerTurnLabel.text = "Your turn"
                     if playerID == 1 {
                         playerIndicator.image = UIImage(named: "orange")
@@ -86,7 +84,6 @@ class GameViewController: UIViewController {
                         playerIndicator.image = UIImage(named: "blue")
                     }
                 } else {
-                    
                     playerTurnLabel.text = "Their turn"
                     if playerID != 1 {
                         playerIndicator.image = UIImage(named: "orange")
@@ -96,10 +93,11 @@ class GameViewController: UIViewController {
                 }
                 
             } else {
-                playerTurnLabel.text = "Player \(currentPlayer)'s turn"
                 if currentPlayer == 1 {
+                    playerTurnLabel.text = "Orange's turn"
                     playerIndicator.image = UIImage(named: "orange")
                 } else {
+                    playerTurnLabel.text = "Blue's turn"
                     playerIndicator.image = UIImage(named: "blue")
                 }
             }
@@ -136,7 +134,6 @@ class GameViewController: UIViewController {
                 }
             } else {
                 playerID = 2
-                needSeedForShuffle = true
             }
             
         } else {
@@ -174,7 +171,7 @@ class GameViewController: UIViewController {
         appDelegate.mpcHandler.state = userInfo.object(forKey: "state") as? Int
         
         if appDelegate.mpcHandler.state != 2 {
-            let ac = UIAlertController(title: "Connection Lost", message: "A player has left the game.", preferredStyle: .alert)
+            let ac = UIAlertController(title: "Connection Lost", message: "Other player has left the game!", preferredStyle: .alert)
             ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
                 self.performSegue(withIdentifier: "toMain", sender: self)
             })
@@ -193,14 +190,15 @@ class GameViewController: UIViewController {
             let senderDisplayName = senderPeerID.displayName
             print(senderDisplayName)
             
-            // receiving seed
+            // receiving seed for randomizer
             if data.count == 1 {
-                if needSeedForShuffle {
-                    let seed = (data.object(forKey: "seed") as AnyObject).integerValue
-                    cardsInDeck = createAndShuffleDeck(seed: seed!)
-                    self.drawCards(forPlayer: 1)
-                    needSeedForShuffle = false
+                let seed = (data.object(forKey: "seed") as AnyObject).integerValue
+                cardsInDeck = createAndShuffleDeck(seed: seed!)
+                // discard player 1's draw
+                for _ in 1...5 {
+                    _ = cardsInDeck.popLast()
                 }
+                self.drawCards(forPlayer: 1)
             }
             
             // receiving placed card info
@@ -211,7 +209,15 @@ class GameViewController: UIViewController {
                 print("cardIndex: \(cardIndex!)  owner: \(owner!)")
                 cardsOnBoard[cardIndex!].owner = owner!
                 cardsOnBoard[cardIndex!].isMarked = true
-                changeTurns()
+                _ = cardsInDeck.popLast()   // discard other player's drawn card
+                
+                if detector.isValidChain(cardsOnBoard, currentPlayer) {
+                    AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+                    presentWinScreen()
+                } else {
+                    AudioServicesPlaySystemSound(1519)
+                    changeTurns()
+                }
             }
 
         } catch let error as NSError {
@@ -331,6 +337,13 @@ class GameViewController: UIViewController {
                 })
             }
         }
+        
+        // discard player 2's draw
+        if isMPCGame && isHost {
+            for _ in 1...5 {
+                _ = cardsInDeck.popLast()
+            }
+        }
     }
     
     // MARK: - Gameplay
@@ -348,7 +361,14 @@ class GameViewController: UIViewController {
             if menuLabel.frame.contains(touchLocation) || menuIconLabel.frame.contains(touchLocation) {
                 
                 AudioServicesPlaySystemSound(1520)
-                self.performSegue(withIdentifier: "toMain", sender: self)
+                
+                let ac = UIAlertController(title: "Are you sure?", message: "Qutting will end the game in progress.", preferredStyle: .alert)
+                ac.addAction(UIAlertAction(title: "Yes", style: .default) { _ in
+                    self.gameOver.removeFromSuperview()
+                    self.performSegue(withIdentifier: "toMain", sender: self)
+                })
+                ac.addAction(UIAlertAction(title: "No", style: .default))
+                self.present(ac, animated: true)
             }
             
             var cardsInHand = getCurrentHand()
@@ -406,33 +426,8 @@ class GameViewController: UIViewController {
                     container.addSubview(back)
                     
                     if detector.isValidChain(cardsOnBoard, currentPlayer) {
-                        
                         AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-                        
-                        let ac = UIAlertController(title: "It's a Chain!", message: "Player \(currentPlayer) has won the game.", preferredStyle: .alert)
-                        ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-                            self.gameOver.removeFromSuperview()
-                            self.performSegue(withIdentifier: "toMain", sender: self)
-                        })
-                        self.present(ac, animated: true)
-                        
-                        var gameOverColor: CGColor
-                        if currentPlayer == 1 {
-                            gameOverColor = UIColor(red: 255/255, green: 180/255, blue: 1/255, alpha: 1).cgColor
-                        } else {
-                            gameOverColor = UIColor(red: 94/255, green: 208/255, blue: 255/255, alpha: 1).cgColor
-                        }
-                        
-                        gameOver.frame = view.frame
-                        gameOver.layer.backgroundColor = gameOverColor
-                        gameOver.layer.zPosition = 2
-                        view.addSubview(gameOver)
-                        gameOver.alpha = 0
-                        
-                        // fade in color
-                        UIView.animate(withDuration: 1.0, animations: {
-                            self.gameOver.alpha = 1
-                        })
+                        presentWinScreen()
                     }
                     
                     // only continue from here if no valid chain was found
@@ -517,6 +512,43 @@ class GameViewController: UIViewController {
                 }
             }
         }
+    }
+    
+    func presentWinScreen() {
+        
+        if currentPlayer == 1 {
+            let ac = UIAlertController(title: "It's a Chain!", message: "Orange has won the game.", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                self.gameOver.removeFromSuperview()
+                self.performSegue(withIdentifier: "toMain", sender: self)
+            })
+            self.present(ac, animated: true)
+        } else {
+            let ac = UIAlertController(title: "It's a Chain!", message: "Blue has won the game.", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                self.gameOver.removeFromSuperview()
+                self.performSegue(withIdentifier: "toMain", sender: self)
+            })
+            self.present(ac, animated: true)
+        }
+        
+        var gameOverColor: CGColor
+        if currentPlayer == 1 {
+            gameOverColor = UIColor(red: 255/255, green: 180/255, blue: 1/255, alpha: 1).cgColor
+        } else {
+            gameOverColor = UIColor(red: 94/255, green: 208/255, blue: 255/255, alpha: 1).cgColor
+        }
+        
+        gameOver.frame = view.frame
+        gameOver.layer.backgroundColor = gameOverColor
+        gameOver.layer.zPosition = 2
+        view.addSubview(gameOver)
+        gameOver.alpha = 0
+        
+        // fade in color
+        UIView.animate(withDuration: 1.0, animations: {
+            self.gameOver.alpha = 1
+        })
     }
     
     func changeTurns() {
