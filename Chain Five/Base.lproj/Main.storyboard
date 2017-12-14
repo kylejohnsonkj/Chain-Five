@@ -57,20 +57,17 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="♠ CHAIN FIVE ♣" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Tgp-TI-Ie5">
-                                <rect key="frame" x="75" y="63" width="222" height="28"/>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="title" translatesAutoresizingMaskIntoConstraints="NO" id="KHF-CH-MFt">
+                                <rect key="frame" x="91" y="51" width="192" height="56"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" name="Optima-Regular" family="Optima" pointSize="24"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" red="0.81568627449999997" green="0.78532271229999995" blue="0.6800557263" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <viewLayoutGuide key="safeArea" id="UoX-Aa-7q1"/>
                     </view>
                     <connections>
                         <outlet property="divider" destination="ZIs-Aq-rAz" id="jgJ-xz-Xc2"/>
-                        <outlet property="gameTitle" destination="Tgp-TI-Ie5" id="XJi-m5-Eia"/>
+                        <outlet property="gameTitle" destination="KHF-CH-MFt" id="GKf-OW-aS4"/>
                         <outlet property="kjappsLabel" destination="gAE-t7-8rU" id="nqk-ym-mXI"/>
                         <outlet property="leftImage" destination="ftE-VA-jw9" id="sIw-GN-XvX"/>
                         <outlet property="leftText" destination="UZa-al-xtg" id="cnN-cq-QgW"/>
@@ -109,13 +106,6 @@
                                 <rect key="frame" x="15" y="573" width="30" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="♠ CHAIN FIVE ♣" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zHm-AI-bgo">
-                                <rect key="frame" x="75" y="63" width="222" height="28"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" name="Optima-Regular" family="Optima" pointSize="24"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="MENU" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Yap-Ty-fdB">
                                 <rect key="frame" x="161" y="636" width="52" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -130,6 +120,10 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="title" translatesAutoresizingMaskIntoConstraints="NO" id="kcb-1p-NBW">
+                                <rect key="frame" x="91" y="51" width="192" height="56"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" red="0.81568627449999997" green="0.78532271229999995" blue="0.6800557263" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
@@ -152,5 +146,6 @@
         <image name="cards" width="250" height="150"/>
         <image name="globe" width="600" height="600"/>
         <image name="orange" width="100" height="100"/>
+        <image name="title" width="417" height="123"/>
     </resources>
 </document>

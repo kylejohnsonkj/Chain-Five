@@ -125,15 +125,19 @@ class GameViewController: UIViewController {
         print("isMPCGame: \(isMPCGame)")
         print("isHost? \(isHost)")
         
+        appDelegate.mpcHandler.advertiser!.stop()
+        
         if isMPCGame {
-            if isHost {
-                playerID = 1
-                generateDeckWithSeedAndSend()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-                    self.drawCards(forPlayer: 1)
+            if cardsInDeck.count == 0 {
+                if isHost {
+                    playerID = 1
+                    generateDeckWithSeedAndSend()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
+                        self.drawCards(forPlayer: 1)
+                    }
+                } else {
+                    playerID = 2
                 }
-            } else {
-                playerID = 2
             }
             
         } else {
@@ -171,7 +175,7 @@ class GameViewController: UIViewController {
         appDelegate.mpcHandler.state = userInfo.object(forKey: "state") as? Int
         
         if appDelegate.mpcHandler.state != 2 {
-            let ac = UIAlertController(title: "Connection Lost", message: "Other player has left the game!", preferredStyle: .alert)
+            let ac = UIAlertController(title: "Connection Lost", message: "Opponent has left the game!", preferredStyle: .alert)
             ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
                 self.performSegue(withIdentifier: "toMain", sender: self)
             })
@@ -234,14 +238,14 @@ class GameViewController: UIViewController {
         cardsLeftLabel.alpha = 0
 
         // used for jack highlighting
-        jackOutline.frame = CGRect(x: 10, y: 132, width: 356, height: 357)
+        jackOutline.frame = CGRect(x: 10, y: 137, width: 356, height: 357)
         jackOutline.layer.borderColor = UIColor.green.cgColor
         jackOutline.layer.borderWidth = 0
         view.addSubview(jackOutline)
         
         // adds black line below bottom row of cards
         let bottomBorder = UIView()
-        bottomBorder.frame = CGRect(x: 13, y: 485, width: 350, height: 1)
+        bottomBorder.frame = CGRect(x: 13, y: 490, width: 350, height: 1)
         bottomBorder.layer.borderColor = UIColor(red: 63/255, green: 63/255, blue: 63/255, alpha: 1).cgColor
         bottomBorder.layer.borderWidth = 1
         view.addSubview(bottomBorder)
@@ -251,7 +255,7 @@ class GameViewController: UIViewController {
         for row in 1...10 {
             for col in 1...10 {
                 let card = Card(named: self.cardsLayout[i])
-                card.frame = CGRect(x: (col * 35) - 22, y: (row * 35) + 100, width: 35, height: 35)
+                card.frame = CGRect(x: (col * 35) - 22, y: (row * 35) + 105, width: 35, height: 35)
                 self.view.addSubview(card)
                 self.cardsOnBoard.append(card)
                 card.index = i
@@ -280,13 +284,18 @@ class GameViewController: UIViewController {
             j += 1
         }
         
+        var array: [Card] = []
         if seed == nil {
-            return GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
+            array = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
         } else {
             let lcg = GKLinearCongruentialRandomSource(seed: UInt64(seed!))
-            return lcg.arrayByShufflingObjects(in: cardsInDeck) as! [Card]
+            array = lcg.arrayByShufflingObjects(in: cardsInDeck) as! [Card]
         }
         
+        for i in 0..<array.count {
+            array[i].index = i
+        }
+        return array.reversed()
     }
     
     func drawCards(forPlayer player: Int) {
@@ -306,6 +315,8 @@ class GameViewController: UIViewController {
             container.addSubview(back)
             
             if let card = self.cardsInDeck.popLast() {
+                
+                print(card.index)
                 
                 UIView.animate(withDuration: 1, delay: TimeInterval(0.75 * Double(col)), options: [.curveEaseOut], animations: {
                     container.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
@@ -367,7 +378,7 @@ class GameViewController: UIViewController {
                     self.gameOver.removeFromSuperview()
                     self.performSegue(withIdentifier: "toMain", sender: self)
                 })
-                ac.addAction(UIAlertAction(title: "No", style: .default))
+                ac.addAction(UIAlertAction(title: "No", style: .cancel))
                 self.present(ac, animated: true)
             }
             
@@ -484,8 +495,9 @@ class GameViewController: UIViewController {
                 
                 cardsInHand[i].isSelected = false
                 
-                if (waitForAnimations == false && cardsInHand[i].frame.contains(touchLocation)) {
+                if waitForAnimations == false && cardsInHand[i].frame.contains(touchLocation) {
                     cardsInHand[i].isSelected = true
+                    print(cardsInHand[i].index)
                     
                     if cardsInHand[i].id != lastSelectedCardId {
                         lastSelectedCardId = cardsInHand[i].id

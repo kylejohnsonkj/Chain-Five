@@ -17,7 +17,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     @IBOutlet weak var rightImage: UIImageView!
     @IBOutlet weak var rightText: UILabel!
     @IBOutlet weak var divider: UIView!
-    @IBOutlet weak var gameTitle: UILabel!
+    @IBOutlet weak var gameTitle: UIImageView!
     @IBOutlet weak var kjappsLabel: UILabel!
     
     let cardsLayout = ["F0", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "F0",
@@ -91,7 +91,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
 
         // adds black line below bottom row of cards
         let bottomBorder = UIView()
-        bottomBorder.frame = CGRect(x: 13, y: 485, width: 350, height: 1)
+        bottomBorder.frame = CGRect(x: 13, y: 490, width: 350, height: 1)
         bottomBorder.layer.borderColor = UIColor.black.cgColor
         bottomBorder.layer.borderWidth = 1
         view.addSubview(bottomBorder)
@@ -109,7 +109,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         var i = 0
         while i < 100 {
             let card = Card(named: self.cardsLayout[i])
-            card.frame = CGRect(x: view.frame.midX - (35 / 2), y: view.frame.midY - (35 / 2), width: 35, height: 35)
+            card.frame = CGRect(x: view.frame.midX - (35 / 2), y: view.frame.midY - (35 / 2) + 5, width: 35, height: 35)
             self.view.addSubview(card)
             self.cardsOnBoard.append(card)
             i += 1
@@ -120,7 +120,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         UIView.animate(withDuration: 1, animations: {
             for row in 1...10 {
                 for col in 1...10 {
-                    self.cardsOnBoard[i].frame = CGRect(x: (col * 35) - 22, y: (row * 35) + 100, width: 35, height: 35)
+                    self.cardsOnBoard[i].frame = CGRect(x: (col * 35) - 22, y: (row * 35) + 105, width: 35, height: 35)
                     i += 1
                 }
             }
