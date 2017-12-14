@@ -278,6 +278,7 @@ class GameViewController: UIViewController {
             for suit in 0..<suits.count {
                 for rank in 1...13 {
                     let card = Card(named: "\(suits[suit])\(rank)-")
+//                    let card = Card(named: "S11-")
                     cardsInDeck.append(card)
                 }
             }

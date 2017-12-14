@@ -10,7 +10,7 @@
 
 class ChainDetector {
     
-    let chain = 3
+    let chain = 5
     
     func isValidChain(_ cardsOnBoard: [Card], _ currentPlayer: Int) -> Bool {
         
@@ -26,6 +26,7 @@ class ChainDetector {
                     length = 0
                 }
                 if length == chain {
+                    print("horizontal chain")
                     return true
                 }
             }
@@ -44,6 +45,7 @@ class ChainDetector {
                     length = 0
                 }
                 if length == chain {
+                    print("vertical chain")
                     return true
                 }
             }
@@ -63,6 +65,7 @@ class ChainDetector {
                     length = 0
                 }
                 if length == chain {
+                    print("diagonal left up right")
                     return true
                 }
                 current -= 9
@@ -80,6 +83,7 @@ class ChainDetector {
                     length = 0
                 }
                 if length == chain {
+                    print("diagonal btm up right")
                     return true
                 }
                 current -= 9
@@ -93,10 +97,12 @@ class ChainDetector {
             while (current < 100) {
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
+                    print("current: \(current)")
                 } else {
                     length = 0
                 }
                 if length == chain {
+                    print("diagonal left down right")
                     return true
                 }
                 current += 11
@@ -114,6 +120,7 @@ class ChainDetector {
                     length = 0
                 }
                 if length == chain {
+                    print("diagonal top down right")
                     return true
                 }
                 current += 11
