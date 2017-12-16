@@ -228,10 +228,10 @@ class GameViewController: UIViewController {
                         if isValidChain == false {
                             if self.currentPlayer == 1 {
                                 (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, 2)
-                                if isValidChain { print("WTF") }
+                                if isValidChain { print("Odd case, player went quickly!") }
                             } else {
                                 (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, 1)
-                                if isValidChain { print("WTF") }
+                                if isValidChain { print("Odd case, player went quickly!") }
                             }
                         }
                         
@@ -338,6 +338,8 @@ class GameViewController: UIViewController {
     
     func drawCards(forPlayer player: Int) {
         
+        waitForAnimations = true
+        
         // choose five cards from the deck
         for col in 1...5 {
             
@@ -366,6 +368,12 @@ class GameViewController: UIViewController {
                         self.cardsInHand1.append(card)
                     } else {
                         self.cardsInHand2.append(card)
+                    }
+                    
+                    if col == 5 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
+                            self.waitForAnimations = false
+                        }
                     }
                     
                     UIView.transition(from: back, to: card, duration: 1, options: [.transitionFlipFromRight], completion: { _ in
@@ -716,6 +724,8 @@ class GameViewController: UIViewController {
                 if self.cardsInDeck.count < 93 {
                     self.playerIndicator.alpha = 1
                     self.playerTurnLabel.alpha = 1
+                } else {
+                    self.waitForAnimations = true
                 }
             })
         })
