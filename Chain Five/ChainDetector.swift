@@ -10,123 +10,161 @@
 
 class ChainDetector {
     
-    let chain = 5
+    let chain = 3
     
-    func isValidChain(_ cardsOnBoard: [Card], _ currentPlayer: Int) -> Bool {
+    func isValidChain(_ cardsOnBoard: [Card], _ currentPlayer: Int) -> (Bool, [Int]) {
+        
+        var winningIndices: [Int] = []
         
         // MARK: - Horizontal Chains
-        
         var length = 0
         for column in 0..<10 {
             for row in 0..<10 {
                 let current = (column * 10) + row
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
+                    if cardsOnBoard[current].isFreeSpace == false {
+                        winningIndices.append(current)
+                    }
                 } else {
                     length = 0
+                    winningIndices = []
                 }
                 if length == chain {
                     print("horizontal chain")
-                    return true
+                    print(winningIndices)
+                    return (true, winningIndices)
                 }
             }
             length = 0
         }
+        winningIndices = []
         
         // MARK: - Vertical Chains
-        
         length = 0
         for row in 0..<10 {
             for column in 0..<10 {
                 let current = (column * 10) + row
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
+                    if cardsOnBoard[current].isFreeSpace == false {
+                        winningIndices.append(current)
+                    }
                 } else {
                     length = 0
+                    winningIndices = []
                 }
                 if length == chain {
                     print("vertical chain")
-                    return true
+                    print(winningIndices)
+                    return (true, winningIndices)
                 }
             }
             length = 0
         }
+        winningIndices = []
         
         // MARK: - Diagonal Chains
-        
-        // MARK: left up right
+        // left up right
         length = 0
         for left in 1...9 {
             var current = left * 10
             while (current > 0) {
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
+                    if cardsOnBoard[current].isFreeSpace == false {
+                        winningIndices.append(current)
+                    }
                 } else {
                     length = 0
+                    winningIndices = []
                 }
                 if length == chain {
                     print("diagonal left up right")
-                    return true
+                    print(winningIndices)
+                    return (true, winningIndices)
                 }
                 current -= 9
             }
+            length = 0
         }
+        winningIndices = []
         
-        // MARK: btm up right
+        // btm up right
         length = 0
         for btm in 91...98 {
             var current = btm
             while (current > 0) {
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
+                    if cardsOnBoard[current].isFreeSpace == false {
+                        winningIndices.append(current)
+                    }
                 } else {
                     length = 0
+                    winningIndices = []
                 }
                 if length == chain {
                     print("diagonal btm up right")
-                    return true
+                    print(winningIndices)
+                    return (true, winningIndices)
                 }
                 current -= 9
             }
+            length = 0
         }
+        winningIndices = []
         
-        // MARK: left down right
+        // left down right
         length = 0
         for left in 0...8 {
             var current = left * 10
             while (current < 100) {
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
-                    print("current: \(current)")
+                    if cardsOnBoard[current].isFreeSpace == false {
+                        winningIndices.append(current)
+                    }
                 } else {
                     length = 0
+                    winningIndices = []
                 }
                 if length == chain {
                     print("diagonal left down right")
-                    return true
+                    print(winningIndices)
+                    return (true, winningIndices)
                 }
                 current += 11
             }
+            length = 0
         }
+        winningIndices = []
         
-        // MARK: top down right
+        // top down right
         length = 0
         for top in 1...8 {
             var current = top
             while (current < 100) {
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
+                    if cardsOnBoard[current].isFreeSpace == false {
+                        winningIndices.append(current)
+                    }
                 } else {
                     length = 0
+                    winningIndices = []
                 }
                 if length == chain {
                     print("diagonal top down right")
-                    return true
+                    print(winningIndices)
+                    return (true, winningIndices)
                 }
                 current += 11
             }
+            length = 0
         }
+        winningIndices = []
         
-        return false
+        return (false, winningIndices)
     }
 }

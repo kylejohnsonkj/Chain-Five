@@ -37,7 +37,7 @@ class GameViewController: UIViewController {
     var isMPCGame = false
     var isHost = false
     
-    let detector = ChainDetector()
+    var detector: ChainDetector!
     var appDelegate: AppDelegate!
     
     // 10x10 grid -- 100 cards total (ignoring jacks)
@@ -66,7 +66,7 @@ class GameViewController: UIViewController {
     
     var chosenCardIndex = -1
     var chosenCardId = ""
-    var lastSelectedCardId = ""
+    var lastSelectedCardIndex = -1
 
     var jackOutline = UIView()
     var gameOver = UIView()
@@ -118,9 +118,10 @@ class GameViewController: UIViewController {
         deck.frame = CGRect(x: 293, y: 566, width: 35, height: 49)
         view.addSubview(deck)
         
+        detector = ChainDetector()
         appDelegate = UIApplication.shared.delegate as! AppDelegate
         NotificationCenter.default.addObserver(self, selector: #selector(peerChangedStateWithNotification(notification:)), name: .didChangeState, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(handleReceivedDataWithNotification(notification:)), name: .didReceive, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleReceivedDataWithNotification(notification:)), name: .didReceiveData, object: nil)
         
         print("isMPCGame: \(isMPCGame)")
         print("isHost? \(isHost)")
@@ -198,11 +199,15 @@ class GameViewController: UIViewController {
             if data.count == 1 {
                 let seed = (data.object(forKey: "seed") as AnyObject).integerValue
                 cardsInDeck = createAndShuffleDeck(seed: seed!)
+                
                 // discard player 1's draw
                 for _ in 1...5 {
                     _ = cardsInDeck.popLast()
                 }
-                self.drawCards(forPlayer: 1)
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
+                    self.drawCards(forPlayer: 1)
+                }
             }
             
             // receiving placed card info
@@ -215,12 +220,20 @@ class GameViewController: UIViewController {
                 cardsOnBoard[cardIndex!].isMarked = true
                 _ = cardsInDeck.popLast()   // discard other player's drawn card
                 
-                if detector.isValidChain(cardsOnBoard, currentPlayer) {
-                    AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-                    presentWinScreen()
-                } else {
-                    AudioServicesPlaySystemSound(1519)
-                    changeTurns()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
+                    let (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, self.currentPlayer)
+                    if isValidChain == true {
+                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+                        for index in winningIndices {
+                            self.cardsOnBoard[index].isChecked = true
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
+                            self.presentWinScreen()
+                        }
+                    } else {
+                        AudioServicesPlaySystemSound(1519)
+                        self.changeTurns()
+                    }
                 }
             }
 
@@ -319,7 +332,7 @@ class GameViewController: UIViewController {
                 
                 print(card.index)
                 
-                UIView.animate(withDuration: 1, delay: TimeInterval(0.75 * Double(col)), options: [.curveEaseOut], animations: {
+                UIView.animate(withDuration: 1, delay: TimeInterval(0.5 * Double(col)), options: [.curveEaseOut], animations: {
                     container.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
                     
                 }, completion: { _ in
@@ -386,12 +399,15 @@ class GameViewController: UIViewController {
             var cardsInHand = getCurrentHand()
             
             // reset taptic feedback if no cards in hand are selected
+            var cardTouched = false
             for i in 0..<cardsInHand.count {
-                if (cardsInHand[i].frame.contains(touchLocation)) {
-                    break
-                } else {
-                    if i == cardsInHand.count - 1 {
-                        lastSelectedCardId = ""
+                if cardTouched == false {
+                    if (cardsInHand[i].frame.contains(touchLocation)) {
+                        cardTouched = true
+                    } else {
+                        if i == cardsInHand.count - 1 {
+                            lastSelectedCardIndex = -1
+                        }
                     }
                 }
             }
@@ -399,92 +415,97 @@ class GameViewController: UIViewController {
             for c in cardsOnBoard {
                 if ((c.isSelected || isJack()) && !c.isFreeSpace && c.frame.contains(touchLocation)) {
                     
-                    if isMPCGame && currentPlayer != playerID {
-                        break
-                    }
-                    
-                    waitForAnimations = true
-                    
-                    if isMPCGame {
-                        c.owner = playerID
-                    } else {
-                        c.owner = currentPlayer
-                    }
-                    c.isMarked = true
-
-                    if isMPCGame && appDelegate.mpcHandler.session.connectedPeers.count > 0 {
+                    if !(isMPCGame && currentPlayer != playerID) {
                         
-                        // convert data to json
-                        let cardIndexDict = ["cardIndex": c.index, "owner": c.owner] as [String : Int]
-                        let cardIndexData = try! JSONSerialization.data(withJSONObject: cardIndexDict, options: .prettyPrinted)
+                        waitForAnimations = true
                         
-                        // try to send the data
-                        do {
-                            try appDelegate.mpcHandler.session.send(cardIndexData, toPeers: appDelegate.mpcHandler.session.connectedPeers, with: .reliable)
-                        } catch let error as NSError {
-                            let ac = UIAlertController(title: "Send error", message: error.localizedDescription, preferredStyle: .alert)
-                            ac.addAction(UIAlertAction(title: "OK", style: .default))
-                            present(ac, animated: true)
-                        }
-                        
-                    }
-
-                    let container = UIView()
-                    container.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
-                    view.addSubview(container)
-                    
-                    let back = Card(named: "B0-")
-                    back.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
-                    container.addSubview(back)
-                    
-                    if detector.isValidChain(cardsOnBoard, currentPlayer) {
-                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-                        presentWinScreen()
-                    }
-                    
-                    // only continue from here if no valid chain was found
-                    guard detector.isValidChain(cardsOnBoard, currentPlayer) == false
-                        else { return }
-                    
-                    AudioServicesPlaySystemSound(1519)
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [unowned self] in
-                        self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
-                    }
-
-                    UIView.animate(withDuration: 1, delay: 0.75, options: [.curveEaseOut], animations: {
-                        container.frame.origin = cardsInHand[self.chosenCardIndex].frame.origin
-                        cardsInHand[self.chosenCardIndex].removeFromSuperview()
-                        
-                    }, completion: { _ in
-                        
-                        if let nextCard = self.getNextCardFromDeck() {
-                            cardsInHand[self.chosenCardIndex] = nextCard
-                            
-                            if self.currentPlayer == 1 || self.isMPCGame {
-                                self.cardsInHand1[self.chosenCardIndex] = nextCard
-                            } else {
-                                self.cardsInHand2[self.chosenCardIndex] = nextCard
-                            }
-                        
-                            nextCard.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
-                            
-                            UIView.transition(from: back, to: nextCard, duration: 1, options: [.transitionFlipFromRight], completion: nil)
-                        }
-                        
-                        if self.isMPCGame {
-                            self.changeTurns()
+                        if isMPCGame {
+                            c.owner = playerID
                         } else {
-                            // if it's player 2's turn to draw their cards
-                            if self.cardsInDeck.count == 98 {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [unowned self] in
-                                    self.drawCards(forPlayer: 2)
-                                    self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
-                                }
-                            }
-                            self.swapHands(cardsInHand)
+                            c.owner = currentPlayer
                         }
-                    })
+                        c.isMarked = true
+
+                        if isMPCGame && appDelegate.mpcHandler.session.connectedPeers.count > 0 {
+                            
+                            // convert data to json
+                            let cardIndexDict = ["cardIndex": c.index, "owner": c.owner] as [String : Int]
+                            let cardIndexData = try! JSONSerialization.data(withJSONObject: cardIndexDict, options: .prettyPrinted)
+                            
+                            // try to send the data
+                            do {
+                                try appDelegate.mpcHandler.session.send(cardIndexData, toPeers: appDelegate.mpcHandler.session.connectedPeers, with: .reliable)
+                            } catch let error as NSError {
+                                let ac = UIAlertController(title: "Send error", message: error.localizedDescription, preferredStyle: .alert)
+                                ac.addAction(UIAlertAction(title: "OK", style: .default))
+                                present(ac, animated: true)
+                            }
+                            
+                        }
+
+                        let container = UIView()
+                        container.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
+                        view.addSubview(container)
+                        
+                        let back = Card(named: "B0-")
+                        back.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
+                        container.addSubview(back)
+                        
+                        let (isValidChain, winningIndices) = detector.isValidChain(cardsOnBoard, currentPlayer)
+                        if isValidChain == true {
+                            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+                            for index in winningIndices {
+                                cardsOnBoard[index].isChecked = true
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
+                                self.presentWinScreen()
+                            }
+                        }
+                        
+                        // only continue from here if no valid chain was found
+                        guard isValidChain == false
+                            else { return }
+                        
+                        AudioServicesPlaySystemSound(1519)
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [unowned self] in
+                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
+                        }
+
+                        UIView.animate(withDuration: 1, delay: 0.75, options: [.curveEaseOut], animations: {
+                            container.frame.origin = cardsInHand[self.chosenCardIndex].frame.origin
+                            cardsInHand[self.chosenCardIndex].removeFromSuperview()
+                            
+                        }, completion: { _ in
+                            
+                            if let nextCard = self.getNextCardFromDeck() {
+                                cardsInHand[self.chosenCardIndex] = nextCard
+                                
+                                if self.currentPlayer == 1 || self.isMPCGame {
+                                    self.cardsInHand1[self.chosenCardIndex] = nextCard
+                                } else {
+                                    self.cardsInHand2[self.chosenCardIndex] = nextCard
+                                }
+                            
+                                nextCard.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
+                                
+                                UIView.transition(from: back, to: nextCard, duration: 1, options: [.transitionFlipFromRight], completion: nil)
+                            }
+                            
+                            if self.isMPCGame {
+                                self.changeTurns()
+                            } else {
+                                // if it's player 2's turn to draw their cards
+                                if self.cardsInDeck.count == 98 {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) { [unowned self] in
+                                        self.drawCards(forPlayer: 2)
+                                        self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
+                                    }
+                                }
+                                self.swapHands(cardsInHand)
+                            }
+                        })
+                    }
                 }
             }
             
@@ -500,8 +521,8 @@ class GameViewController: UIViewController {
                     cardsInHand[i].isSelected = true
                     print(cardsInHand[i].index)
                     
-                    if cardsInHand[i].id != lastSelectedCardId {
-                        lastSelectedCardId = cardsInHand[i].id
+                    if cardsInHand[i].index != lastSelectedCardIndex {
+                        lastSelectedCardIndex = cardsInHand[i].index
                         AudioServicesPlaySystemSound(1519)
                     }
                     
@@ -532,14 +553,12 @@ class GameViewController: UIViewController {
         if currentPlayer == 1 {
             let ac = UIAlertController(title: "It's a Chain!", message: "Orange has won the game.", preferredStyle: .alert)
             ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-                self.gameOver.removeFromSuperview()
                 self.performSegue(withIdentifier: "toMain", sender: self)
             })
             self.present(ac, animated: true)
         } else {
             let ac = UIAlertController(title: "It's a Chain!", message: "Blue has won the game.", preferredStyle: .alert)
             ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-                self.gameOver.removeFromSuperview()
                 self.performSegue(withIdentifier: "toMain", sender: self)
             })
             self.present(ac, animated: true)

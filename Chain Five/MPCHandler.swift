@@ -9,15 +9,9 @@
 import UIKit
 import MultipeerConnectivity
 
-// tutorial: https://www.youtube.com/watch?v=JwqsbsyN3LA
-// this MPC example uses states for tic tac toe
-// we will want to update when a player makes a move, thus adding a token to the board at their chosen position
-// we also want an update when they draw a new card from the SHARED deck
-// should be able to combine these two into one update
-
 extension Notification.Name {
     static let didChangeState = Notification.Name("MPC_DidChangeStateNotification")
-    static let didReceive = Notification.Name("MPC_DidReceiveDataNotification")
+    static let didReceiveData = Notification.Name("MPC_DidReceiveDataNotification")
 }
 
 class MPCHandler: NSObject, MCSessionDelegate {
@@ -79,7 +73,7 @@ class MPCHandler: NSObject, MCSessionDelegate {
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         let userInfo = ["data": data, "peerID": peerID] as [String : Any]
         DispatchQueue.main.async {
-            NotificationCenter.default.post(name: .didReceive, object: nil, userInfo: userInfo)
+            NotificationCenter.default.post(name: .didReceiveData, object: nil, userInfo: userInfo)
         }
     }
     
