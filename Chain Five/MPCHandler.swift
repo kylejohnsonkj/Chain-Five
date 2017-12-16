@@ -45,7 +45,9 @@ class MPCHandler: NSObject, MCSessionDelegate {
     }
     
     func setupSession() {
-        session = MCSession(peer: peerID)
+        session = MCSession(peer: peerID,
+                            securityIdentity: nil,
+                            encryptionPreference: .optional)
         session.delegate = self
     }
     

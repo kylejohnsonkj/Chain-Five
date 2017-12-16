@@ -193,8 +193,7 @@ class GameViewController: UIViewController {
             let data = try JSONSerialization.jsonObject(with: receivedData as Data, options: JSONSerialization.ReadingOptions.allowFragments) as! NSDictionary
             let senderPeerID: MCPeerID = userInfo["peerID"] as! MCPeerID
             let senderDisplayName = senderPeerID.displayName
-            print(senderDisplayName)
-            
+
             // receiving seed for randomizer
             if data.count == 1 {
                 let seed = (data.object(forKey: "seed") as AnyObject).integerValue
@@ -215,32 +214,57 @@ class GameViewController: UIViewController {
                 let cardIndex = (data.object(forKey: "cardIndex") as AnyObject).integerValue
                 let owner = (data.object(forKey: "owner") as AnyObject).integerValue
                 
-                print("cardIndex: \(cardIndex!)  owner: \(owner!)")
-                cardsOnBoard[cardIndex!].owner = owner!
-                cardsOnBoard[cardIndex!].isMarked = true
-                _ = cardsInDeck.popLast()   // discard other player's drawn card
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-                    let (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, self.currentPlayer)
-                    if isValidChain == true {
-                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-                        for index in winningIndices {
-                            self.cardsOnBoard[index].isChecked = true
+                // avoid repeat calls
+                if cardsOnBoard[cardIndex!].isMarked == false {
+                    print("cardIndex \(cardIndex!) placed by player \(senderDisplayName)")
+                    cardsOnBoard[cardIndex!].owner = owner!
+                    cardsOnBoard[cardIndex!].isMarked = true
+                    _ = cardsInDeck.popLast()   // discard other player's drawn card
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
+                        var (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, self.currentPlayer)
+                        
+                        // temporary bug fix for recognizing chains
+                        if isValidChain == false {
+                            if self.currentPlayer == 1 {
+                                (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, 2)
+                                if isValidChain { print("WTF") }
+                            } else {
+                                (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, 1)
+                                if isValidChain { print("WTF") }
+                            }
                         }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
-                            self.presentWinScreen()
+                        
+                        if isValidChain {
+                            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+
+                            for index in winningIndices {
+                                self.cardsOnBoard[index].isChecked = true
+                            }
+                            for index in winningIndices {
+                                self.cardsOnBoard[index].isChecked = true
+                            }
+                            let cardsInHand = self.getCurrentHand()
+                            for card in cardsInHand {
+                                card.isSelected = false
+                            }
+                            for c in self.cardsOnBoard {
+                                c.isSelected = false
+                            }
+                            self.jackOutline.layer.borderWidth = 0
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
+                                self.presentWinScreen()
+                            }
+                        } else {
+                            AudioServicesPlaySystemSound(1519)
+                            self.changeTurns()
                         }
-                    } else {
-                        AudioServicesPlaySystemSound(1519)
-                        self.changeTurns()
                     }
                 }
             }
 
         } catch let error as NSError {
-            let ac = UIAlertController(title: "Receive error", message: error.localizedDescription, preferredStyle: .alert)
-            ac.addAction(UIAlertAction(title: "OK", style: .default))
-            present(ac, animated: true)
+            print("RECEIVING ERROR: \(error.localizedDescription)")
         }
     }
     
@@ -290,8 +314,8 @@ class GameViewController: UIViewController {
         while (j < 2) {
             for suit in 0..<suits.count {
                 for rank in 1...13 {
-                    let card = Card(named: "\(suits[suit])\(rank)-")
-//                    let card = Card(named: "S11-")
+//                    let card = Card(named: "\(suits[suit])\(rank)-")
+                    let card = Card(named: "H11-")
                     cardsInDeck.append(card)
                 }
             }
@@ -330,9 +354,7 @@ class GameViewController: UIViewController {
             
             if let card = self.cardsInDeck.popLast() {
                 
-                print(card.index)
-                
-                UIView.animate(withDuration: 1, delay: TimeInterval(0.5 * Double(col)), options: [.curveEaseOut], animations: {
+                UIView.animate(withDuration: 1, delay: TimeInterval(0.4 * Double(col)), options: [.curveEaseOut], animations: {
                     container.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
                     
                 }, completion: { _ in
@@ -373,7 +395,6 @@ class GameViewController: UIViewController {
     
     // MARK: - Gameplay
     
-    
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         touchesBegan(touches, with: event)
     }
@@ -413,7 +434,7 @@ class GameViewController: UIViewController {
             }
             
             for c in cardsOnBoard {
-                if ((c.isSelected || isJack()) && !c.isFreeSpace && c.frame.contains(touchLocation)) {
+                if ((c.isSelected || isJack()) && !c.isFreeSpace && !c.isMarked && c.frame.contains(touchLocation)) {
                     
                     if !(isMPCGame && currentPlayer != playerID) {
                         
@@ -434,11 +455,10 @@ class GameViewController: UIViewController {
                             
                             // try to send the data
                             do {
+                                print("SENT")
                                 try appDelegate.mpcHandler.session.send(cardIndexData, toPeers: appDelegate.mpcHandler.session.connectedPeers, with: .reliable)
                             } catch let error as NSError {
-                                let ac = UIAlertController(title: "Send error", message: error.localizedDescription, preferredStyle: .alert)
-                                ac.addAction(UIAlertAction(title: "OK", style: .default))
-                                present(ac, animated: true)
+                                print("SENDING ERROR: \(error.localizedDescription)")
                             }
                             
                         }
@@ -457,14 +477,20 @@ class GameViewController: UIViewController {
                             for index in winningIndices {
                                 cardsOnBoard[index].isChecked = true
                             }
+                            for card in cardsInHand {
+                                card.isSelected = false
+                            }
+                            for c in cardsOnBoard {
+                                c.isSelected = false
+                            }
+                            jackOutline.layer.borderWidth = 0
                             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
                                 self.presentWinScreen()
                             }
                         }
                         
                         // only continue from here if no valid chain was found
-                        guard isValidChain == false
-                            else { return }
+                        guard isValidChain == false else { return }
                         
                         AudioServicesPlaySystemSound(1519)
                         
@@ -519,7 +545,6 @@ class GameViewController: UIViewController {
                 
                 if waitForAnimations == false && cardsInHand[i].frame.contains(touchLocation) {
                     cardsInHand[i].isSelected = true
-                    print(cardsInHand[i].index)
                     
                     if cardsInHand[i].index != lastSelectedCardIndex {
                         lastSelectedCardIndex = cardsInHand[i].index
