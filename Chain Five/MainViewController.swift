@@ -58,7 +58,6 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         appDelegate.mpcHandler.setupSession()
         appDelegate.mpcHandler.advertiseSelf(advertise: true)
         
-        
         NotificationCenter.default.addObserver(self, selector: #selector(peerChangedStateWithNotification(notification:)), name: .didChangeState, object: nil)
     }
     

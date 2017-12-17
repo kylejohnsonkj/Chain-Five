@@ -134,7 +134,7 @@ class GameViewController: UIViewController {
                     playerID = 1
                     generateDeckWithSeedAndSend()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-                        self.drawCards(forPlayer: 1)
+                        self.drawCards()
                     }
                 } else {
                     playerID = 2
@@ -204,9 +204,7 @@ class GameViewController: UIViewController {
                     _ = cardsInDeck.popLast()
                 }
                 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-                    self.drawCards(forPlayer: 1)
-                }
+                self.drawCards()
             }
             
             // receiving placed card info
@@ -221,44 +219,43 @@ class GameViewController: UIViewController {
                     cardsOnBoard[cardIndex!].isMarked = true
                     _ = cardsInDeck.popLast()   // discard other player's drawn card
                     
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-                        var (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, self.currentPlayer)
-                        
-                        // temporary bug fix for recognizing chains
-                        if isValidChain == false {
-                            if self.currentPlayer == 1 {
-                                (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, 2)
-                                if isValidChain { print("Odd case, player went quickly!") }
-                            } else {
-                                (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, 1)
-                                if isValidChain { print("Odd case, player went quickly!") }
-                            }
-                        }
-                        
-                        if isValidChain {
-                            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-
-                            for index in winningIndices {
-                                self.cardsOnBoard[index].isChecked = true
-                            }
-                            for index in winningIndices {
-                                self.cardsOnBoard[index].isChecked = true
-                            }
-                            let cardsInHand = self.getCurrentHand()
-                            for card in cardsInHand {
-                                card.isSelected = false
-                            }
-                            for c in self.cardsOnBoard {
-                                c.isSelected = false
-                            }
-                            self.jackOutline.layer.borderWidth = 0
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
-                                self.presentWinScreen()
-                            }
+                    // test for chain
+                    var (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, self.currentPlayer)
+                    
+                    // temporary bug fix for recognizing chains
+                    if isValidChain == false {
+                        if self.currentPlayer == 1 {
+                            (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, 2)
+                            if isValidChain { print("Odd case, player went quickly!") }
                         } else {
-                            AudioServicesPlaySystemSound(1519)
-                            self.changeTurns()
+                            (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, 1)
+                            if isValidChain { print("Odd case, player went quickly!") }
                         }
+                    }
+                    
+                    if isValidChain {
+                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+                        
+                        for index in winningIndices {
+                            self.cardsOnBoard[index].isChecked = true
+                        }
+                        for index in winningIndices {
+                            self.cardsOnBoard[index].isChecked = true
+                        }
+                        let cardsInHand = self.getCurrentHand()
+                        for card in cardsInHand {
+                            card.isSelected = false
+                        }
+                        for c in self.cardsOnBoard {
+                            c.isSelected = false
+                        }
+                        self.jackOutline.layer.borderWidth = 0
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
+                            self.presentWinScreen()
+                        }
+                    } else {
+                        AudioServicesPlaySystemSound(1519)
+                        self.changeTurns()
                     }
                 }
             }
@@ -314,8 +311,8 @@ class GameViewController: UIViewController {
         while (j < 2) {
             for suit in 0..<suits.count {
                 for rank in 1...13 {
-//                    let card = Card(named: "\(suits[suit])\(rank)-")
-                    let card = Card(named: "H11-")
+                    let card = Card(named: "\(suits[suit])\(rank)-")
+//                    let card = Card(named: "H11-")
                     cardsInDeck.append(card)
                 }
             }
@@ -336,7 +333,7 @@ class GameViewController: UIViewController {
         return array.reversed()
     }
     
-    func drawCards(forPlayer player: Int) {
+    func drawCards(forPlayer player: Int = 1) {
         
         waitForAnimations = true
         
@@ -356,7 +353,7 @@ class GameViewController: UIViewController {
             
             if let card = self.cardsInDeck.popLast() {
                 
-                UIView.animate(withDuration: 1, delay: TimeInterval(0.4 * Double(col)), options: [.curveEaseOut], animations: {
+                UIView.animate(withDuration: 1, delay: TimeInterval(0.3 * Double(col)) + 0.3, options: [.curveEaseOut], animations: {
                     container.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
                     
                 }, completion: { _ in
@@ -416,7 +413,7 @@ class GameViewController: UIViewController {
                 
                 AudioServicesPlaySystemSound(1520)
                 
-                let ac = UIAlertController(title: "Are you sure?", message: "Qutting will end the game in progress.", preferredStyle: .alert)
+                let ac = UIAlertController(title: "Are you sure?", message: "This will end the game in progress.", preferredStyle: .alert)
                 ac.addAction(UIAlertAction(title: "Yes", style: .default) { _ in
                     self.gameOver.removeFromSuperview()
                     self.performSegue(withIdentifier: "toMain", sender: self)
@@ -463,7 +460,6 @@ class GameViewController: UIViewController {
                             
                             // try to send the data
                             do {
-                                print("SENT")
                                 try appDelegate.mpcHandler.session.send(cardIndexData, toPeers: appDelegate.mpcHandler.session.connectedPeers, with: .reliable)
                             } catch let error as NSError {
                                 print("SENDING ERROR: \(error.localizedDescription)")
@@ -531,7 +527,7 @@ class GameViewController: UIViewController {
                             } else {
                                 // if it's player 2's turn to draw their cards
                                 if self.cardsInDeck.count == 98 {
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) { [unowned self] in
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
                                         self.drawCards(forPlayer: 2)
                                         self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
                                     }
@@ -616,7 +612,10 @@ class GameViewController: UIViewController {
         })
     }
     
+    // multiplayer
     func changeTurns() {
+        waitForAnimations = false
+        
         UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
             // fade out player indicator
             self.playerIndicator.alpha = 0
@@ -669,6 +668,7 @@ class GameViewController: UIViewController {
         }
     }
     
+    // pass-n-play
     func swapHands(_ hand: [Card]) {
         
         var cardsInHand = getCurrentHand()
