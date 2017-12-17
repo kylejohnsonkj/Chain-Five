@@ -34,15 +34,20 @@ class GameViewController: UIViewController {
                        "S10", "S13", "H6", "H5", "H4", "C4", "C5", "C6", "D13", "D10",
                        "F0", "H10", "H9", "H8", "H7", "C7", "C8", "C9", "C10", "F0"]
 
-    var isMPCGame = false
-    var isHost = false
-    
-    var detector: ChainDetector!
-    var appDelegate: AppDelegate!
+    enum Taptics: SystemSoundID {
+        case peek = 1519, pop = 1520, nope = 1521
+    }
     
     // 10x10 grid -- 100 cards total (ignoring jacks)
     var cardsOnBoard = [Card]()
     
+    // for MultipeerConnectivity purposes
+    var appDelegate: AppDelegate!
+    var isMPCGame = false
+    var isHost = false
+    
+    var detector: ChainDetector!
+
     // 2 decks -- 104 cards total (ignoring backs)
     var cardsInDeck = [Card]() {
         didSet {
@@ -254,7 +259,7 @@ class GameViewController: UIViewController {
                             self.presentWinScreen()
                         }
                     } else {
-                        AudioServicesPlaySystemSound(1519)
+                        AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                         self.changeTurns()
                     }
                 }
@@ -400,6 +405,8 @@ class GameViewController: UIViewController {
     
     // MARK: - Gameplay
     
+    // forward move events to touches began
+    // allows smooth scrolling through cards
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         touchesBegan(touches, with: event)
     }
@@ -410,16 +417,8 @@ class GameViewController: UIViewController {
             
             // go back to main menu
             if menuLabel.frame.contains(touchLocation) || menuIconLabel.frame.contains(touchLocation) {
-                
-                AudioServicesPlaySystemSound(1520)
-                
-                let ac = UIAlertController(title: "Are you sure?", message: "This will end the game in progress.", preferredStyle: .alert)
-                ac.addAction(UIAlertAction(title: "Yes", style: .default) { _ in
-                    self.gameOver.removeFromSuperview()
-                    self.performSegue(withIdentifier: "toMain", sender: self)
-                })
-                ac.addAction(UIAlertAction(title: "No", style: .cancel))
-                self.present(ac, animated: true)
+                AudioServicesPlaySystemSound(Taptics.pop.rawValue)
+                presentMenuAlert()
             }
             
             var cardsInHand = getCurrentHand()
@@ -496,7 +495,7 @@ class GameViewController: UIViewController {
                         // only continue from here if no valid chain was found
                         guard isValidChain == false else { return }
                         
-                        AudioServicesPlaySystemSound(1519)
+                        AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                         
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [unowned self] in
                             self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
@@ -552,7 +551,7 @@ class GameViewController: UIViewController {
                     
                     if cardsInHand[i].index != lastSelectedCardIndex {
                         lastSelectedCardIndex = cardsInHand[i].index
-                        AudioServicesPlaySystemSound(1519)
+                        AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                     }
                     
                     cardChosen = true
@@ -577,77 +576,61 @@ class GameViewController: UIViewController {
         }
     }
     
+    func presentMenuAlert() {
+        let ac = UIAlertController(title: "Are you sure?", message: "This will end the game in progress.", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "Yes", style: .default) { _ in
+            self.gameOver.removeFromSuperview()
+            self.performSegue(withIdentifier: "toMain", sender: self)
+        })
+        ac.addAction(UIAlertAction(title: "No", style: .cancel))
+        self.present(ac, animated: true)
+    }
+    
+    // MARK: - Win Screen and Helper Methods
+    
     func presentWinScreen() {
         
-        // get current number of times app has been launched
-        let currentCount = UserDefaults.standard.integer(forKey: "gamesFinished")
-        // increment received number by one
-        UserDefaults.standard.set(currentCount+1, forKey:"gamesFinished")
-        // save changes to disk
-        UserDefaults.standard.synchronize()
-        
         if currentPlayer == 1 {
-            let ac = UIAlertController(title: "It's a Chain!", message: "Orange has won the game.", preferredStyle: .alert)
-            ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-                self.performSegue(withIdentifier: "toMain", sender: self)
-            })
-            self.present(ac, animated: true)
+            presentAlert(title: "It's a Chain!", message: "Orange has won the game.")
         } else {
-            let ac = UIAlertController(title: "It's a Chain!", message: "Blue has won the game.", preferredStyle: .alert)
-            ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-                self.performSegue(withIdentifier: "toMain", sender: self)
-            })
-            self.present(ac, animated: true)
+            presentAlert(title: "It's a Chain!", message: "Blue has won the game.")
         }
         
-        var gameOverColor: CGColor
-        if currentPlayer == 1 {
-            gameOverColor = UIColor(red: 255/255, green: 180/255, blue: 1/255, alpha: 1).cgColor
-        } else {
-            gameOverColor = UIColor(red: 94/255, green: 208/255, blue: 255/255, alpha: 1).cgColor
-        }
+        showWinningColor()
+        incrementGamesFinished()
+    }
+    
+    func presentAlert(title: String, message: String) {
+        let ac = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            self.performSegue(withIdentifier: "toMain", sender: self)
+        })
+        self.present(ac, animated: true)
+    }
+    
+    func showWinningColor() {
+        // orange for player 1, blue for player 2
+        let gameOverColor = currentPlayer == 1 ? UIColor(red: 255/255, green: 180/255, blue: 1/255, alpha: 1).cgColor : UIColor(red: 94/255, green: 208/255, blue: 255/255, alpha: 1).cgColor
         
         gameOver.frame = view.frame
         gameOver.layer.backgroundColor = gameOverColor
         gameOver.layer.zPosition = 2
         view.addSubview(gameOver)
-        gameOver.alpha = 0
         
+        gameOver.alpha = 0
         // fade in color
         UIView.animate(withDuration: 1.0, animations: {
             self.gameOver.alpha = 1
         })
     }
     
-    // multiplayer
-    func changeTurns() {
-        waitForAnimations = false
-        
-        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
-            // fade out player indicator
-            self.playerIndicator.alpha = 0
-            self.playerTurnLabel.alpha = 0
-        }, completion: { _ in
-            
-            if self.currentPlayer == 1 {
-                self.currentPlayer = 2
-            } else {
-                self.currentPlayer = 1
-            }
-            
-            UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
-                // fade in player indicator
-                self.playerIndicator.alpha = 1
-                self.playerTurnLabel.alpha = 1
-            }, completion: { _ in
-
-                for i in 0..<5 {
-                    self.cardsInHand1[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
-                    self.view.addSubview(self.cardsInHand1[i])
-                }
-            })
-        })
+    func incrementGamesFinished() {
+        let currentCount = UserDefaults.standard.integer(forKey: "gamesFinished")
+        UserDefaults.standard.set(currentCount+1, forKey:"gamesFinished")
+        UserDefaults.standard.synchronize()
     }
+    
+    // MARK: - Other Helper Methods
     
     func isJack() -> Bool {
         return (chosenCardId == "C11-" || chosenCardId == "D11-" || chosenCardId == "H11-" || chosenCardId == "S11-")
@@ -675,13 +658,13 @@ class GameViewController: UIViewController {
         }
     }
     
+    // MARK: - Turn-Based Methods
+    
     // pass-n-play
     func swapHands(_ hand: [Card]) {
-        
         var cardsInHand = getCurrentHand()
         
         UIView.animate(withDuration: 0.5, delay: 1.5, options: [], animations: {
-            
             // fade out cards and player indicator label
             self.playerIndicator.alpha = 0
             self.playerTurnLabel.alpha = 0
@@ -733,6 +716,37 @@ class GameViewController: UIViewController {
                     self.playerTurnLabel.alpha = 1
                 } else {
                     self.waitForAnimations = true
+                }
+            })
+        })
+    }
+    
+    // multiplayer
+    func changeTurns() {
+        waitForAnimations = false
+        
+        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+            // fade out player indicator
+            self.playerIndicator.alpha = 0
+            self.playerTurnLabel.alpha = 0
+            
+        }, completion: { _ in
+            
+            if self.currentPlayer == 1 {
+                self.currentPlayer = 2
+            } else {
+                self.currentPlayer = 1
+            }
+            
+            UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+                // fade in player indicator
+                self.playerIndicator.alpha = 1
+                self.playerTurnLabel.alpha = 1
+            }, completion: { _ in
+                
+                for i in 0..<5 {
+                    self.cardsInHand1[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
+                    self.view.addSubview(self.cardsInHand1[i])
                 }
             })
         })

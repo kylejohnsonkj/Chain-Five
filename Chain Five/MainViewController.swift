@@ -32,6 +32,10 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
                        "S10", "S13", "H6", "H5", "H4", "C4", "C5", "C6", "D13", "D10",
                        "F0", "H10", "H9", "H8", "H7", "C7", "C8", "C9", "C10", "F0"]
     
+    enum Taptics: SystemSoundID {
+        case peek = 1519, pop = 1520, nope = 1521
+    }
+    
     // 10x10 grid -- 100 cards total (ignoring jacks)
     var cardsOnBoard = [Card]()
     
@@ -47,18 +51,19 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         prepareMPCGame = false
         isHost = false
         
+        // reset all session junk
         appDelegate = UIApplication.shared.delegate as! AppDelegate
-        
         appDelegate.mpcHandler.peerID = nil
         appDelegate.mpcHandler.session = nil
         appDelegate.mpcHandler.browser = nil
         appDelegate.mpcHandler.advertiser = nil
         
-        // for Multiplayer, show device to others
+        // show device to others looking for local opponents
         appDelegate.mpcHandler.setupPeerWithDisplayName(displayName: UIDevice.current.name)
         appDelegate.mpcHandler.setupSession()
         appDelegate.mpcHandler.advertiseSelf(advertise: true)
         
+        // monitor for state changes (.notConnected -> .connecting -> .connected)
         NotificationCenter.default.addObserver(self, selector: #selector(peerChangedStateWithNotification(notification:)), name: .didChangeState, object: nil)
     }
     
@@ -66,6 +71,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         let userInfo = NSDictionary(dictionary: notification.userInfo!)
         appDelegate.mpcHandler.state = userInfo.object(forKey: "state") as? Int
         
+        // if connected to other player, prepare and send into game
         if appDelegate.mpcHandler.state == 2 {
             prepareMPCGame = true
             if appDelegate.mpcHandler.browser != nil {
@@ -74,6 +80,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
             }
             
             if isHost == false {
+                // delay so both devices are on same timing
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
                     self.performSegue(withIdentifier: "toGame", sender: self)
                 }
@@ -81,10 +88,6 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
                 self.performSegue(withIdentifier: "toGame", sender: self)
             }
         }
-    }
-    
-    @objc func handleReceivedDataWithNotification(notification: Notification) {
-
     }
     
     func generateBoard() {
@@ -176,7 +179,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
             
             if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
                 
-                AudioServicesPlaySystemSound(1520)
+                AudioServicesPlaySystemSound(Taptics.pop.rawValue)
                 
                 let container = UIView()
                 container.frame = view.frame
@@ -205,7 +208,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
             
             if rightImage.frame.contains(touchLocation) || rightText.frame.contains(touchLocation) {
                 
-                AudioServicesPlaySystemSound(1520)
+                AudioServicesPlaySystemSound(Taptics.pop.rawValue)
                 
                 if appDelegate.mpcHandler.session != nil {
                     appDelegate.mpcHandler.setupBrowser()
@@ -225,14 +228,13 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
             }
         }
     }
-    
-    func browserViewControllerDidFinish(_ browserViewController: MCBrowserViewController) {
-
-    }
 
     func browserViewControllerWasCancelled(_ browserViewController: MCBrowserViewController) {
         appDelegate.mpcHandler.browser.dismiss(animated: true)
         appDelegate.mpcHandler.browser = nil
+    }
+    
+    func browserViewControllerDidFinish(_ browserViewController: MCBrowserViewController) {
     }
 }
 
