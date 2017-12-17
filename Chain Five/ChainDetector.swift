@@ -23,9 +23,10 @@ class ChainDetector {
                 let current = (column * 10) + row
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
-                    if cardsOnBoard[current].isFreeSpace == false {
-                        winningIndices.append(current)
+                    if cardsOnBoard[current].isFreeSpace {
+                        cardsOnBoard[current].owner = currentPlayer
                     }
+                    winningIndices.append(current)
                 } else {
                     length = 0
                     winningIndices = []
@@ -47,9 +48,10 @@ class ChainDetector {
                 let current = (column * 10) + row
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
-                    if cardsOnBoard[current].isFreeSpace == false {
-                        winningIndices.append(current)
+                    if cardsOnBoard[current].isFreeSpace {
+                        cardsOnBoard[current].owner = currentPlayer
                     }
+                    winningIndices.append(current)
                 } else {
                     length = 0
                     winningIndices = []
@@ -72,9 +74,10 @@ class ChainDetector {
             while (current > 0) {
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
-                    if cardsOnBoard[current].isFreeSpace == false {
-                        winningIndices.append(current)
+                    if cardsOnBoard[current].isFreeSpace {
+                        cardsOnBoard[current].owner = currentPlayer
                     }
+                    winningIndices.append(current)
                 } else {
                     length = 0
                     winningIndices = []
@@ -97,9 +100,10 @@ class ChainDetector {
             while (current > 0) {
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
-                    if cardsOnBoard[current].isFreeSpace == false {
-                        winningIndices.append(current)
+                    if cardsOnBoard[current].isFreeSpace {
+                        cardsOnBoard[current].owner = currentPlayer
                     }
+                    winningIndices.append(current)
                 } else {
                     length = 0
                     winningIndices = []
@@ -122,9 +126,10 @@ class ChainDetector {
             while (current < 100) {
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
-                    if cardsOnBoard[current].isFreeSpace == false {
-                        winningIndices.append(current)
+                    if cardsOnBoard[current].isFreeSpace {
+                        cardsOnBoard[current].owner = currentPlayer
                     }
+                    winningIndices.append(current)
                 } else {
                     length = 0
                     winningIndices = []
@@ -147,9 +152,10 @@ class ChainDetector {
             while (current < 100) {
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
-                    if cardsOnBoard[current].isFreeSpace == false {
-                        winningIndices.append(current)
+                    if cardsOnBoard[current].isFreeSpace {
+                        cardsOnBoard[current].owner = currentPlayer
                     }
+                    winningIndices.append(current)
                 } else {
                     length = 0
                     winningIndices = []

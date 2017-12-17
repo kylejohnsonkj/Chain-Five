@@ -9,6 +9,7 @@
 import UIKit
 import AudioToolbox
 import MultipeerConnectivity
+import StoreKit
 
 class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
 
@@ -158,6 +159,15 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
             container.frame.origin.y -= 200
         })
+        
+        // ios 10.3 and later
+        if UserDefaults.standard.integer(forKey: "gamesFinished") == 5 {
+            SKStoreReviewController.requestReview()
+            // increment immediately so request is not sent again
+            let currentCount = UserDefaults.standard.integer(forKey: "gamesFinished")
+            UserDefaults.standard.set(currentCount+1, forKey:"gamesFinished")
+            UserDefaults.standard.synchronize()
+        }
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {

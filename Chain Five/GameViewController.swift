@@ -311,8 +311,8 @@ class GameViewController: UIViewController {
         while (j < 2) {
             for suit in 0..<suits.count {
                 for rank in 1...13 {
-                    let card = Card(named: "\(suits[suit])\(rank)-")
-//                    let card = Card(named: "H11-")
+//                    let card = Card(named: "\(suits[suit])\(rank)-")
+                    let card = Card(named: "H11-")
                     cardsInDeck.append(card)
                 }
             }
@@ -578,6 +578,13 @@ class GameViewController: UIViewController {
     }
     
     func presentWinScreen() {
+        
+        // get current number of times app has been launched
+        let currentCount = UserDefaults.standard.integer(forKey: "gamesFinished")
+        // increment received number by one
+        UserDefaults.standard.set(currentCount+1, forKey:"gamesFinished")
+        // save changes to disk
+        UserDefaults.standard.synchronize()
         
         if currentPlayer == 1 {
             let ac = UIAlertController(title: "It's a Chain!", message: "Orange has won the game.", preferredStyle: .alert)
