@@ -12,14 +12,6 @@ import MultipeerConnectivity
 import StoreKit
 
 class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
-
-    @IBOutlet weak var leftImage: UIImageView!
-    @IBOutlet weak var leftText: UILabel!
-    @IBOutlet weak var rightImage: UIImageView!
-    @IBOutlet weak var rightText: UILabel!
-    @IBOutlet weak var divider: UIView!
-    @IBOutlet weak var gameTitle: UIImageView!
-    @IBOutlet weak var kjappsLabel: UILabel!
     
     let cardsLayout = ["F0", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "F0",
                        "D10", "D13", "C6", "C5", "C4", "H4", "H5", "H6", "S13", "S10",
@@ -38,6 +30,19 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     
     // 10x10 grid -- 100 cards total (ignoring jacks)
     var cardsOnBoard = [Card]()
+    var cardSize: CGFloat!
+    var scale: CGFloat!
+    var iPad = false
+    
+    var gameTitle: UIImageView!
+    var bottomBorder: UIView!
+    var leftImage: UIImageView!
+    var leftText: UILabel!
+    var rightImage: UIImageView!
+    var rightText: UILabel!
+    var divider: UIView!
+    var kjappsLabel: UILabel!
+    var container: UIView!
     
     // for MultipeerConnectivity purposes
     var appDelegate: AppDelegate!
@@ -46,6 +51,17 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if view.bounds.width > 414 {
+            // iPad, adapt for different aspect ratio
+            cardSize = view.bounds.width / 14
+            scale = 3
+            iPad = true
+        } else {
+            cardSize = view.bounds.width / 11
+            scale = 2
+            iPad = false
+        }
         generateBoard()
         
         prepareMPCGame = false
@@ -91,28 +107,87 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     }
     
     func generateBoard() {
+        
+        let topMargin = self.view.bounds.height / 2 - (self.cardSize * 5) - cardSize / 2
+        // y = topmargin - view.bounds.width / 12 - cardSize / 4
+        // extra = height - cardSize * 10
+        gameTitle = UIImageView(image: UIImage(named: "title"))
+        gameTitle.frame = CGRect(x: view.bounds.midX - view.bounds.width / (scale * 2), y: topMargin - view.bounds.width / (scale * 3) - view.bounds.height / 20, width: view.bounds.width / scale, height: view.bounds.width / (scale * 3))
+        gameTitle.contentMode = .scaleAspectFit
+        view.addSubview(gameTitle)
 
+        let leftMargin = self.view.bounds.width / 2 - (self.cardSize * 5)
         // adds black line below bottom row of cards
-        let bottomBorder = UIView()
-        bottomBorder.frame = CGRect(x: 13, y: 490, width: 350, height: 1)
+        bottomBorder = UIView()
+        bottomBorder.frame = CGRect(x: leftMargin, y: topMargin + (cardSize * 10), width: cardSize * 10, height: 1)
         bottomBorder.layer.borderColor = UIColor.black.cgColor
         bottomBorder.layer.borderWidth = 1
         view.addSubview(bottomBorder)
         bottomBorder.alpha = 0
+        bottomBorder.layer.zPosition = 3
         
-        leftImage.frame.origin.x -= 175
-        leftText.frame.origin.x -= 175
-        rightImage.frame.origin.x += 175
-        rightText.frame.origin.x += 175
-        divider.alpha = 0
-        gameTitle.frame.origin.y -= 200
-        kjappsLabel.frame.origin.y += 20
+        let btmMargin = self.view.bounds.height / 2 + (self.cardSize * 5) - cardSize / 2
+        
+        container = UIView()
+        container.frame = CGRect(x: view.bounds.midX - (view.bounds.width * 0.4), y: btmMargin + view.bounds.width / (scale * 4), width: view.bounds.width * 0.8, height: view.bounds.width / (scale * 2.2))
+        view.addSubview(container)
+        
+        let space: CGFloat = iPad ? 5 : 4
+        let padding: CGFloat = iPad ? 5 : 0
+        
+        let size: CGFloat = 30
+        leftImage = UIImageView(image: UIImage(named: "cards"))
+        leftImage.frame = CGRect(x: container.bounds.midX - container.bounds.width / space - (size * scale) / 2, y: container.bounds.minY, width: size * scale, height: (size * scale) * 0.6)
+        leftImage.contentMode = .scaleAspectFit
+        container.addSubview(leftImage)
+        
+        rightImage = UIImageView(image: UIImage(named: "globe"))
+        rightImage.frame = CGRect(x: container.bounds.midX + container.bounds.width / space - (size * scale) / 2, y: container.bounds.minY, width: size * scale, height: (size * scale) * 0.6)
+        rightImage.contentMode = .scaleAspectFit
+        container.addSubview(rightImage)
+        
+        leftText = UILabel()
+        leftText.text = "Pass 'N Play"
+        leftText.font = UIFont(name: "Optima-Regular", size: 17 * (scale / 2))
+        leftText.frame = CGRect(x: container.bounds.midX - container.bounds.width / (space / 2), y: container.bounds.minY + leftImage.frame.height + padding, width: container.bounds.width / (space / 2), height: 30)
+        leftText.textAlignment = .center
+        container.addSubview(leftText)
+        
+        rightText = UILabel()
+        rightText.text = "Local Match"
+        rightText.font = UIFont(name: "Optima-Regular", size: 17 * (scale / 2))
+        rightText.frame = CGRect(x: container.bounds.midX, y: container.bounds.minY + leftImage.frame.height + padding, width: container.bounds.width / (space / 2), height: 30)
+        rightText.textAlignment = .center
+        container.addSubview(rightText)
+        
+        divider = UIView()
+        divider.frame = CGRect(x: container.bounds.midX, y: -leftText.bounds.height / 4, width: 1 * ceil(scale / 2), height: leftImage.bounds.height + leftText.bounds.height * 1.25 + padding * 2)
+        divider.layer.borderColor = UIColor.black.cgColor
+        divider.layer.borderWidth = 1
+        container.addSubview(divider)
+        
+        kjappsLabel = UILabel()
+        kjappsLabel.text = "Kyle Johnson Apps"
+        kjappsLabel.font = UIFont(name: "Optima-Regular", size: 13 * (scale / 2))
+        kjappsLabel.frame = CGRect(x: container.bounds.midX - container.bounds.width / (2 * (space / 2)), y: container.bounds.maxY, width: container.bounds.width / (space / 2), height: 30)
+        kjappsLabel.textAlignment = .center
+        container.addSubview(kjappsLabel)
+        
+//        bottomBorder = UIView()
+        
+//        leftImage.frame.origin.x -= 175
+//        leftText.frame.origin.x -= 175
+//        rightImage.frame.origin.x += 175
+//        rightText.frame.origin.x += 175
+//        divider.alpha = 0
+//        gameTitle.frame.origin.y -= 200
+//        kjappsLabel.frame.origin.y += 20
         
         // load the 100 cards
         var i = 0
         while i < 100 {
             let card = Card(named: self.cardsLayout[i])
-            card.frame = CGRect(x: view.frame.midX - (35 / 2), y: view.frame.midY - (35 / 2) + 5, width: 35, height: 35)
+            card.frame = CGRect(x: view.frame.midX - (cardSize / 2), y: view.frame.midY - (cardSize / 2), width: cardSize, height: cardSize)
             self.view.addSubview(card)
             self.cardsOnBoard.append(card)
             i += 1
@@ -121,47 +196,49 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         // animate cards into center of screen
         i = 0
         UIView.animate(withDuration: 1, animations: {
+            let leftMargin = self.view.bounds.width / 2 - (self.cardSize * 5) - self.cardSize
+            let topMargin = self.view.bounds.height / 2 - (self.cardSize * 5) - self.cardSize * 1.5
             for row in 1...10 {
                 for col in 1...10 {
-                    self.cardsOnBoard[i].frame = CGRect(x: (col * 35) - 22, y: (row * 35) + 105, width: 35, height: 35)
+                    self.cardsOnBoard[i].frame = CGRect(x: leftMargin + (CGFloat(col) * self.cardSize), y: topMargin + (CGFloat(row) * self.cardSize), width: self.cardSize, height: self.cardSize)
                     i += 1
                 }
             }
             
         }, completion: { _ in
-            bottomBorder.alpha = 1
+            self.bottomBorder.alpha = 1
         })
 
         UIView.animate(withDuration: 0.5, delay: 0.5, options: [], animations: {
-            self.leftImage.frame.origin.x += 175
-            self.leftText.frame.origin.x += 175
-            self.rightImage.frame.origin.x -= 175
-            self.rightText.frame.origin.x -= 175
-            self.kjappsLabel.frame.origin.y -= 20
-            self.gameTitle.frame.origin.y += 200
+//            self.leftImage.frame.origin.x += 175
+//            self.leftText.frame.origin.x += 175
+//            self.rightImage.frame.origin.x -= 175
+//            self.rightText.frame.origin.x -= 175
+//            self.kjappsLabel.frame.origin.y -= 20
+//            self.gameTitle.frame.origin.y += 200
         }, completion: { _ in
             UIView.animate(withDuration: 0.5, animations: {
-                self.divider.alpha = 1
+//                self.divider.alpha = 1
             })
         })
         
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        let container = UIView()
-        container.frame = view.frame
-        view.addSubview(container)
-        container.addSubview(leftImage)
-        container.addSubview(leftText)
-        container.addSubview(rightImage)
-        container.addSubview(rightText)
-        container.addSubview(divider)
-        container.addSubview(kjappsLabel)
-        container.frame.origin.y += 200
+//        let container = UIView()
+//        container.frame = view.frame
+//        view.addSubview(container)
+//        container.addSubview(leftImage)
+//        container.addSubview(leftText)
+//        container.addSubview(rightImage)
+//        container.addSubview(rightText)
+//        container.addSubview(divider)
+//        container.addSubview(kjappsLabel)
+//        container.frame.origin.y += 200
         
-        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
-            container.frame.origin.y -= 200
-        })
+//        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+//            container.frame.origin.y -= 200
+//        })
         
         // ios 10.3 and later
         if UserDefaults.standard.integer(forKey: "gamesFinished") == 5 {
@@ -175,24 +252,24 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
-            let touchLocation = touch.location(in: self.view)
+            let touchLocation = touch.location(in: self.container)
             
             if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
                 
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
                 
-                let container = UIView()
-                container.frame = view.frame
-                view.addSubview(container)
+                let other = UIView()
+                other.frame = self.container.frame
+                view.addSubview(other)
                 
-                container.addSubview(rightImage)
-                container.addSubview(rightText)
-                container.addSubview(divider)
-                container.addSubview(kjappsLabel)
+                other.addSubview(rightImage)
+                other.addSubview(rightText)
+                other.addSubview(divider)
+                other.addSubview(kjappsLabel)
                 
                 UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
                     let left = UIView()
-                    left.frame = self.view.frame
+                    left.frame = self.container.frame
                     self.view.addSubview(left)
                     left.addSubview(self.leftImage)
                     left.addSubview(self.leftText)
@@ -200,7 +277,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
                 })
                     
                 UIView.animate(withDuration: 0.5, delay: 0.1, options: [], animations: {
-                    container.frame.origin.y += 200
+                    other.frame.origin.y += 200
                 }, completion: { _ in
                     self.performSegue(withIdentifier: "toGame", sender: self)
                 })
