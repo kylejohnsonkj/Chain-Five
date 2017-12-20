@@ -10,7 +10,7 @@
 
 class ChainDetector {
     
-    let chain = 3
+    let chain = 5
     
     func isValidChain(_ cardsOnBoard: [Card], _ currentPlayer: Int) -> (Bool, [Int]) {
         

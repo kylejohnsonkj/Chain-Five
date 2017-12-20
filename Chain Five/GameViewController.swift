@@ -57,6 +57,8 @@ class GameViewController: UIViewController {
     
     var cardsInHand1 = [Card]()
     var cardsInHand2 = [Card]()
+    let beforeP2Deal = 98
+    let afterP2Deal = 93
     
     var cardChosen: Bool = false {
         didSet {
@@ -316,14 +318,14 @@ class GameViewController: UIViewController {
         while (j < 2) {
             for suit in 0..<suits.count {
                 for rank in 1...13 {
-//                    let card = Card(named: "\(suits[suit])\(rank)-")
-                    let card = Card(named: "H11-")
+                    let card = Card(named: "\(suits[suit])\(rank)-")
+//                    let card = Card(named: "H11-")
                     cardsInDeck.append(card)
                 }
             }
             j += 1
         }
-        
+
         var array: [Card] = []
         if seed == nil {
             array = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
@@ -497,43 +499,48 @@ class GameViewController: UIViewController {
                         
                         AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                         
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [unowned self] in
-                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
-                        }
-
-                        UIView.animate(withDuration: 1, delay: 0.75, options: [.curveEaseOut], animations: {
-                            container.frame.origin = cardsInHand[self.chosenCardIndex].frame.origin
-                            cardsInHand[self.chosenCardIndex].removeFromSuperview()
+                        if cardsInDeck.isEmpty == false {
                             
-                        }, completion: { _ in
-                            
-                            if let nextCard = self.getNextCardFromDeck() {
-                                cardsInHand[self.chosenCardIndex] = nextCard
-                                
-                                if self.currentPlayer == 1 || self.isMPCGame {
-                                    self.cardsInHand1[self.chosenCardIndex] = nextCard
-                                } else {
-                                    self.cardsInHand2[self.chosenCardIndex] = nextCard
-                                }
-                            
-                                nextCard.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
-                                
-                                UIView.transition(from: back, to: nextCard, duration: 1, options: [.transitionFlipFromRight], completion: nil)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [unowned self] in
+                                self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
                             }
                             
-                            if self.isMPCGame {
-                                self.changeTurns()
-                            } else {
-                                // if it's player 2's turn to draw their cards
-                                if self.cardsInDeck.count == 98 {
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
-                                        self.drawCards(forPlayer: 2)
-                                        self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
+                            UIView.animate(withDuration: 1, delay: 0.75, options: [.curveEaseOut], animations: {
+                                container.frame.origin = cardsInHand[self.chosenCardIndex].frame.origin
+                                cardsInHand[self.chosenCardIndex].removeFromSuperview()
+                                
+                            }, completion: { _ in
+                                
+                                if let nextCard = self.getNextCardFromDeck() {
+                                    cardsInHand[self.chosenCardIndex] = nextCard
+                                    
+                                    if self.currentPlayer == 1 || self.isMPCGame {
+                                        self.cardsInHand1[self.chosenCardIndex] = nextCard
+                                    } else {
+                                        self.cardsInHand2[self.chosenCardIndex] = nextCard
                                     }
+                                    
+                                    nextCard.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
+                                    
+                                    UIView.transition(from: back, to: nextCard, duration: 1, options: [.transitionFlipFromRight], completion: nil)
                                 }
-                                self.swapHands(cardsInHand)
-                            }
-                        })
+                                
+                                if self.isMPCGame {
+                                    self.changeTurns()
+                                } else {
+                                    // if it's player 2's turn to draw their cards
+                                    if self.cardsInDeck.count == self.beforeP2Deal {
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
+                                            self.drawCards(forPlayer: 2)
+                                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
+                                        }
+                                    }
+                                    self.swapHands(cardsInHand)
+                                }
+                            })
+                        } else {
+                            // TODO: no more cards to draw
+                        }
                     }
                 }
             }
@@ -650,11 +657,7 @@ class GameViewController: UIViewController {
             self.view.addSubview(nextCard)
             return nextCard
         } else {
-            // return blank for now
-            if isHost && appDelegate.mpcHandler.session.connectedPeers.count > 0 {
-                generateDeckWithSeedAndSend()
-            }
-            return getNextCardFromDeck()
+            return nil
         }
     }
     
@@ -668,7 +671,11 @@ class GameViewController: UIViewController {
             // fade out cards and player indicator label
             self.playerIndicator.alpha = 0
             self.playerTurnLabel.alpha = 0
-            self.cardsLeftLabel.alpha = self.cardsInDeck.count >= 93 ? 0 : self.cardsLeftLabel.alpha
+            
+            // if dealing, hide card amount, else always show
+            if self.cardsInDeck.count == self.beforeP2Deal {
+                self.cardsLeftLabel.alpha = 0
+            }
             
             for card in cardsInHand {
                 card.alpha = 0
@@ -684,7 +691,7 @@ class GameViewController: UIViewController {
                 self.cardsInHand1 = hand
                 self.currentPlayer = 2
                 
-                if self.cardsInDeck.count < 93 {
+                if self.cardsInDeck.count < self.afterP2Deal {
                     for i in 0..<5 {
                         self.cardsInHand2[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
                         self.view.addSubview(self.cardsInHand2[i])
@@ -711,7 +718,7 @@ class GameViewController: UIViewController {
                     card.alpha = 1
                 }
                 
-                if self.cardsInDeck.count < 93 {
+                if self.cardsInDeck.count < self.afterP2Deal {
                     self.playerIndicator.alpha = 1
                     self.playerTurnLabel.alpha = 1
                 } else {
