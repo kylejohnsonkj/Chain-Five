@@ -169,7 +169,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         kjappsLabel = UILabel()
         kjappsLabel.text = "Kyle Johnson Apps"
         kjappsLabel.font = UIFont(name: "Optima-Regular", size: 13 * (scale / 2))
-        kjappsLabel.frame = CGRect(x: container.bounds.midX - container.bounds.width / (2 * (space / 2)), y: container.bounds.maxY, width: container.bounds.width / (space / 2), height: 30)
+        kjappsLabel.frame = CGRect(x: container.bounds.midX - container.bounds.width / (2 * (space / 2)), y: container.bounds.maxY + padding * 2, width: container.bounds.width / (space / 2), height: 30)
         kjappsLabel.textAlignment = .center
         container.addSubview(kjappsLabel)
         
