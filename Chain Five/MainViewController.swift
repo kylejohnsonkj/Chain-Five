@@ -31,18 +31,18 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     // 10x10 grid -- 100 cards total (ignoring jacks)
     var cardsOnBoard = [Card]()
     var cardSize: CGFloat!
-    var scale: CGFloat!
     var iPad = false
     
     var gameTitle: UIImageView!
     var bottomBorder: UIView!
+    
+    var container: UIView!
     var leftImage: UIImageView!
     var leftText: UILabel!
     var rightImage: UIImageView!
     var rightText: UILabel!
     var divider: UIView!
     var kjappsLabel: UILabel!
-    var container: UIView!
     
     // for MultipeerConnectivity purposes
     var appDelegate: AppDelegate!
@@ -52,21 +52,16 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if view.bounds.width > 414 {
-            // iPad, adapt for different aspect ratio
-            cardSize = view.bounds.width / 14
-            scale = 3
-            iPad = true
-        } else {
-            cardSize = view.bounds.width / 11
-            scale = 2
-            iPad = false
-        }
-        generateBoard()
-        
+        resetMPC()
         prepareMPCGame = false
         isHost = false
         
+        calculateScale()
+        generateBoard()
+        generateTitleAndButtons()
+    }
+    
+    func resetMPC() {
         // reset all session junk
         appDelegate = UIApplication.shared.delegate as! AppDelegate
         appDelegate.mpcHandler.peerID = nil
@@ -83,40 +78,22 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(peerChangedStateWithNotification(notification:)), name: .didChangeState, object: nil)
     }
     
-    @objc func peerChangedStateWithNotification(notification: Notification) {
-        let userInfo = NSDictionary(dictionary: notification.userInfo!)
-        appDelegate.mpcHandler.state = userInfo.object(forKey: "state") as? Int
-        
-        // if connected to other player, prepare and send into game
-        if appDelegate.mpcHandler.state == 2 {
-            prepareMPCGame = true
-            if appDelegate.mpcHandler.browser != nil {
-                isHost = true
-                appDelegate.mpcHandler.browser.dismiss(animated: true)
-            }
-            
-            if isHost == false {
-                // delay so both devices are on same timing
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
-                    self.performSegue(withIdentifier: "toGame", sender: self)
-                }
-            } else {
-                self.performSegue(withIdentifier: "toGame", sender: self)
-            }
+    func calculateScale() {
+        if view.bounds.width > 414 {
+            // iPad, adapt for different aspect ratio
+            cardSize = view.bounds.width / 14
+            iPad = true
+        } else {
+            cardSize = view.bounds.width / 11
+            iPad = false
         }
     }
     
     func generateBoard() {
         
-        let topMargin = self.view.bounds.height / 2 - (self.cardSize * 5) - cardSize / 2
-        // y = topmargin - view.bounds.width / 12 - cardSize / 4
-        // extra = height - cardSize * 10
-        gameTitle = UIImageView(image: UIImage(named: "title"))
-        gameTitle.frame = CGRect(x: view.bounds.midX - view.bounds.width / (scale * 2), y: topMargin - view.bounds.width / (scale * 3) - view.bounds.height / 20, width: view.bounds.width / scale, height: view.bounds.width / (scale * 3))
-        gameTitle.contentMode = .scaleAspectFit
-        view.addSubview(gameTitle)
-
         let leftMargin = self.view.bounds.width / 2 - (self.cardSize * 5)
+        let topMargin = self.view.bounds.height / 2 - (self.cardSize * 5) - cardSize / 2
+        
         // adds black line below bottom row of cards
         bottomBorder = UIView()
         bottomBorder.frame = CGRect(x: leftMargin, y: topMargin + (cardSize * 10), width: cardSize * 10, height: 1)
@@ -125,17 +102,54 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         view.addSubview(bottomBorder)
         bottomBorder.alpha = 0
         bottomBorder.layer.zPosition = 3
+
+        // load the 100 cards
+        var i = 0
+        while i < 100 {
+            let card = Card(named: self.cardsLayout[i])
+            card.frame = CGRect(x: view.frame.midX - (cardSize / 2), y: view.frame.midY - (cardSize / 2), width: cardSize, height: cardSize)
+            self.view.addSubview(card)
+            self.cardsOnBoard.append(card)
+            i += 1
+        }
+
+        // animate cards into center of screen
+        i = 0
+        UIView.animate(withDuration: 1, animations: {
+            let leftMargin = self.view.bounds.width / 2 - (self.cardSize * 5) - self.cardSize
+            let topMargin = self.view.bounds.height / 2 - (self.cardSize * 5) - self.cardSize * 1.5
+            for row in 1...10 {
+                for col in 1...10 {
+                    self.cardsOnBoard[i].frame = CGRect(x: leftMargin + (CGFloat(col) * self.cardSize), y: topMargin + (CGFloat(row) * self.cardSize), width: self.cardSize, height: self.cardSize)
+                    i += 1
+                }
+            }
+            
+        }, completion: { _ in
+            self.bottomBorder.alpha = 1
+        })
         
+    }
+    
+    func generateTitleAndButtons() {
+        
+        let scale: CGFloat = iPad ? 3 : 2
+        let space: CGFloat = iPad ? 5 : 4
+        let padding: CGFloat = iPad ? 5 : 0
+        let size: CGFloat = 30
+        
+        let topMargin = self.view.bounds.height / 2 - (self.cardSize * 5) - cardSize / 2
         let btmMargin = self.view.bounds.height / 2 + (self.cardSize * 5) - cardSize / 2
+        
+        gameTitle = UIImageView(image: UIImage(named: "title"))
+        gameTitle.frame = CGRect(x: view.bounds.midX - view.bounds.width / (scale * 2), y: topMargin - view.bounds.width / (scale * 3) - view.bounds.height / 20, width: view.bounds.width / scale, height: view.bounds.width / (scale * 3))
+        gameTitle.contentMode = .scaleAspectFit
+        view.addSubview(gameTitle)
         
         container = UIView()
         container.frame = CGRect(x: view.bounds.midX - (view.bounds.width * 0.4), y: btmMargin + view.bounds.width / (scale * 4), width: view.bounds.width * 0.8, height: view.bounds.width / (scale * 2.2))
         view.addSubview(container)
         
-        let space: CGFloat = iPad ? 5 : 4
-        let padding: CGFloat = iPad ? 5 : 0
-        
-        let size: CGFloat = 30
         leftImage = UIImageView(image: UIImage(named: "cards"))
         leftImage.frame = CGRect(x: container.bounds.midX - container.bounds.width / space - (size * scale) / 2, y: container.bounds.minY, width: size * scale, height: (size * scale) * 0.6)
         leftImage.contentMode = .scaleAspectFit
@@ -173,72 +187,51 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         kjappsLabel.textAlignment = .center
         container.addSubview(kjappsLabel)
         
-//        bottomBorder = UIView()
+        gameTitle.frame.origin.y -= 200
+        gameTitle.alpha = 0
+        container.frame.origin.y += 200
+        container.alpha = 0
         
-//        leftImage.frame.origin.x -= 175
-//        leftText.frame.origin.x -= 175
-//        rightImage.frame.origin.x += 175
-//        rightText.frame.origin.x += 175
-//        divider.alpha = 0
-//        gameTitle.frame.origin.y -= 200
-//        kjappsLabel.frame.origin.y += 20
+        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+            self.gameTitle.frame.origin.y += 200
+            self.gameTitle.alpha = 1
+            self.container.frame.origin.y -= 200
+            self.container.alpha = 1
+        })
+    }
+    
+    @objc func peerChangedStateWithNotification(notification: Notification) {
+        let userInfo = NSDictionary(dictionary: notification.userInfo!)
+        appDelegate.mpcHandler.state = userInfo.object(forKey: "state") as? Int
         
-        // load the 100 cards
-        var i = 0
-        while i < 100 {
-            let card = Card(named: self.cardsLayout[i])
-            card.frame = CGRect(x: view.frame.midX - (cardSize / 2), y: view.frame.midY - (cardSize / 2), width: cardSize, height: cardSize)
-            self.view.addSubview(card)
-            self.cardsOnBoard.append(card)
-            i += 1
-        }
-
-        // animate cards into center of screen
-        i = 0
-        UIView.animate(withDuration: 1, animations: {
-            let leftMargin = self.view.bounds.width / 2 - (self.cardSize * 5) - self.cardSize
-            let topMargin = self.view.bounds.height / 2 - (self.cardSize * 5) - self.cardSize * 1.5
-            for row in 1...10 {
-                for col in 1...10 {
-                    self.cardsOnBoard[i].frame = CGRect(x: leftMargin + (CGFloat(col) * self.cardSize), y: topMargin + (CGFloat(row) * self.cardSize), width: self.cardSize, height: self.cardSize)
-                    i += 1
-                }
+        // if connected to other player, prepare and send into game
+        if appDelegate.mpcHandler.state == 2 {
+            prepareMPCGame = true
+            if appDelegate.mpcHandler.browser != nil {
+                isHost = true
+                appDelegate.mpcHandler.browser.dismiss(animated: true)
             }
             
-        }, completion: { _ in
-            self.bottomBorder.alpha = 1
-        })
-
-        UIView.animate(withDuration: 0.5, delay: 0.5, options: [], animations: {
-//            self.leftImage.frame.origin.x += 175
-//            self.leftText.frame.origin.x += 175
-//            self.rightImage.frame.origin.x -= 175
-//            self.rightText.frame.origin.x -= 175
-//            self.kjappsLabel.frame.origin.y -= 20
-//            self.gameTitle.frame.origin.y += 200
-        }, completion: { _ in
-            UIView.animate(withDuration: 0.5, animations: {
-//                self.divider.alpha = 1
-            })
-        })
-        
+            if isHost == false {
+                // delay so both devices are on same timing
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
+                    self.performSegue(withIdentifier: "toGame", sender: self)
+                }
+            } else {
+                self.performSegue(withIdentifier: "toGame", sender: self)
+            }
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
-//        let container = UIView()
-//        container.frame = view.frame
-//        view.addSubview(container)
-//        container.addSubview(leftImage)
-//        container.addSubview(leftText)
-//        container.addSubview(rightImage)
-//        container.addSubview(rightText)
-//        container.addSubview(divider)
-//        container.addSubview(kjappsLabel)
-//        container.frame.origin.y += 200
+
+        container.frame.origin.y += 200
+        container.alpha = 0
         
-//        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
-//            container.frame.origin.y -= 200
-//        })
+        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+            self.container.frame.origin.y -= 200
+            self.container.alpha = 1
+        })
         
         // ios 10.3 and later
         if UserDefaults.standard.integer(forKey: "gamesFinished") == 5 {
@@ -255,36 +248,18 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
             let touchLocation = touch.location(in: self.container)
             
             if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
-                
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
                 
-                let other = UIView()
-                other.frame = self.container.frame
-                view.addSubview(other)
-                
-                other.addSubview(rightImage)
-                other.addSubview(rightText)
-                other.addSubview(divider)
-                other.addSubview(kjappsLabel)
-                
                 UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
-                    let left = UIView()
-                    left.frame = self.container.frame
-                    self.view.addSubview(left)
-                    left.addSubview(self.leftImage)
-                    left.addSubview(self.leftText)
-                    left.frame.origin.y += 200
-                })
+                    self.container.frame.origin.y += 200
+                    self.container.alpha = 0
                     
-                UIView.animate(withDuration: 0.5, delay: 0.1, options: [], animations: {
-                    other.frame.origin.y += 200
                 }, completion: { _ in
                     self.performSegue(withIdentifier: "toGame", sender: self)
                 })
             }
             
             if rightImage.frame.contains(touchLocation) || rightText.frame.contains(touchLocation) {
-                
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
                 
                 if appDelegate.mpcHandler.session != nil {
