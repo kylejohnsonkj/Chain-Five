@@ -33,10 +33,12 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     var cardSize: CGFloat!
     var iPad = false
     
+    // main elements
     var gameTitle: UIImageView!
     var bottomBorder: UIView!
-    
     var container: UIView!
+    
+    // everything within bottom container
     var leftImage: UIImageView!
     var leftText: UILabel!
     var rightImage: UIImageView!
@@ -55,10 +57,11 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         resetMPC()
         prepareMPCGame = false
         isHost = false
-        
         calculateScale()
+        
         generateBoard()
         generateTitleAndButtons()
+        animateViews()
     }
     
     func resetMPC() {
@@ -80,34 +83,32 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     
     func calculateScale() {
         if view.bounds.width > 414 {
-            // iPad, adapt for different aspect ratio
+            // it's an iPad, adapt for different aspect ratio
             cardSize = view.bounds.width / 14
             iPad = true
         } else {
-            cardSize = view.bounds.width / 11
+            cardSize = view.bounds.width / 10.7
             iPad = false
         }
     }
     
     func generateBoard() {
         
-        let leftMargin = self.view.bounds.width / 2 - (self.cardSize * 5)
-        let topMargin = self.view.bounds.height / 2 - (self.cardSize * 5) - cardSize / 2
+        let leftMargin = view.frame.midX - (self.cardSize * 5)
+        let topMargin = view.frame.midY - (self.cardSize * 5) - cardSize / 2
         
         // adds black line below bottom row of cards
         bottomBorder = UIView()
         bottomBorder.frame = CGRect(x: leftMargin, y: topMargin + (cardSize * 10), width: cardSize * 10, height: 1)
-        bottomBorder.layer.borderColor = UIColor.black.cgColor
-        bottomBorder.layer.borderWidth = 1
+        bottomBorder.layer.backgroundColor = UIColor.black.cgColor
         view.addSubview(bottomBorder)
         bottomBorder.alpha = 0
-        bottomBorder.layer.zPosition = 3
 
         // load the 100 cards
         var i = 0
         while i < 100 {
             let card = Card(named: self.cardsLayout[i])
-            card.frame = CGRect(x: view.frame.midX - (cardSize / 2), y: view.frame.midY - (cardSize / 2), width: cardSize, height: cardSize)
+            card.frame = CGRect(x: view.frame.midX - (cardSize / 2), y: view.frame.midY - cardSize, width: cardSize, height: cardSize)
             self.view.addSubview(card)
             self.cardsOnBoard.append(card)
             i += 1
@@ -116,10 +117,8 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         // animate cards into center of screen
         i = 0
         UIView.animate(withDuration: 1, animations: {
-            let leftMargin = self.view.bounds.width / 2 - (self.cardSize * 5) - self.cardSize
-            let topMargin = self.view.bounds.height / 2 - (self.cardSize * 5) - self.cardSize * 1.5
-            for row in 1...10 {
-                for col in 1...10 {
+            for row in 0...9 {
+                for col in 0...9 {
                     self.cardsOnBoard[i].frame = CGRect(x: leftMargin + (CGFloat(col) * self.cardSize), y: topMargin + (CGFloat(row) * self.cardSize), width: self.cardSize, height: self.cardSize)
                     i += 1
                 }
@@ -133,66 +132,72 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     
     func generateTitleAndButtons() {
         
+        let topMargin = view.frame.midY - (self.cardSize * 5) - cardSize / 2
+        let btmMargin = view.frame.midY + (self.cardSize * 5) - cardSize / 2
+        
+        // sizing variables
         let scale: CGFloat = iPad ? 3 : 2
-        let space: CGFloat = iPad ? 5 : 4
+        let spacing: CGFloat = iPad ? 5 : 4
         let padding: CGFloat = iPad ? 5 : 0
-        let size: CGFloat = 30
+        let imgSize: CGFloat = cardSize * 1.75
         
-        let topMargin = self.view.bounds.height / 2 - (self.cardSize * 5) - cardSize / 2
-        let btmMargin = self.view.bounds.height / 2 + (self.cardSize * 5) - cardSize / 2
-        
+        let titleWidth = view.bounds.width / scale
+        let titleHeight = titleWidth / 3
         gameTitle = UIImageView(image: UIImage(named: "title"))
-        gameTitle.frame = CGRect(x: view.bounds.midX - view.bounds.width / (scale * 2), y: topMargin - view.bounds.width / (scale * 3) - view.bounds.height / 20, width: view.bounds.width / scale, height: view.bounds.width / (scale * 3))
+        gameTitle.frame = CGRect(x: view.bounds.midX - view.bounds.width / (scale * 2), y: topMargin - titleHeight - cardSize / 1.25, width: titleWidth, height: titleHeight)
         gameTitle.contentMode = .scaleAspectFit
         view.addSubview(gameTitle)
         
         container = UIView()
-        container.frame = CGRect(x: view.bounds.midX - (view.bounds.width * 0.4), y: btmMargin + view.bounds.width / (scale * 4), width: view.bounds.width * 0.8, height: view.bounds.width / (scale * 2.2))
+        container.frame = CGRect(x: view.bounds.midX - (view.bounds.width * 0.4), y: btmMargin + cardSize * 1.25, width: view.bounds.width * 0.8, height: imgSize)
         view.addSubview(container)
         
         leftImage = UIImageView(image: UIImage(named: "cards"))
-        leftImage.frame = CGRect(x: container.bounds.midX - container.bounds.width / space - (size * scale) / 2, y: container.bounds.minY, width: size * scale, height: (size * scale) * 0.6)
+        leftImage.frame = CGRect(x: container.bounds.midX - container.bounds.width / spacing - imgSize / 2, y: container.bounds.minY, width: imgSize, height: imgSize * 0.6)
         leftImage.contentMode = .scaleAspectFit
         container.addSubview(leftImage)
         
         rightImage = UIImageView(image: UIImage(named: "globe"))
-        rightImage.frame = CGRect(x: container.bounds.midX + container.bounds.width / space - (size * scale) / 2, y: container.bounds.minY, width: size * scale, height: (size * scale) * 0.6)
+        rightImage.frame = CGRect(x: container.bounds.midX + container.bounds.width / spacing - imgSize / 2, y: container.bounds.minY, width: imgSize, height: imgSize * 0.6)
         rightImage.contentMode = .scaleAspectFit
         container.addSubview(rightImage)
         
+        let textWidth = container.bounds.width / (spacing / 2)
         leftText = UILabel()
         leftText.text = "Pass 'N Play"
         leftText.font = UIFont(name: "Optima-Regular", size: 17 * (scale / 2))
-        leftText.frame = CGRect(x: container.bounds.midX - container.bounds.width / (space / 2), y: container.bounds.minY + leftImage.frame.height + padding, width: container.bounds.width / (space / 2), height: 30)
+        leftText.frame = CGRect(x: container.bounds.midX - textWidth, y: container.bounds.minY + leftImage.frame.height + padding, width: textWidth, height: 30)
         leftText.textAlignment = .center
         container.addSubview(leftText)
         
         rightText = UILabel()
         rightText.text = "Local Match"
         rightText.font = UIFont(name: "Optima-Regular", size: 17 * (scale / 2))
-        rightText.frame = CGRect(x: container.bounds.midX, y: container.bounds.minY + leftImage.frame.height + padding, width: container.bounds.width / (space / 2), height: 30)
+        rightText.frame = CGRect(x: container.bounds.midX, y: container.bounds.minY + leftImage.frame.height + padding, width: textWidth, height: 30)
         rightText.textAlignment = .center
         container.addSubview(rightText)
         
         divider = UIView()
-        divider.frame = CGRect(x: container.bounds.midX, y: -leftText.bounds.height / 4, width: 1 * ceil(scale / 2), height: leftImage.bounds.height + leftText.bounds.height * 1.25 + padding * 2)
-        divider.layer.borderColor = UIColor.black.cgColor
-        divider.layer.borderWidth = 1
+        divider.frame = CGRect(x: container.bounds.midX, y: -cardSize / 4, width: 1 * ceil(scale / 2), height: container.frame.height + cardSize / 2)
+        divider.layer.backgroundColor = UIColor.black.cgColor
         container.addSubview(divider)
         
+        let labelWidth = container.bounds.width / (spacing / 2)
         kjappsLabel = UILabel()
         kjappsLabel.text = "Kyle Johnson Apps"
         kjappsLabel.font = UIFont(name: "Optima-Regular", size: 13 * (scale / 2))
-        kjappsLabel.frame = CGRect(x: container.bounds.midX - container.bounds.width / (2 * (space / 2)), y: container.bounds.maxY + padding * 2, width: container.bounds.width / (space / 2), height: 30)
+        kjappsLabel.frame = CGRect(x: container.bounds.midX - labelWidth / 2, y: container.bounds.maxY + padding + cardSize / 1.5, width: labelWidth, height: 30)
         kjappsLabel.textAlignment = .center
         container.addSubview(kjappsLabel)
-        
+    }
+    
+    func animateViews() {
         gameTitle.frame.origin.y -= 200
         gameTitle.alpha = 0
         container.frame.origin.y += 200
         container.alpha = 0
         
-        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+        UIView.animate(withDuration: 0.5, delay: 0.5, options: [], animations: {
             self.gameTitle.frame.origin.y += 200
             self.gameTitle.alpha = 1
             self.container.frame.origin.y -= 200
