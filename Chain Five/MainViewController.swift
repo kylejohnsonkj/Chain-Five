@@ -137,14 +137,18 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         
         // sizing variables
         let scale: CGFloat = iPad ? 3 : 2
-        let spacing: CGFloat = iPad ? 5 : 4
+        var spacing: CGFloat = iPad ? 5 : 4
+        if view.frame.maxX < 375 {
+            // iPhone 5/5s only
+            spacing = 3.5
+        }
         let padding: CGFloat = iPad ? 5 : 0
         let imgSize: CGFloat = cardSize * 1.75
         
         let titleWidth = view.bounds.width / scale
         let titleHeight = titleWidth / 3
         gameTitle = UIImageView(image: UIImage(named: "title"))
-        gameTitle.frame = CGRect(x: view.bounds.midX - view.bounds.width / (scale * 2), y: topMargin - titleHeight - cardSize / 1.25, width: titleWidth, height: titleHeight)
+        gameTitle.frame = CGRect(x: view.bounds.midX - (titleWidth / 2), y: topMargin - titleHeight - cardSize / 1.25, width: titleWidth, height: titleHeight)
         gameTitle.contentMode = .scaleAspectFit
         view.addSubview(gameTitle)
         
@@ -152,33 +156,34 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         container.frame = CGRect(x: view.bounds.midX - (view.bounds.width * 0.4), y: btmMargin + cardSize * 1.25, width: view.bounds.width * 0.8, height: imgSize)
         view.addSubview(container)
         
+        let spaceBetween = container.bounds.width / spacing
         leftImage = UIImageView(image: UIImage(named: "cards"))
-        leftImage.frame = CGRect(x: container.bounds.midX - container.bounds.width / spacing - imgSize / 2, y: container.bounds.minY, width: imgSize, height: imgSize * 0.6)
+        leftImage.frame = CGRect(x: container.bounds.midX + 2 - spaceBetween - imgSize / 2, y: container.bounds.minY, width: imgSize, height: imgSize * 0.6)
         leftImage.contentMode = .scaleAspectFit
         container.addSubview(leftImage)
-        
-        rightImage = UIImageView(image: UIImage(named: "globe"))
-        rightImage.frame = CGRect(x: container.bounds.midX + container.bounds.width / spacing - imgSize / 2, y: container.bounds.minY, width: imgSize, height: imgSize * 0.6)
-        rightImage.contentMode = .scaleAspectFit
-        container.addSubview(rightImage)
         
         let textWidth = container.bounds.width / (spacing / 2)
         leftText = UILabel()
         leftText.text = "Pass 'N Play"
         leftText.font = UIFont(name: "Optima-Regular", size: 17 * (scale / 2))
-        leftText.frame = CGRect(x: container.bounds.midX - textWidth, y: container.bounds.minY + leftImage.frame.height + padding, width: textWidth, height: 30)
+        leftText.frame = CGRect(x: container.bounds.midX + 2 - textWidth, y: container.bounds.minY + leftImage.frame.height + padding, width: textWidth, height: 30)
         leftText.textAlignment = .center
         container.addSubview(leftText)
+        
+        rightImage = UIImageView(image: UIImage(named: "globe"))
+        rightImage.frame = CGRect(x: container.bounds.midX + 2 + spaceBetween - imgSize / 2, y: container.bounds.minY, width: imgSize, height: imgSize * 0.6)
+        rightImage.contentMode = .scaleAspectFit
+        container.addSubview(rightImage)
         
         rightText = UILabel()
         rightText.text = "Local Match"
         rightText.font = UIFont(name: "Optima-Regular", size: 17 * (scale / 2))
-        rightText.frame = CGRect(x: container.bounds.midX, y: container.bounds.minY + leftImage.frame.height + padding, width: textWidth, height: 30)
+        rightText.frame = CGRect(x: container.bounds.midX + 2, y: container.bounds.minY + leftImage.frame.height + padding, width: textWidth, height: 30)
         rightText.textAlignment = .center
         container.addSubview(rightText)
         
         divider = UIView()
-        divider.frame = CGRect(x: container.bounds.midX, y: -cardSize / 4, width: 1 * ceil(scale / 2), height: container.frame.height + cardSize / 2)
+        divider.frame = CGRect(x: container.bounds.midX - (1 * ceil(scale / 2)), y: -cardSize / 4, width: 1 * ceil(scale / 2), height: container.frame.height + cardSize / 2)
         divider.layer.backgroundColor = UIColor.black.cgColor
         container.addSubview(divider)
         
