@@ -13,7 +13,7 @@ import StoreKit
 
 class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     
-    let cardsLayout = ["F0", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "F0",
+    let cardsLayout = ["-free", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "-free",
                        "D10", "D13", "C6", "C5", "C4", "H4", "H5", "H6", "S13", "S10",
                        "D9", "D6", "D12", "C3", "C2", "H2", "H3", "S12", "S6", "S9",
                        "D8", "D5", "D3", "C12", "C1", "H1", "H12", "S3", "S5", "S8",
@@ -22,7 +22,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
                        "S8", "S5", "S3", "H12", "H1", "C1", "C12", "D3", "D5", "D8",
                        "S9", "S6", "S12", "H3", "H2", "C2", "C3", "D12", "D6", "D9",
                        "S10", "S13", "H6", "H5", "H4", "C4", "C5", "C6", "D13", "D10",
-                       "F0", "H10", "H9", "H8", "H7", "C7", "C8", "C9", "C10", "F0"]
+                       "-free", "H10", "H9", "H8", "H7", "C7", "C8", "C9", "C10", "-free"]
     
     enum Taptics: SystemSoundID {
         case peek = 1519, pop = 1520, nope = 1521
