@@ -228,7 +228,7 @@ class GameViewController: UIViewController {
                     for c in cardsOnBoard {
                         c.isMostRecent = false
                     }
-                    cardsOnBoard[cardIndex!].isMostRecent = true
+//                    cardsOnBoard[cardIndex!].isMostReifcent = true
                     
                     _ = cardsInDeck.popLast()   // discard other player's drawn card
                     
@@ -268,6 +268,7 @@ class GameViewController: UIViewController {
                         }
                     } else {
                         AudioServicesPlaySystemSound(Taptics.peek.rawValue)
+                        cardsOnBoard[cardIndex!].isMostRecent = true
                         self.changeTurns()
                     }
                 } else {
@@ -275,6 +276,8 @@ class GameViewController: UIViewController {
                     print("cardIndex \(cardIndex!) removed by player \(senderDisplayName)")
                     cardsOnBoard[cardIndex!].owner = owner!
                     cardsOnBoard[cardIndex!].isMarked = false
+                    cardsOnBoard[cardIndex!].isMostRecent = true
+                    cardsOnBoard[cardIndex!].fadeMarker()
                     _ = cardsInDeck.popLast()   // discard other player's drawn card
                     AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                     self.changeTurns()
@@ -471,11 +474,11 @@ class GameViewController: UIViewController {
                             for c in cardsOnBoard {
                                 c.isMostRecent = false
                             }
-                            c.isMostRecent = true
                         } else {
                             if (isJack()) {
                                 c.owner = 0
                                 c.isMarked = false
+                                c.removeMarker()
                             }
                         }
 
@@ -603,6 +606,10 @@ class GameViewController: UIViewController {
                     
                     for c in cardsOnBoard {
                         c.isSelected = false
+                        c.isMostRecent = false
+                        if c.marker.alpha == 0.5 {
+                            c.subviews.forEach { $0.removeFromSuperview() }
+                        }
                         if !c.isMarked && chosenCardId == "\(c.id)+" {
                             c.isSelected = true
                         }

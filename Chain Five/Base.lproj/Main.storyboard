@@ -135,6 +135,6 @@
         <image name="cards" width="250" height="150"/>
         <image name="globe" width="250" height="150"/>
         <image name="orange" width="100" height="100"/>
-        <image name="title" width="417" height="123"/>
+        <image name="title" width="855" height="245"/>
     </resources>
 </document>
