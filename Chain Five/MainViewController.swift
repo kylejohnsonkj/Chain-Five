@@ -65,6 +65,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     }
     
     func resetMPC() {
+        
         // reset all session junk
         appDelegate = UIApplication.shared.delegate as! AppDelegate
         appDelegate.mpcHandler.peerID = nil
@@ -132,6 +133,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     
     func generateTitleAndButtons() {
         
+        // margins
         let topMargin = view.frame.midY - (self.cardSize * 5) - cardSize / 2
         let btmMargin = view.frame.midY + (self.cardSize * 5) - cardSize / 2
         
@@ -142,11 +144,14 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
             // iPhone 5/5s only
             spacing = 3.5
         }
+        let titleWidth = view.bounds.width / scale
+        let titleHeight = titleWidth / 3
         let padding: CGFloat = iPad ? 5 : 0
         let imgSize: CGFloat = cardSize * 1.75
         
-        let titleWidth = view.bounds.width / scale
-        let titleHeight = titleWidth / 3
+        // --------------------------------------------------------------------- //
+        
+        // Game Title
         gameTitle = UIImageView(image: UIImage(named: "title"))
         gameTitle.frame = CGRect(x: view.bounds.midX - (titleWidth / 2), y: topMargin - titleHeight - cardSize / 1.25, width: titleWidth, height: titleHeight)
         gameTitle.contentMode = .scaleAspectFit
@@ -156,20 +161,30 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         container.frame = CGRect(x: view.bounds.midX - (view.bounds.width * 0.4), y: btmMargin + cardSize * 1.25, width: view.bounds.width * 0.8, height: imgSize)
         view.addSubview(container)
         
+        // container dependent variables
         let spaceBetween = container.bounds.width / spacing
+        let textWidth = container.bounds.width / (spacing / 2)
+        
+        // Pass 'N Play (LEFT BUTTON)
         leftImage = UIImageView(image: UIImage(named: "cards"))
         leftImage.frame = CGRect(x: container.bounds.midX + 2 - spaceBetween - imgSize / 2, y: container.bounds.minY, width: imgSize, height: imgSize * 0.6)
         leftImage.contentMode = .scaleAspectFit
         container.addSubview(leftImage)
         
-        let textWidth = container.bounds.width / (spacing / 2)
         leftText = UILabel()
         leftText.text = "Pass 'N Play"
-        leftText.font = UIFont(name: "Optima-Regular", size: 17 * (scale / 2))
+        leftText.font = UIFont(name: "Optima-Regular", size: cardSize / 2)
         leftText.frame = CGRect(x: container.bounds.midX + 2 - textWidth, y: container.bounds.minY + leftImage.frame.height + padding, width: textWidth, height: 30)
         leftText.textAlignment = .center
         container.addSubview(leftText)
         
+        // Divider between buttons
+        divider = UIView()
+        divider.frame = CGRect(x: container.bounds.midX - (1 * ceil(scale / 2)), y: -cardSize / 4 - 3, width: 1 * ceil(scale / 2), height: container.frame.height + cardSize / 2)
+        divider.layer.backgroundColor = UIColor.black.cgColor
+        container.addSubview(divider)
+        
+        // Local Match (RIGHT BUTTON)
         rightImage = UIImageView(image: UIImage(named: "globe"))
         rightImage.frame = CGRect(x: container.bounds.midX + 2 + spaceBetween - imgSize / 2, y: container.bounds.minY, width: imgSize, height: imgSize * 0.6)
         rightImage.contentMode = .scaleAspectFit
@@ -177,21 +192,16 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         
         rightText = UILabel()
         rightText.text = "Local Match"
-        rightText.font = UIFont(name: "Optima-Regular", size: 17 * (scale / 2))
+        rightText.font = UIFont(name: "Optima-Regular", size: cardSize / 2)
         rightText.frame = CGRect(x: container.bounds.midX + 2, y: container.bounds.minY + leftImage.frame.height + padding, width: textWidth, height: 30)
         rightText.textAlignment = .center
         container.addSubview(rightText)
         
-        divider = UIView()
-        divider.frame = CGRect(x: container.bounds.midX - (1 * ceil(scale / 2)), y: -cardSize / 4, width: 1 * ceil(scale / 2), height: container.frame.height + cardSize / 2)
-        divider.layer.backgroundColor = UIColor.black.cgColor
-        container.addSubview(divider)
-        
-        let labelWidth = container.bounds.width / (spacing / 2)
+        // Self-promotion
         kjappsLabel = UILabel()
         kjappsLabel.text = "Kyle Johnson Apps"
-        kjappsLabel.font = UIFont(name: "Optima-Regular", size: 13 * (scale / 2))
-        kjappsLabel.frame = CGRect(x: container.bounds.midX - labelWidth / 2, y: container.bounds.maxY + padding + cardSize / 1.5, width: labelWidth, height: 30)
+        kjappsLabel.font = UIFont(name: "Optima-Regular", size: cardSize / 3)
+        kjappsLabel.frame = CGRect(x: container.bounds.midX - textWidth / 2, y: container.bounds.maxY + padding + cardSize / 1.5, width: textWidth, height: 30)
         kjappsLabel.textAlignment = .center
         container.addSubview(kjappsLabel)
     }
@@ -234,7 +244,6 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-
         container.frame.origin.y += 200
         container.alpha = 0
         

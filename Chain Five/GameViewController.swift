@@ -224,6 +224,12 @@ class GameViewController: UIViewController {
                     print("cardIndex \(cardIndex!) placed by player \(senderDisplayName)")
                     cardsOnBoard[cardIndex!].owner = owner!
                     cardsOnBoard[cardIndex!].isMarked = true
+                    
+                    for c in cardsOnBoard {
+                        c.isMostRecent = false
+                    }
+                    cardsOnBoard[cardIndex!].isMostRecent = true
+                    
                     _ = cardsInDeck.popLast()   // discard other player's drawn card
                     
                     // test for chain
@@ -264,6 +270,14 @@ class GameViewController: UIViewController {
                         AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                         self.changeTurns()
                     }
+                } else {
+                    // other player removed marker using jack
+                    print("cardIndex \(cardIndex!) removed by player \(senderDisplayName)")
+                    cardsOnBoard[cardIndex!].owner = owner!
+                    cardsOnBoard[cardIndex!].isMarked = false
+                    _ = cardsInDeck.popLast()   // discard other player's drawn card
+                    AudioServicesPlaySystemSound(Taptics.peek.rawValue)
+                    self.changeTurns()
                 }
             }
 
@@ -318,8 +332,8 @@ class GameViewController: UIViewController {
         while (j < 2) {
             for suit in 0..<suits.count {
                 for rank in 1...13 {
-                    let card = Card(named: "\(suits[suit])\(rank)+")
-//                    let card = Card(named: "H11+")
+//                    let card = Card(named: "\(suits[suit])\(rank)+")
+                    let card = Card(named: "H11+")
                     cardsInDeck.append(card)
                 }
             }
@@ -440,7 +454,7 @@ class GameViewController: UIViewController {
             }
             
             for c in cardsOnBoard {
-                if ((c.isSelected || isJack()) && !c.isFreeSpace && !c.isMarked && c.frame.contains(touchLocation)) {
+                if ((c.isSelected || isJack()) && !c.isFreeSpace && c.owner != currentPlayer && c.frame.contains(touchLocation)) {
                     
                     if !(isMPCGame && currentPlayer != playerID) {
                         
@@ -451,7 +465,19 @@ class GameViewController: UIViewController {
                         } else {
                             c.owner = currentPlayer
                         }
-                        c.isMarked = true
+                        
+                        if c.isMarked == false {
+                            c.isMarked = true
+                            for c in cardsOnBoard {
+                                c.isMostRecent = false
+                            }
+                            c.isMostRecent = true
+                        } else {
+                            if (isJack()) {
+                                c.owner = 0
+                                c.isMarked = false
+                            }
+                        }
 
                         if isMPCGame && appDelegate.mpcHandler.session.connectedPeers.count > 0 {
                             
@@ -471,6 +497,7 @@ class GameViewController: UIViewController {
                         let container = UIView()
                         container.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
                         view.addSubview(container)
+                        container.layer.zPosition = 1
                         
                         let back = Card(named: "-back")
                         back.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
@@ -501,33 +528,42 @@ class GameViewController: UIViewController {
                         
                         if cardsInDeck.isEmpty == false {
                             
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [unowned self] in
-                                self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
-                            }
+                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
                             
-                            UIView.animate(withDuration: 1, delay: 0.75, options: [.curveEaseOut], animations: {
+                            if isMPCGame {
+                                self.changeTurns()
+                            }
+
+                            UIView.animate(withDuration: 1, delay: 0, options: [.curveEaseOut], animations: {
                                 container.frame.origin = cardsInHand[self.chosenCardIndex].frame.origin
                                 cardsInHand[self.chosenCardIndex].removeFromSuperview()
                                 
                             }, completion: { _ in
                                 
                                 if let nextCard = self.getNextCardFromDeck() {
+                                    cardsInHand[self.chosenCardIndex].removeFromSuperview()
                                     cardsInHand[self.chosenCardIndex] = nextCard
                                     
                                     if self.currentPlayer == 1 || self.isMPCGame {
+                                        self.cardsInHand1[self.chosenCardIndex].removeFromSuperview()
                                         self.cardsInHand1[self.chosenCardIndex] = nextCard
                                     } else {
+                                        self.cardsInHand1[self.chosenCardIndex].removeFromSuperview()
                                         self.cardsInHand2[self.chosenCardIndex] = nextCard
                                     }
                                     
                                     nextCard.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
                                     
-                                    UIView.transition(from: back, to: nextCard, duration: 1, options: [.transitionFlipFromRight], completion: nil)
+                                    UIView.transition(from: back, to: nextCard, duration: 1, options: [.transitionFlipFromRight]) { (completed: Bool) in
+                                        for i in 0..<5 {
+                                            self.cardsInHand1[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
+                                            self.view.addSubview(self.cardsInHand1[i])
+                                        }
+                                    }
+                                    
                                 }
                                 
-                                if self.isMPCGame {
-                                    self.changeTurns()
-                                } else {
+                                if self.isMPCGame == false {
                                     // if it's player 2's turn to draw their cards
                                     if self.cardsInDeck.count == self.beforeP2Deal {
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
@@ -730,8 +766,7 @@ class GameViewController: UIViewController {
     
     // multiplayer
     func changeTurns() {
-        waitForAnimations = false
-        
+
         UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
             // fade out player indicator
             self.playerIndicator.alpha = 0
@@ -749,12 +784,6 @@ class GameViewController: UIViewController {
                 // fade in player indicator
                 self.playerIndicator.alpha = 1
                 self.playerTurnLabel.alpha = 1
-            }, completion: { _ in
-                
-                for i in 0..<5 {
-                    self.cardsInHand1[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
-                    self.view.addSubview(self.cardsInHand1[i])
-                }
             })
         })
     }

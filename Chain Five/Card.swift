@@ -24,34 +24,49 @@ class Card: UIImageView {
     
     var index: Int
     var owner: Int
+    var isFreeSpace: Bool
+    var markerView: UIImageView
     
     var isMarked: Bool {
         didSet {
-            guard owner != 0 else { return }
+            guard owner != 0 else {
+                self.subviews.forEach { $0.removeFromSuperview() }
+                return
+            }
             let color = owner == 1 ? "orange" : "blue"
-            let image = UIImage(named: color)
-            let marker = UIImageView(image: image)
-            marker.frame = CGRect(x: 0, y: 0, width: 35, height: 35)
-            self.addSubview(marker)
+            let markerImage = UIImage(named: color)
+            markerView = UIImageView(image: markerImage)
+            markerView.frame = CGRect(x: 0, y: 0, width: 35, height: 35)
+            self.addSubview(markerView)
             
             // pulse marker when placed
-            pulseMarker(marker)
+            pulseMarker(markerView)
         }
     }
-    var isFreeSpace: Bool
+    
+    var isMostRecent: Bool {
+        didSet {
+            let color = owner == 1 ? "orange" : "blue"
+            if isMostRecent == true {
+                markerView.image = UIImage(named: "\(color)_recent")
+            } else {
+                markerView.image = UIImage(named: color)
+            }
+        }
+    }
     
     // checked to show winning sequence
     var isChecked: Bool {
         didSet {
             if isChecked == true {
                 let color = owner == 1 ? "orange" : "blue"
-                let image = UIImage(named: "\(color)_chain")
-                let marker = UIImageView(image: image)
-                marker.frame = CGRect(x: 0, y: 0, width: 35, height: 35)
-                self.addSubview(marker)
+                let markerImage = UIImage(named: "\(color)_chain")
+                markerView = UIImageView(image: markerImage)
+                markerView.frame = CGRect(x: 0, y: 0, width: 35, height: 35)
+                self.addSubview(markerView)
                 
                 // pulse marker when checked
-                pulseMarker(marker)
+                pulseMarker(markerView)
             }
         }
     }
@@ -64,6 +79,10 @@ class Card: UIImageView {
         self.isFreeSpace = false
         self.index = -1
         self.isChecked = false
+        self.isMostRecent = false
+        
+        let markerImage = UIImage(named: "orange_chain")
+        markerView = UIImageView(image: markerImage)
         
         let image = UIImage(named: id)
         super.init(image: image)
@@ -72,10 +91,10 @@ class Card: UIImageView {
     }
     
     func pulseMarker(_ marker: UIImageView) {
-        UIView.animate(withDuration: 0.25, delay: 0, options: [], animations: {
+        UIView.animate(withDuration: 0.15, delay: 0, options: [], animations: {
             marker.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
         }, completion: { _ in
-            UIView.animate(withDuration: 0.25, animations: {
+            UIView.animate(withDuration: 0.35, animations: {
                 marker.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
             })
         })
