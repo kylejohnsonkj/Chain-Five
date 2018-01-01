@@ -247,14 +247,14 @@ class GameViewController: UIViewController {
                     }
                     
                     if isValidChain {
-                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
                         
-                        for index in winningIndices {
-                            self.cardsOnBoard[index].isChecked = true
+                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+                        for i in 0..<winningIndices.count {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + (Double(i) * 0.2) + 0.2) { [unowned self] in
+                                self.cardsOnBoard[winningIndices[i]].isChecked = true
+                            }
                         }
-                        for index in winningIndices {
-                            self.cardsOnBoard[index].isChecked = true
-                        }
+                        
                         let cardsInHand = self.getCurrentHand()
                         for card in cardsInHand {
                             card.isSelected = false
@@ -263,7 +263,8 @@ class GameViewController: UIViewController {
                             c.isSelected = false
                         }
                         self.jackOutline.layer.borderWidth = 0
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [unowned self] in
+                            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
                             self.presentWinScreen()
                         }
                     } else {
@@ -508,10 +509,14 @@ class GameViewController: UIViewController {
                         
                         let (isValidChain, winningIndices) = detector.isValidChain(cardsOnBoard, currentPlayer)
                         if isValidChain == true {
+                            
                             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-                            for index in winningIndices {
-                                cardsOnBoard[index].isChecked = true
+                            for i in 0..<winningIndices.count {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + (Double(i) * 0.2) + 0.2) { [unowned self] in
+                                    self.cardsOnBoard[winningIndices[i]].isChecked = true
+                                }
                             }
+                            
                             for card in cardsInHand {
                                 card.isSelected = false
                             }
@@ -519,7 +524,8 @@ class GameViewController: UIViewController {
                                 c.isSelected = false
                             }
                             jackOutline.layer.borderWidth = 0
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [unowned self] in
+                                AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
                                 self.presentWinScreen()
                             }
                         }

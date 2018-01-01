@@ -27,7 +27,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     enum Taptics: SystemSoundID {
         case peek = 1519, pop = 1520, nope = 1521
     }
-    
+
     // 10x10 grid -- 100 cards total (ignoring jacks)
     var cardsOnBoard = [Card]()
     var cardSize: CGFloat!
