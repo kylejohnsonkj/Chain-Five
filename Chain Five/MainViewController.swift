@@ -50,18 +50,38 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     var appDelegate: AppDelegate!
     var prepareMPCGame = false
     var isHost = false
-    var firstLoad = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // reset MPC related stuff
         resetMPC()
         prepareMPCGame = false
         isHost = false
-        calculateScale()
         
+        // check if we should request a review
+        if UserDefaults.standard.integer(forKey: "gamesFinished") % 10 == 0 {
+            SKStoreReviewController.requestReview()
+        }
+        
+        // determine if iPad or not and set scale
+        if view.bounds.width > 414 {
+            // it's an iPad, adapt for different aspect ratio
+            cardSize = view.bounds.width / 14
+            iPad = true
+        } else {
+            cardSize = view.bounds.width / 10.7
+            iPad = false
+        }
+        
+        // setup views
         generateBoard()
         generateTitleAndButtons()
+        
+        // animate
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
+            self.animateViews()
+        }
     }
     
     func resetMPC() {
@@ -82,14 +102,27 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(peerChangedStateWithNotification(notification:)), name: .didChangeState, object: nil)
     }
     
-    func calculateScale() {
-        if view.bounds.width > 414 {
-            // it's an iPad, adapt for different aspect ratio
-            cardSize = view.bounds.width / 14
-            iPad = true
-        } else {
-            cardSize = view.bounds.width / 10.7
-            iPad = false
+    @objc func peerChangedStateWithNotification(notification: Notification) {
+        
+        let userInfo = NSDictionary(dictionary: notification.userInfo!)
+        appDelegate.mpcHandler.state = userInfo.object(forKey: "state") as? Int
+        
+        // if connected to other player, prepare and send into game
+        if appDelegate.mpcHandler.state == 2 {
+            prepareMPCGame = true
+            if appDelegate.mpcHandler.browser != nil {
+                isHost = true
+                appDelegate.mpcHandler.browser.dismiss(animated: true)
+            }
+            
+            if isHost == false {
+                // delay so both devices are on same timing
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
+                    self.performSegue(withIdentifier: "toGame", sender: self)
+                }
+            } else {
+                self.performSegue(withIdentifier: "toGame", sender: self)
+            }
         }
     }
     
@@ -114,21 +147,6 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
             self.cardsOnBoard.append(card)
             i += 1
         }
-
-        // animate cards into center of screen
-        i = 0
-        UIView.animate(withDuration: 1, animations: {
-            for row in 0...9 {
-                for col in 0...9 {
-                    self.cardsOnBoard[i].frame = CGRect(x: leftMargin + (CGFloat(col) * self.cardSize), y: topMargin + (CGFloat(row) * self.cardSize), width: self.cardSize, height: self.cardSize)
-                    i += 1
-                }
-            }
-            
-        }, completion: { _ in
-            self.bottomBorder.alpha = 1
-        })
-        
     }
     
     func generateTitleAndButtons() {
@@ -172,45 +190,53 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         gameTitle.contentMode = .scaleAspectFit
         view.addSubview(gameTitle)
         
+        self.gameTitle.frame.origin.y -= 200
+        self.gameTitle.alpha = 0
+        
+        // Container for buttons and text
         container = UIView()
         container.frame = CGRect(x: view.bounds.midX - (view.bounds.width * 0.4), y: btmMargin + cardSize * 1.25, width: view.bounds.width * 0.8, height: imgSize)
         view.addSubview(container)
         
-        // container dependent variables
+        self.container.frame.origin.y += 200
+        self.container.alpha = 0
+
         let spaceBetween = container.bounds.width / spacing
         let textWidth = container.bounds.width / (spacing / 2)
         
-        // Pass 'N Play (LEFT BUTTON)
-        leftImage = UIImageView(image: UIImage(named: "cards"))
+        // Left Image (Pass N' Play)
+        leftImage = UIImageView(image: UIImage(named: "left"))
         leftImage.frame = CGRect(x: container.bounds.midX + 2 - spaceBetween - imgSize / 2, y: container.bounds.minY, width: imgSize, height: imgSize * 0.6)
         leftImage.contentMode = .scaleAspectFit
         container.addSubview(leftImage)
         
+        // Right Image (Local Match)
+        rightImage = UIImageView(image: UIImage(named: "right"))
+        rightImage.frame = CGRect(x: container.bounds.midX + 2 + spaceBetween - imgSize / 2, y: container.bounds.minY, width: imgSize, height: imgSize * 0.6)
+        rightImage.contentMode = .scaleAspectFit
+        container.addSubview(rightImage)
+        
+        // Pass N' Play text
         leftText = UILabel()
         leftText.text = "Pass 'N Play"
         leftText.font = UIFont(name: "Optima-Regular", size: cardSize / 2)
         leftText.frame = CGRect(x: container.bounds.midX + 2 - textWidth, y: container.bounds.minY + leftImage.frame.height + padding, width: textWidth, height: 30)
         leftText.textAlignment = .center
         container.addSubview(leftText)
-        
-        // Divider between buttons
-        divider = UIView()
-        divider.frame = CGRect(x: container.bounds.midX - (1 * ceil(scale / 2)), y: -cardSize / 4 - 3, width: 1 * ceil(scale / 2), height: container.frame.height - 4 + cardSize / 2)
-        divider.layer.backgroundColor = UIColor.black.cgColor
-        container.addSubview(divider)
-        
-        // Local Match (RIGHT BUTTON)
-        rightImage = UIImageView(image: UIImage(named: "globe"))
-        rightImage.frame = CGRect(x: container.bounds.midX + 2 + spaceBetween - imgSize / 2, y: container.bounds.minY, width: imgSize, height: imgSize * 0.6)
-        rightImage.contentMode = .scaleAspectFit
-        container.addSubview(rightImage)
-        
+
+        // Local Match text
         rightText = UILabel()
         rightText.text = "Local Match"
         rightText.font = UIFont(name: "Optima-Regular", size: cardSize / 2)
         rightText.frame = CGRect(x: container.bounds.midX + 2, y: container.bounds.minY + leftImage.frame.height + padding, width: textWidth, height: 30)
         rightText.textAlignment = .center
         container.addSubview(rightText)
+        
+        // Divider between buttons
+        divider = UIView()
+        divider.frame = CGRect(x: container.bounds.midX - (1 * ceil(scale / 2)), y: -cardSize / 4 - 3, width: 1 * ceil(scale / 2), height: container.frame.height - 4 + cardSize / 2)
+        divider.layer.backgroundColor = UIColor.black.cgColor
+        container.addSubview(divider)
         
         // Self-promotion
         kjappsLabel = UILabel()
@@ -220,63 +246,40 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         kjappsLabel.textAlignment = .center
         container.addSubview(kjappsLabel)
     }
-
     
-    @objc func peerChangedStateWithNotification(notification: Notification) {
-        let userInfo = NSDictionary(dictionary: notification.userInfo!)
-        appDelegate.mpcHandler.state = userInfo.object(forKey: "state") as? Int
+    func animateViews() {
         
-        // if connected to other player, prepare and send into game
-        if appDelegate.mpcHandler.state == 2 {
-            prepareMPCGame = true
-            if appDelegate.mpcHandler.browser != nil {
-                isHost = true
-                appDelegate.mpcHandler.browser.dismiss(animated: true)
-            }
-            
-            if isHost == false {
-                // delay so both devices are on same timing
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
-                    self.performSegue(withIdentifier: "toGame", sender: self)
+        let leftMargin = view.frame.midX - (self.cardSize * 5)
+        let topMargin = view.frame.midY - (self.cardSize * 5) - cardSize / 2
+        
+        // animate cards into center of screen
+        var i = 0
+        UIView.animate(withDuration: 1, animations: {
+            for row in 0...9 {
+                for col in 0...9 {
+                    self.cardsOnBoard[i].frame = CGRect(x: leftMargin + (CGFloat(col) * self.cardSize), y: topMargin + (CGFloat(row) * self.cardSize), width: self.cardSize, height: self.cardSize)
+                    i += 1
                 }
-            } else {
-                self.performSegue(withIdentifier: "toGame", sender: self)
             }
-        }
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-
-        if firstLoad == true {
-            gameTitle.frame.origin.y -= 200
-            gameTitle.alpha = 0
             
-            UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
-                self.gameTitle.frame.origin.y += 200
-                self.gameTitle.alpha = 1
-            })
-            
-            firstLoad = false
-        }
+        }, completion: { _ in
+            // show bottom border when finished
+            self.bottomBorder.alpha = 1
+        })
         
-        container.frame.origin.y += 200
-        container.alpha = 0
+        // animate title down
+        UIView.animate(withDuration: 0.5, delay: 0.5, options: [], animations: {
+            self.gameTitle.frame.origin.y += 200
+            self.gameTitle.alpha = 1
+        })
         
-        UIView.animate(withDuration: 0.5, delay: 0.2, options: [], animations: {
+        // animate buttons up
+        UIView.animate(withDuration: 0.5, delay: 0.5, options: [], animations: {
             self.container.frame.origin.y -= 200
             self.container.alpha = 1
         })
-        
-        // ios 10.3 and later
-        if UserDefaults.standard.integer(forKey: "gamesFinished") == 5 {
-            SKStoreReviewController.requestReview()
-            // increment immediately so request is not sent again
-            let currentCount = UserDefaults.standard.integer(forKey: "gamesFinished")
-            UserDefaults.standard.set(currentCount+1, forKey:"gamesFinished")
-            UserDefaults.standard.synchronize()
-        }
     }
-    
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
             let touchLocation = touch.location(in: self.container)

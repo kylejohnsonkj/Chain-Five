@@ -682,7 +682,7 @@ class GameViewController: UIViewController {
     
     func incrementGamesFinished() {
         let currentCount = UserDefaults.standard.integer(forKey: "gamesFinished")
-        UserDefaults.standard.set(currentCount+1, forKey:"gamesFinished")
+        UserDefaults.standard.set(currentCount + 1, forKey:"gamesFinished")
         UserDefaults.standard.synchronize()
     }
     
