@@ -13,6 +13,7 @@ class Layout {
     // main scale indicators
     var iPad = false
     var cardSize: CGFloat
+    var highlight: CGFloat
     
     // margins
     var leftMargin: CGFloat
@@ -44,19 +45,20 @@ class Layout {
             cardSize = view.bounds.width / 10.7
         }
         
+        highlight = cardSize / 12
         leftMargin = view.frame.midX - (self.cardSize * 5)
         topMargin = view.frame.midY - (self.cardSize * 5) - cardSize / 2
         btmMargin = view.frame.midY + (self.cardSize * 5) - cardSize / 2
 
         if iPad {
-            stroke = 2
-            offset = cardSize / 3
+            scale = 3
+            offset = cardSize / 2
             textPadding = 10
             imgSize = cardSize * 2
-            scale = 3
+            stroke = 2
         } else {
             scale = 2
-            offset = cardSize / 6
+            offset = cardSize / 4
             textPadding = 0
             imgSize = cardSize * 2.25
             stroke = 1

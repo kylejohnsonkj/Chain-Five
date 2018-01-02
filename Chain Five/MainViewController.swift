@@ -174,7 +174,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         // Pass N' Play text
         leftText = UILabel()
         leftText.text = "Pass 'N Play"
-        leftText.font = UIFont(name: "Optima-Regular", size: l.cardSize / 2)
+        leftText.font = UIFont(name: "GillSans", size: l.cardSize / 2)
         leftText.frame = CGRect(x: container.bounds.midX - l.offset - l.itemWidth, y: container.bounds.minY + l.textPadding + leftImage.frame.height, width: l.itemWidth, height: 30)
         leftText.textAlignment = .center
 //        leftText.layer.borderWidth = 1
@@ -190,7 +190,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         // Local Match text
         rightText = UILabel()
         rightText.text = "Local Match"
-        rightText.font = UIFont(name: "Optima-Regular", size: l.cardSize / 2)
+        rightText.font = UIFont(name: "GillSans", size: l.cardSize / 2)
         rightText.frame = CGRect(x: container.bounds.midX + l.offset, y: container.bounds.minY + l.textPadding + leftImage.frame.height, width: l.itemWidth, height: 30)
         rightText.textAlignment = .center
 //        rightText.layer.borderWidth = 1
@@ -199,7 +199,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         // Self-promotion
         kjappsLabel = UILabel()
         kjappsLabel.text = "Kyle Johnson Apps"
-        kjappsLabel.font = UIFont(name: "Optima-Regular", size: l.cardSize / 3)
+        kjappsLabel.font = UIFont(name: "GillSans", size: l.cardSize / 3)
         kjappsLabel.frame = CGRect(x: container.bounds.midX - l.itemWidth / 2, y: container.bounds.maxY + l.cardSize * 0.75, width: l.itemWidth, height: 30)
         kjappsLabel.textAlignment = .center
 //        kjappsLabel.layer.borderWidth = 1

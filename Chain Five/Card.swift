@@ -17,7 +17,7 @@ class Card: UIImageView {
     var isSelected: Bool {
         didSet {
             if isSelected == true {
-                self.layer.borderWidth = l.stroke + 2
+                self.layer.borderWidth = l.highlight
             } else {
                 self.layer.borderWidth = 0
             }
@@ -42,7 +42,7 @@ class Card: UIImageView {
             let color = owner == 1 ? "orange" : "blue"
             let markerImage = UIImage(named: color)
             marker = UIImageView(image: markerImage)
-            marker.frame = CGRect(x: 0, y: 0, width: 35, height: 35)
+            marker.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize)
             self.addSubview(marker)
             
             // pulse marker when placed
@@ -75,7 +75,7 @@ class Card: UIImageView {
                 let color = owner == 1 ? "orange" : "blue"
                 let markerImage = UIImage(named: "\(color)_chain")
                 marker = UIImageView(image: markerImage)
-                marker.frame = CGRect(x: 0, y: 0, width: 35, height: 35)
+                marker.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize)
                 self.addSubview(marker)
                 
                 // pulse marker when checked

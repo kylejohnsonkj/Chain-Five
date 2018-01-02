@@ -15,12 +15,6 @@ import MultipeerConnectivity
 
 class GameViewController: UIViewController {
     
-    @IBOutlet weak var playerTurnLabel: UILabel!
-    @IBOutlet weak var cardsLeftLabel: UILabel!
-    @IBOutlet weak var playerIndicator: UIImageView!
-    @IBOutlet weak var menuLabel: UILabel!
-    @IBOutlet weak var menuIconLabel: UILabel!
-    
     let suits = ["C", "D", "H", "S"]
 
     let cardsLayout = ["-free", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "-free",
@@ -75,7 +69,6 @@ class GameViewController: UIViewController {
     var chosenCardId = ""
     var lastSelectedCardIndex = -1
 
-    var stroke: CGFloat!
     var jackOutline = UIView()
     var gameOver = UIView()
     var waitForAnimations = false
@@ -115,6 +108,10 @@ class GameViewController: UIViewController {
     }
     
     var l: Layout!
+    var menuIcon: UIImageView!
+    var playerIndicator: UIImageView!
+    var playerTurnLabel: UILabel!
+    var cardsLeftLabel: UILabel!
     
     // MARK: - Setup
         
@@ -129,11 +126,33 @@ class GameViewController: UIViewController {
         //        gameTitle.layer.borderWidth = 1
         view.addSubview(gameTitle)
         
+        playerIndicator = UIImageView(image: UIImage(named: "orange"))
+        playerIndicator.frame = CGRect(x: l.leftMargin + l.cardSize * 0.05, y: l.btmMargin + (2 * l.cardSize * 1.23) + l.cardSize * 0.05, width: l.cardSize * 0.9, height: l.cardSize * 0.9)
+        view.addSubview(playerIndicator)
+        
+        playerTurnLabel = UILabel()
+        playerTurnLabel.text = "Kyle's turn"  // placeholder
+        playerTurnLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
+        playerTurnLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 1.1, y: l.btmMargin + (2 * l.cardSize * 1.23) - l.cardSize * 0.01, width: l.itemWidth, height: l.cardSize)
+        playerTurnLabel.textAlignment = .left
+        view.addSubview(playerTurnLabel)
+        
+        cardsLeftLabel = UILabel()
+        cardsLeftLabel.text = "99"  // placeholder
+        cardsLeftLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
+        cardsLeftLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 9.25, y: l.btmMargin + (2 * l.cardSize * 1.23) - l.cardSize * 0.01, width: l.itemWidth, height: l.cardSize)
+        cardsLeftLabel.textAlignment = .left
+        view.addSubview(cardsLeftLabel)
+        
+        menuIcon = UIImageView(image: UIImage(named: "menu"))
+        menuIcon.frame = CGRect(x: l.leftMargin + l.cardSize, y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleHeight, height: l.titleHeight)
+        view.addSubview(menuIcon)
+        
         generateBoard()
         
         // load the deck image
         let deck = Card(named: "-deck")
-        deck.frame = CGRect(x: 293, y: 566, width: 35, height: 49)
+        deck.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.4)
         view.addSubview(deck)
         
         detector = ChainDetector()
@@ -261,7 +280,7 @@ class GameViewController: UIViewController {
                         
                         AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
                         for i in 0..<winningIndices.count {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + (Double(i) * 0.2) + 0.2) { [unowned self] in
+                            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.15) { [unowned self] in
                                 self.cardsOnBoard[winningIndices[i]].isChecked = true
                             }
                         }
@@ -274,7 +293,7 @@ class GameViewController: UIViewController {
                             c.isSelected = false
                         }
                         self.jackOutline.layer.borderWidth = 0
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [unowned self] in
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
                             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
                             self.presentWinScreen()
                         }
@@ -310,7 +329,7 @@ class GameViewController: UIViewController {
         view.addSubview(bottomBorder)
 
         // used for jack highlighting
-        jackOutline.frame = CGRect(x: l.leftMargin, y: l.topMargin, width: l.cardSize * 10, height: l.cardSize * 10)
+        jackOutline.frame = CGRect(x: l.leftMargin - l.highlight, y: l.topMargin - l.highlight, width: (l.cardSize * 10) + (2 * l.highlight), height: (l.cardSize * 10) + (l.highlight * 2) + l.stroke)
         jackOutline.layer.borderColor = UIColor.green.cgColor
         jackOutline.layer.borderWidth = 0
         view.addSubview(jackOutline)
@@ -377,24 +396,24 @@ class GameViewController: UIViewController {
             
             // need image container for flipping animation
             let container = UIView()
-            container.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
+            container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.23)
             container.layer.zPosition = 6 - CGFloat(col)
             view.addSubview(container)
             
             let back = Card(named: "-back")
-            back.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
+            back.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize * 1.23)
             back.layer.zPosition = 6 - CGFloat(col)
             container.addSubview(back)
             
             if let card = self.cardsInDeck.popLast() {
                 
                 UIView.animate(withDuration: 1, delay: TimeInterval(0.3 * Double(col)) + 0.3, options: [.curveEaseOut], animations: {
-                    container.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
+                    container.frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
                     
                 }, completion: { _ in
                     
-                    container.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
-                    card.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
+                    container.frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
+                    card.frame = CGRect(x: 0, y: 0, width: self.l.cardSize, height: self.l.cardSize * 1.23)
                     
                     if player == 1 {
                         self.cardsInHand1.append(card)
@@ -409,7 +428,7 @@ class GameViewController: UIViewController {
                     }
                     
                     UIView.transition(from: back, to: card, duration: 1, options: [.transitionFlipFromRight], completion: { _ in
-                        card.frame = CGRect(x: (col * 35) + 13, y: 520, width: 35, height: 43)
+                        card.frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
                         self.view.addSubview(card)
                     })
                     
@@ -446,7 +465,7 @@ class GameViewController: UIViewController {
             let touchLocation = touch.location(in: self.view)
             
             // go back to main menu
-            if menuLabel.frame.contains(touchLocation) || menuIconLabel.frame.contains(touchLocation) {
+            if menuIcon.frame.contains(touchLocation) {
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
                 presentMenuAlert()
             }
@@ -509,12 +528,12 @@ class GameViewController: UIViewController {
                         }
 
                         let container = UIView()
-                        container.frame = CGRect(x: 293, y: 566, width: 35, height: 43)
+                        container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.23)
                         view.addSubview(container)
                         container.layer.zPosition = 1
                         
                         let back = Card(named: "-back")
-                        back.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
+                        back.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize * 1.23)
                         container.addSubview(back)
                         
                         let (isValidChain, winningIndices) = detector.isValidChain(cardsOnBoard, currentPlayer)
@@ -522,7 +541,7 @@ class GameViewController: UIViewController {
                             
                             AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
                             for i in 0..<winningIndices.count {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + (Double(i) * 0.2) + 0.2) { [unowned self] in
+                                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.15) { [unowned self] in
                                     self.cardsOnBoard[winningIndices[i]].isChecked = true
                                 }
                             }
@@ -534,7 +553,7 @@ class GameViewController: UIViewController {
                                 c.isSelected = false
                             }
                             jackOutline.layer.borderWidth = 0
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [unowned self] in
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
                                 AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
                                 self.presentWinScreen()
                             }
@@ -571,11 +590,11 @@ class GameViewController: UIViewController {
                                         self.cardsInHand2[self.chosenCardIndex] = nextCard
                                     }
                                     
-                                    nextCard.frame = CGRect(x: 0, y: 0, width: 35, height: 43)
+                                    nextCard.frame = CGRect(x: 0, y: 0, width: self.l.cardSize, height: self.l.cardSize * 1.23)
                                     
                                     UIView.transition(from: back, to: nextCard, duration: 1, options: [.transitionFlipFromRight]) { (completed: Bool) in
                                         for i in 0..<5 {
-                                            self.cardsInHand1[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
+                                            self.cardsInHand1[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(i+1) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
                                             self.view.addSubview(self.cardsInHand1[i])
                                         }
                                     }
@@ -633,7 +652,7 @@ class GameViewController: UIViewController {
                     
                     // special case for jacks
                     if isJack() {
-                        jackOutline.layer.borderWidth = stroke * 3
+                        jackOutline.layer.borderWidth = l.highlight
                     } else {
                         jackOutline.layer.borderWidth = 0
                     }
@@ -712,7 +731,7 @@ class GameViewController: UIViewController {
     
     func getNextCardFromDeck() -> Card? {
         if let nextCard = self.cardsInDeck.popLast() {
-            nextCard.frame = CGRect(x: ((self.chosenCardIndex+1) * 35) + 13, y: 520, width: 35, height: 43)
+            nextCard.frame = CGRect(x: l.leftMargin + (CGFloat(chosenCardIndex + 1) * l.cardSize), y: l.btmMargin + l.cardSize, width: l.cardSize, height: l.cardSize * 1.23)
             self.view.addSubview(nextCard)
             return nextCard
         } else {
@@ -746,13 +765,14 @@ class GameViewController: UIViewController {
                 card.removeFromSuperview()
             }
 
+            // shows cards on turns after dealing has taken place
             if self.currentPlayer == 1 {
                 self.cardsInHand1 = hand
                 self.currentPlayer = 2
                 
                 if self.cardsInDeck.count < self.afterP2Deal {
                     for i in 0..<5 {
-                        self.cardsInHand2[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
+                        self.cardsInHand2[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(i + 1) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
                         self.view.addSubview(self.cardsInHand2[i])
                     }
                 }
@@ -761,7 +781,7 @@ class GameViewController: UIViewController {
                 self.currentPlayer = 1
                 
                 for i in 0..<5 {
-                    self.cardsInHand1[i].frame = CGRect(x: ((i+1) * 35) + 13, y: 520, width: 35, height: 43)
+                    self.cardsInHand1[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(i + 1) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
                     self.view.addSubview(self.cardsInHand1[i])
                 }
             }
