@@ -131,7 +131,7 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="title" translatesAutoresizingMaskIntoConstraints="NO" id="kcb-1p-NBW">
+                            <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="title" translatesAutoresizingMaskIntoConstraints="NO" id="kcb-1p-NBW">
                                 <rect key="frame" x="91" y="51" width="192" height="56"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
@@ -157,9 +157,9 @@
         <image name="online" width="300" height="180"/>
         <image name="orange" width="100" height="100"/>
         <image name="pass" width="300" height="180"/>
-        <image name="title" width="818" height="232"/>
+        <image name="title" width="818" height="172"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="psp-oB-BYK"/>
+        <segue reference="tu8-s9-1JI"/>
     </inferredMetricsTieBreakers>
 </document>

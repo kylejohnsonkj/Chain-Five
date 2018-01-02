@@ -75,6 +75,7 @@ class GameViewController: UIViewController {
     var chosenCardId = ""
     var lastSelectedCardIndex = -1
 
+    var stroke: CGFloat!
     var jackOutline = UIView()
     var gameOver = UIView()
     var waitForAnimations = false
@@ -113,10 +114,20 @@ class GameViewController: UIViewController {
         }
     }
     
+    var l: Layout!
+    
     // MARK: - Setup
         
     override func viewDidLoad() {
         super.viewDidLoad()
+        l = Layout()
+        
+        // Game Title
+        let gameTitle = UIImageView(image: UIImage(named: "title"))
+        gameTitle.frame = CGRect(x: view.bounds.midX - (l.titleWidth / 2), y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
+        gameTitle.contentMode = .scaleAspectFit
+        //        gameTitle.layer.borderWidth = 1
+        view.addSubview(gameTitle)
         
         generateBoard()
         
@@ -291,30 +302,29 @@ class GameViewController: UIViewController {
     }
     
     func generateBoard() {
+
+        // adds black line below bottom row of cards
+        let bottomBorder = UIView()
+        bottomBorder.frame = CGRect(x: l.leftMargin, y: l.btmMargin, width: l.cardSize * 10, height: l.stroke)
+        bottomBorder.layer.backgroundColor = UIColor.black.cgColor
+        view.addSubview(bottomBorder)
+
+        // used for jack highlighting
+        jackOutline.frame = CGRect(x: l.leftMargin, y: l.topMargin, width: l.cardSize * 10, height: l.cardSize * 10)
+        jackOutline.layer.borderColor = UIColor.green.cgColor
+        jackOutline.layer.borderWidth = 0
+        view.addSubview(jackOutline)
         
         playerIndicator.alpha = 0
         playerTurnLabel.alpha = 0
         cardsLeftLabel.alpha = 0
 
-        // used for jack highlighting
-        jackOutline.frame = CGRect(x: 10, y: 137, width: 356, height: 357)
-        jackOutline.layer.borderColor = UIColor.green.cgColor
-        jackOutline.layer.borderWidth = 0
-        view.addSubview(jackOutline)
-        
-        // adds black line below bottom row of cards
-        let bottomBorder = UIView()
-        bottomBorder.frame = CGRect(x: 13, y: 490, width: 350, height: 1)
-        bottomBorder.layer.borderColor = UIColor(red: 63/255, green: 63/255, blue: 63/255, alpha: 1).cgColor
-        bottomBorder.layer.borderWidth = 1
-        view.addSubview(bottomBorder)
-        
         // load the 100 cards
         var i = 0
-        for row in 1...10 {
-            for col in 1...10 {
+        for row in 0...9 {
+            for col in 0...9 {
                 let card = Card(named: self.cardsLayout[i])
-                card.frame = CGRect(x: (col * 35) - 22, y: (row * 35) + 105, width: 35, height: 35)
+                card.frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * (self.l.cardSize)), y: self.l.topMargin + (CGFloat(row) * self.l.cardSize), width: self.l.cardSize, height: self.l.cardSize)
                 self.view.addSubview(card)
                 self.cardsOnBoard.append(card)
                 card.index = i
@@ -623,7 +633,7 @@ class GameViewController: UIViewController {
                     
                     // special case for jacks
                     if isJack() {
-                        jackOutline.layer.borderWidth = 3
+                        jackOutline.layer.borderWidth = stroke * 3
                     } else {
                         jackOutline.layer.borderWidth = 0
                     }

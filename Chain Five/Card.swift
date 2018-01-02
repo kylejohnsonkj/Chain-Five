@@ -11,11 +11,13 @@
 import UIKit
 
 class Card: UIImageView {
+    
+    var l: Layout
     var id: String
     var isSelected: Bool {
         didSet {
             if isSelected == true {
-                self.layer.borderWidth = 3
+                self.layer.borderWidth = l.stroke + 2
             } else {
                 self.layer.borderWidth = 0
             }
@@ -97,6 +99,7 @@ class Card: UIImageView {
         marker = UIImageView(image: markerImage)
         
         let image = UIImage(named: id)
+        l = Layout()
         super.init(image: image)
         
         self.layer.borderColor = UIColor.green.cgColor
