@@ -14,7 +14,14 @@ class InitViewController: UIViewController {
         super.viewDidLoad()
     }
     
-    // ensures all views are presented modally
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "init" {
+            let mainViewController = (segue.destination as! MainViewController)
+            mainViewController.firstLoad = true
+        }
+    }
+    
+    // ensures main menu view is presented modally on launch
     // this is to fix issues with non-standard status bars screwing up views
     override func viewDidAppear(_ animated: Bool) {
         self.performSegue(withIdentifier: "init", sender: self)

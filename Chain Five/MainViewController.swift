@@ -50,6 +50,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     var appDelegate: AppDelegate!
     var prepareMPCGame = false
     var isHost = false
+    var firstLoad = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,7 +62,6 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         
         generateBoard()
         generateTitleAndButtons()
-        animateViews()
     }
     
     func resetMPC() {
@@ -138,17 +138,32 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         let btmMargin = view.frame.midY + (self.cardSize * 5) - cardSize / 2
         
         // sizing variables
-        let scale: CGFloat = iPad ? 3 : 2
-        var spacing: CGFloat = iPad ? 5 : 4
+        var scale: CGFloat!
+        var spacing: CGFloat!
+        var padding: CGFloat!
+        var imgSize: CGFloat!
+        
+        // iPad specific
+        if iPad {
+            scale = 3
+            spacing = 5
+            padding = 10
+            imgSize = cardSize * 2
+        } else {
+            scale = 2
+            spacing = 4
+            padding = 0
+            imgSize = cardSize * 2.25
+        }
+        
         if view.frame.maxX < 375 {
             // iPhone 5/5s only
-            spacing = 3.5
+            spacing = 3.75
         }
+        
         let titleWidth = view.bounds.width / scale
         let titleHeight = titleWidth / 3
-        let padding: CGFloat = iPad ? 5 : 0
-        let imgSize: CGFloat = cardSize * 1.75
-        
+
         // --------------------------------------------------------------------- //
         
         // Game Title
@@ -180,7 +195,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         
         // Divider between buttons
         divider = UIView()
-        divider.frame = CGRect(x: container.bounds.midX - (1 * ceil(scale / 2)), y: -cardSize / 4 - 3, width: 1 * ceil(scale / 2), height: container.frame.height + cardSize / 2)
+        divider.frame = CGRect(x: container.bounds.midX - (1 * ceil(scale / 2)), y: -cardSize / 4 - 3, width: 1 * ceil(scale / 2), height: container.frame.height - 4 + cardSize / 2)
         divider.layer.backgroundColor = UIColor.black.cgColor
         container.addSubview(divider)
         
@@ -201,24 +216,11 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         kjappsLabel = UILabel()
         kjappsLabel.text = "Kyle Johnson Apps"
         kjappsLabel.font = UIFont(name: "Optima-Regular", size: cardSize / 3)
-        kjappsLabel.frame = CGRect(x: container.bounds.midX - textWidth / 2, y: container.bounds.maxY + padding + cardSize / 1.5, width: textWidth, height: 30)
+        kjappsLabel.frame = CGRect(x: container.bounds.midX - textWidth / 2, y: container.bounds.maxY + padding + cardSize / 2, width: textWidth, height: 30)
         kjappsLabel.textAlignment = .center
         container.addSubview(kjappsLabel)
     }
-    
-    func animateViews() {
-        gameTitle.frame.origin.y -= 200
-        gameTitle.alpha = 0
-        container.frame.origin.y += 200
-        container.alpha = 0
-        
-        UIView.animate(withDuration: 0.5, delay: 0.5, options: [], animations: {
-            self.gameTitle.frame.origin.y += 200
-            self.gameTitle.alpha = 1
-            self.container.frame.origin.y -= 200
-            self.container.alpha = 1
-        })
-    }
+
     
     @objc func peerChangedStateWithNotification(notification: Notification) {
         let userInfo = NSDictionary(dictionary: notification.userInfo!)
@@ -244,10 +246,23 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     }
     
     override func viewWillAppear(_ animated: Bool) {
+
+        if firstLoad == true {
+            gameTitle.frame.origin.y -= 200
+            gameTitle.alpha = 0
+            
+            UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+                self.gameTitle.frame.origin.y += 200
+                self.gameTitle.alpha = 1
+            })
+            
+            firstLoad = false
+        }
+        
         container.frame.origin.y += 200
         container.alpha = 0
         
-        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+        UIView.animate(withDuration: 0.5, delay: 0.2, options: [], animations: {
             self.container.frame.origin.y -= 200
             self.container.alpha = 1
         })
@@ -286,6 +301,12 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
                     appDelegate.mpcHandler.browser.delegate = self
                     present(appDelegate.mpcHandler.browser, animated: true)
                 }
+            }
+            
+            // link copyright text to homepage
+            if kjappsLabel.frame.contains(touchLocation) {
+                let url = URL(string: "http://kylejohnsonapps.com")
+                UIApplication.shared.open(url!, options: [:])
             }
         }
     }
