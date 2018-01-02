@@ -256,7 +256,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     
     func animateViews() {
         
-        let leftMargin = view.frame.midX - (self.cardSize * 5)
+        let leftMargin = view.frame.midX - (self.cardSize * 5) + 5
         let topMargin = view.frame.midY - (self.cardSize * 5) - cardSize / 2
         
         // animate cards into center of screen
@@ -264,7 +264,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         UIView.animate(withDuration: 1, animations: {
             for row in 0...9 {
                 for col in 0...9 {
-                    self.cardsOnBoard[i].frame = CGRect(x: leftMargin + (CGFloat(col) * self.cardSize), y: topMargin + (CGFloat(row) * self.cardSize), width: self.cardSize, height: self.cardSize)
+                    self.cardsOnBoard[i].frame = CGRect(x: leftMargin + (CGFloat(col) * (self.cardSize - 1)), y: topMargin + (CGFloat(row) * self.cardSize), width: self.cardSize, height: self.cardSize)
                     i += 1
                 }
             }
