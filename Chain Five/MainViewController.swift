@@ -62,6 +62,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         // check if we should request a review
         if UserDefaults.standard.integer(forKey: "gamesFinished") % 10 == 0 {
             SKStoreReviewController.requestReview()
+            incrementGamesFinished()
         }
         
         // determine if iPad or not and set scale
@@ -100,6 +101,12 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         
         // monitor for state changes (.notConnected -> .connecting -> .connected)
         NotificationCenter.default.addObserver(self, selector: #selector(peerChangedStateWithNotification(notification:)), name: .didChangeState, object: nil)
+    }
+    
+    func incrementGamesFinished() {
+        let currentCount = UserDefaults.standard.integer(forKey: "gamesFinished")
+        UserDefaults.standard.set(currentCount + 1, forKey:"gamesFinished")
+        UserDefaults.standard.synchronize()
     }
     
     @objc func peerChangedStateWithNotification(notification: Notification) {
