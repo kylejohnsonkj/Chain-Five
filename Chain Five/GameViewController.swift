@@ -109,6 +109,7 @@ class GameViewController: UIViewController {
     
     var l: Layout!
     var menuIcon: UIImageView!
+    var helpIcon: UIImageView!
     var playerIndicator: UIImageView!
     var playerTurnLabel: UILabel!
     var cardsLeftLabel: UILabel!
@@ -147,6 +148,10 @@ class GameViewController: UIViewController {
         menuIcon = UIImageView(image: UIImage(named: "menu"))
         menuIcon.frame = CGRect(x: l.leftMargin + l.cardSize, y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleHeight, height: l.titleHeight)
         view.addSubview(menuIcon)
+        
+        helpIcon = UIImageView(image: UIImage(named: "help"))
+        helpIcon.frame = CGRect(x: l.leftMargin + 8 * l.cardSize, y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleHeight, height: l.titleHeight)
+        view.addSubview(helpIcon)
         
         generateBoard()
         
@@ -470,6 +475,11 @@ class GameViewController: UIViewController {
                 presentMenuAlert()
             }
             
+            if helpIcon.frame.contains(touchLocation) {
+                AudioServicesPlaySystemSound(Taptics.pop.rawValue)
+                presentHelpView()
+            }
+            
             var cardsInHand = getCurrentHand()
             
             // reset taptic feedback if no cards in hand are selected
@@ -671,6 +681,12 @@ class GameViewController: UIViewController {
         self.present(ac, animated: true)
     }
     
+    func presentHelpView() {
+        let ac = UIAlertController(title: "OH hey there.", message: "There's no help yet. You're on your own, slugger.", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "OK", style: .cancel))
+        self.present(ac, animated: true)
+    }
+    
     // MARK: - Win Screen and Helper Methods
     
     func presentWinScreen() {
@@ -682,7 +698,7 @@ class GameViewController: UIViewController {
         }
         
         showWinningColor()
-        incrementGamesFinished()
+//        incrementGamesFinished()
     }
     
     func presentAlert(title: String, message: String) {

@@ -41,7 +41,8 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     var leftText: UILabel!
     var rightImage: UIImageView!
     var rightText: UILabel!
-    var kjappsLabel: UILabel!
+    var divider: UIView!
+    var logo: UIImageView!
     
     // for MultipeerConnectivity purposes
     var appDelegate: AppDelegate!
@@ -60,10 +61,10 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         isHost = false
         
         // check if we should request a review
-        if UserDefaults.standard.integer(forKey: "gamesFinished") % 10 == 0 {
-            SKStoreReviewController.requestReview()
-            incrementGamesFinished()
-        }
+//        if UserDefaults.standard.integer(forKey: "gamesFinished") % 10 == 0 {
+//            SKStoreReviewController.requestReview()
+//            incrementGamesFinished()
+//        }
         
         // setup views
         generateBoard()
@@ -196,14 +197,14 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
 //        rightText.layer.borderWidth = 1
         container.addSubview(rightText)
         
-        // Self-promotion
-        kjappsLabel = UILabel()
-        kjappsLabel.text = "Kyle Johnson Apps"
-        kjappsLabel.font = UIFont(name: "GillSans", size: l.cardSize / 3)
-        kjappsLabel.frame = CGRect(x: container.bounds.midX - l.itemWidth / 2, y: container.bounds.maxY + l.cardSize * 0.75, width: l.itemWidth, height: 30)
-        kjappsLabel.textAlignment = .center
-//        kjappsLabel.layer.borderWidth = 1
-        container.addSubview(kjappsLabel)
+        divider = UIView()
+        divider.frame = CGRect(x: container.bounds.midX - l.stroke, y: container.bounds.minY - l.cardSize / 10, width: 2 * l.stroke, height: leftText.frame.maxY - container.bounds.minY + l.textPadding)
+        divider.backgroundColor = .black
+        container.addSubview(divider)
+        
+        logo = UIImageView(image: UIImage(named: "logo"))
+        logo.frame = CGRect(x: container.bounds.midX - (l.imgSize * 0.3) / 2, y: leftText.frame.maxY - container.bounds.minY + l.textPadding + l.cardSize / 2, width: l.imgSize * 0.3, height: l.imgSize * 0.3)
+        container.addSubview(logo)
     }
     
     func animateViews() {
@@ -263,7 +264,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
             }
             
             // link copyright text to homepage
-            if kjappsLabel.frame.contains(touchLocation) {
+            if logo.frame.contains(touchLocation) {
                 let url = URL(string: "http://kylejohnsonapps.com")
                 UIApplication.shared.open(url!, options: [:])
             }
