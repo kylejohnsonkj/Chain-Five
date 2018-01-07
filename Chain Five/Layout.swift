@@ -19,6 +19,7 @@ class Layout {
     var leftMargin: CGFloat
     var topMargin: CGFloat
     var btmMargin: CGFloat
+    var centerY: CGFloat
     
     // other scale indiactors
     var scale: CGFloat
@@ -47,8 +48,9 @@ class Layout {
         
         highlight = cardSize / 12
         leftMargin = view.frame.midX - (self.cardSize * 5)
-        topMargin = view.frame.midY - (self.cardSize * 5) - cardSize / 2
-        btmMargin = view.frame.midY + (self.cardSize * 5) - cardSize / 2
+        topMargin = view.frame.midY - (self.cardSize * 5) - cardSize * 0.6
+        btmMargin = view.frame.midY + (self.cardSize * 5) - cardSize * 0.6
+        centerY = view.frame.midY - cardSize * 0.6
 
         if iPad {
             scale = 3

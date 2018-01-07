@@ -42,7 +42,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     var rightImage: UIImageView!
     var rightText: UILabel!
     var divider: UIView!
-    var logo: UIImageView!
+    var kjAppsText: UILabel!
     
     // for MultipeerConnectivity purposes
     var appDelegate: AppDelegate!
@@ -137,7 +137,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         var i = 0
         while i < 100 {
             let card = Card(named: self.cardsLayout[i])
-            card.frame = CGRect(x: view.frame.midX - (l.cardSize), y: view.frame.midY - l.cardSize, width: l.cardSize, height: l.cardSize)
+            card.frame = CGRect(x: view.frame.midX - l.cardSize / 2, y: l.centerY - l.cardSize / 2, width: l.cardSize, height: l.cardSize)
             self.view.addSubview(card)
             self.cardsOnBoard.append(card)
             i += 1
@@ -202,9 +202,13 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         divider.backgroundColor = .black
         container.addSubview(divider)
         
-        logo = UIImageView(image: UIImage(named: "logo"))
-        logo.frame = CGRect(x: container.bounds.midX - (l.imgSize * 0.3) / 2, y: leftText.frame.maxY - container.bounds.minY + l.textPadding + l.cardSize / 2, width: l.imgSize * 0.3, height: l.imgSize * 0.3)
-        container.addSubview(logo)
+        
+        kjAppsText = UILabel()
+        kjAppsText.text = "© Kyle Johnson Apps"
+        kjAppsText.font = UIFont(name: "GillSans", size: l.cardSize / 3)
+        kjAppsText.frame = CGRect(x: container.bounds.midX - l.itemWidth / 2, y: leftText.frame.maxY - container.bounds.minY + l.textPadding + l.cardSize / 2, width: l.itemWidth, height: 30)
+        kjAppsText.textAlignment = .center
+        container.addSubview(kjAppsText)
     }
     
     func animateViews() {
@@ -264,7 +268,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
             }
             
             // link copyright text to homepage
-            if logo.frame.contains(touchLocation) {
+            if kjAppsText.frame.contains(touchLocation) {
                 let url = URL(string: "http://kylejohnsonapps.com")
                 UIApplication.shared.open(url!, options: [:])
             }

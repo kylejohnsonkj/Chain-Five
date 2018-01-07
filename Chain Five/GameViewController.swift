@@ -113,6 +113,10 @@ class GameViewController: UIViewController {
     var playerIndicator: UIImageView!
     var playerTurnLabel: UILabel!
     var cardsLeftLabel: UILabel!
+    var helpView: UIView!
+    var helpPresented = false
+    var mostRecentIndex = -1
+    var deck: UIImageView!
     
     // MARK: - Setup
         
@@ -146,20 +150,22 @@ class GameViewController: UIViewController {
         view.addSubview(cardsLeftLabel)
         
         menuIcon = UIImageView(image: UIImage(named: "menu"))
-        menuIcon.frame = CGRect(x: l.leftMargin + l.cardSize, y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleHeight, height: l.titleHeight)
+        menuIcon.frame = CGRect(x: view.frame.minX - l.cardSize, y: l.topMargin - l.cardSize * 1.25, width: l.cardSize, height: l.cardSize)
         view.addSubview(menuIcon)
         
         helpIcon = UIImageView(image: UIImage(named: "help"))
-        helpIcon.frame = CGRect(x: l.leftMargin + 8 * l.cardSize, y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleHeight, height: l.titleHeight)
+        helpIcon.frame = CGRect(x: view.frame.maxX + l.cardSize, y: l.topMargin - l.cardSize * 1.25, width: l.cardSize, height: l.cardSize)
         view.addSubview(helpIcon)
         
         generateBoard()
         
         // load the deck image
-        let deck = Card(named: "-deck")
+        deck = Card(named: "-deck")
         deck.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.4)
         view.addSubview(deck)
         
+        deck.alpha = 0
+
         detector = ChainDetector()
         appDelegate = UIApplication.shared.delegate as! AppDelegate
         NotificationCenter.default.addObserver(self, selector: #selector(peerChangedStateWithNotification(notification:)), name: .didChangeState, object: nil)
@@ -169,6 +175,7 @@ class GameViewController: UIViewController {
         print("isHost? \(isHost)")
         
         appDelegate.mpcHandler.advertiser!.stop()
+
         
         if isMPCGame {
             if cardsInDeck.count == 0 {
@@ -176,20 +183,36 @@ class GameViewController: UIViewController {
                     playerID = 1
                     generateDeckWithSeedAndSend()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-                        self.drawCards()
+                        UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
+                            self.menuIcon.frame.origin.x = self.l.leftMargin
+                            self.helpIcon.frame.origin.x = self.l.leftMargin + 9 * self.l.cardSize
+                            self.deck.alpha = 1
+                        }, completion: { _ in
+                            self.drawCards()
+                        })
                     }
                 } else {
                     playerID = 2
                 }
             }
-            
         } else {
             cardsInDeck = createAndShuffleDeck(seed: nil)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-                self.drawCards(forPlayer: 1)
+                UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
+                    self.menuIcon.frame.origin.x = self.l.leftMargin
+                    self.helpIcon.frame.origin.x = self.l.leftMargin + 9 * self.l.cardSize
+                    self.deck.alpha = 1
+                }, completion: { _ in
+                    self.drawCards(forPlayer: 1)
+                })
             }
         }
         currentPlayer = 1
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        // should use for UI stuff, but has delay
+        
     }
     
     func generateDeckWithSeedAndSend() {
@@ -246,7 +269,13 @@ class GameViewController: UIViewController {
                     _ = cardsInDeck.popLast()
                 }
                 
-                self.drawCards()
+                UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
+                    self.menuIcon.frame.origin.x = self.l.leftMargin
+                    self.helpIcon.frame.origin.x = self.l.leftMargin + 9 * self.l.cardSize
+                    self.deck.alpha = 1
+                }, completion: { _ in
+                    self.drawCards()
+                })
             }
             
             // receiving placed card info
@@ -462,12 +491,28 @@ class GameViewController: UIViewController {
     // forward move events to touches began
     // allows smooth scrolling through cards
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        touchesBegan(touches, with: event)
+        if let touch = touches.first {
+            let touchLocation = touch.location(in: self.view)
+            
+            // only forward movements through hand
+            let currentHand = getCurrentHand()
+            for card in currentHand {
+                if card.frame.contains(touchLocation) {
+                    touchesBegan(touches, with: event)
+                }
+            }
+        }
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
             let touchLocation = touch.location(in: self.view)
+            
+            if helpPresented == true {
+                helpView.removeFromSuperview()
+                helpPresented = false
+                return
+            }
             
             // go back to main menu
             if menuIcon.frame.contains(touchLocation) {
@@ -475,9 +520,11 @@ class GameViewController: UIViewController {
                 presentMenuAlert()
             }
             
+            // show tutorial
             if helpIcon.frame.contains(touchLocation) {
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
                 presentHelpView()
+                helpPresented = true
             }
             
             var cardsInHand = getCurrentHand()
@@ -498,6 +545,12 @@ class GameViewController: UIViewController {
             
             for c in cardsOnBoard {
                 if ((c.isSelected || isJack()) && !c.isFreeSpace && c.owner != currentPlayer && c.frame.contains(touchLocation)) {
+                    
+                    if isMPCGame && currentPlayer != playerID {
+                        playerIndicator.shake()
+                        playerTurnLabel.shake()
+                        AudioServicesPlaySystemSound(Taptics.nope.rawValue)
+                    }
                     
                     if !(isMPCGame && currentPlayer != playerID) {
                         
@@ -573,6 +626,7 @@ class GameViewController: UIViewController {
                         guard isValidChain == false else { return }
                         
                         AudioServicesPlaySystemSound(Taptics.peek.rawValue)
+                        mostRecentIndex = c.index
                         
                         if cardsInDeck.isEmpty == false {
                             
@@ -682,9 +736,24 @@ class GameViewController: UIViewController {
     }
     
     func presentHelpView() {
-        let ac = UIAlertController(title: "OH hey there.", message: "There's no help yet. You're on your own, slugger.", preferredStyle: .alert)
-        ac.addAction(UIAlertAction(title: "OK", style: .cancel))
-        self.present(ac, animated: true)
+//        let ac = UIAlertController(title: "OH hey there.", message: "There's no help yet. You're on your own, slugger.", preferredStyle: .alert)
+//        ac.addAction(UIAlertAction(title: "OK", style: .cancel))
+//        self.present(ac, animated: true)
+        
+        helpView = UIView()
+        helpView.layer.borderWidth = 3 * l.stroke
+        helpView.frame = CGRect(x: l.leftMargin, y: view.frame.maxY, width: l.cardSize * 10, height: l.cardSize * 14)
+        helpView.backgroundColor = .white
+        helpView.layer.cornerRadius = l.cardSize;
+        helpView.layer.masksToBounds = true;
+        helpView.layer.zPosition = 10
+        view.addSubview(helpView)
+        
+        UIView.animate(withDuration: 0.5) {
+            self.helpView.frame.origin.y = self.l.topMargin - self.l.cardSize * 0.75
+        }
+        
+        // maybe use arrows instead to point out each part (step by step?)
     }
     
     // MARK: - Win Screen and Helper Methods
@@ -751,6 +820,7 @@ class GameViewController: UIViewController {
             self.view.addSubview(nextCard)
             return nextCard
         } else {
+            presentAlert(title: "Out of cards!", message: "This is pretty rare. I guess we'll call this a draw...")     // very buggy rn
             return nil
         }
     }
@@ -776,6 +846,8 @@ class GameViewController: UIViewController {
             }
             
         }, completion: { _ in
+            
+            self.cardsOnBoard[self.mostRecentIndex].isMostRecent = true
             
             for card in cardsInHand {
                 card.removeFromSuperview()
@@ -845,6 +917,16 @@ class GameViewController: UIViewController {
                 self.playerTurnLabel.alpha = 1
             })
         })
+    }
+}
+
+extension UIView {
+    func shake() {
+        let animation = CAKeyframeAnimation(keyPath: "transform.translation.x")
+        animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
+        animation.duration = 0.6
+        animation.values = [-20.0, 20.0, -20.0, 20.0, -10.0, 10.0, -5.0, 5.0, 0.0 ]
+        layer.add(animation, forKey: "shake")
     }
 }
 
