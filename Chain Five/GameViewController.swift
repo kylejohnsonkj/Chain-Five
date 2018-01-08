@@ -157,13 +157,13 @@ class GameViewController: UIViewController {
         view.addSubview(gameTitle)
         
         playerIndicator = UIImageView(image: UIImage(named: "orange"))
-        playerIndicator.frame = CGRect(x: l.leftMargin + l.cardSize * 0.18, y: l.btmMargin + (2 * l.cardSize * 1.21) + l.cardSize * 0.05, width: l.cardSize * 0.9, height: l.cardSize * 0.9)
+        playerIndicator.frame = CGRect(x: -l.cardSize - l.itemWidth * 2, y: l.btmMargin + (2 * l.cardSize * 1.21) + l.cardSize * 0.05, width: l.cardSize * 0.9, height: l.cardSize * 0.9)
         view.addSubview(playerIndicator)
         
         playerTurnLabel = UILabel()
         playerTurnLabel.text = "Kyle's turn"  // placeholder
         playerTurnLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        playerTurnLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 1.18, y: l.btmMargin + (2 * l.cardSize * 1.21) - l.cardSize * 0.01, width: l.itemWidth * 2, height: l.cardSize)
+        playerTurnLabel.frame = CGRect(x: -l.itemWidth * 2, y: l.btmMargin + (2 * l.cardSize * 1.21) - l.cardSize * 0.01, width: l.itemWidth * 2, height: l.cardSize)
         playerTurnLabel.textAlignment = .left
         view.addSubview(playerTurnLabel)
         
@@ -186,10 +186,8 @@ class GameViewController: UIViewController {
         
         // load the deck image
         deck = Card(named: "-deck")
-        deck.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.4)
+        deck.frame = CGRect(x: view.frame.maxX, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.4)
         view.addSubview(deck)
-        
-        deck.alpha = 0
         
         deckOutline.frame = CGRect(x: l.leftMargin + l.cardSize * 8 - l.highlight, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23 - l.highlight, width: l.cardSize + (2 * l.highlight), height: l.cardSize * 1.4 + (l.highlight * 2))
         deckOutline.layer.borderColor = UIColor.green.cgColor
@@ -216,7 +214,9 @@ class GameViewController: UIViewController {
                     UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
                         self.menuIcon.frame.origin.x = self.l.leftMargin
                         self.helpIcon.frame.origin.x = self.l.leftMargin + 9 * self.l.cardSize
-                        self.deck.alpha = 1
+                        self.deck.frame.origin.x = self.l.leftMargin + self.l.cardSize * 8
+                        self.playerIndicator.frame.origin.x = self.l.leftMargin + self.l.cardSize * 0.18
+                        self.playerTurnLabel.frame.origin.x = self.l.leftMargin + self.l.cardSize * 1.18
                     }, completion: { _ in
                         self.drawCards()
                     })
@@ -228,13 +228,13 @@ class GameViewController: UIViewController {
             // Pass 'N Play game
             cardsInDeck = createAndShuffleDeck(seed: nil)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
+                self.playerTurnLabel.text = "Orange, tap for control"
                 UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
                     self.menuIcon.frame.origin.x = self.l.leftMargin
                     self.helpIcon.frame.origin.x = self.l.leftMargin + 9 * self.l.cardSize
-                    self.deck.alpha = 1
-                    self.playerIndicator.alpha = 1
-                    self.playerTurnLabel.text = "Orange, tap for control"
-                    self.playerTurnLabel.alpha = 1
+                    self.deck.frame.origin.x = self.l.leftMargin + self.l.cardSize * 8
+                    self.playerIndicator.frame.origin.x = self.l.leftMargin + self.l.cardSize * 0.18
+                    self.playerTurnLabel.frame.origin.x = self.l.leftMargin + self.l.cardSize * 1.18
                 }, completion: { _ in
                     self.waitForReady = true
                 })
@@ -440,8 +440,6 @@ class GameViewController: UIViewController {
 //        handOutline.layer.borderWidth = 0
 //        view.addSubview(handOutline)
         
-        playerIndicator.alpha = 0
-        playerTurnLabel.alpha = 0
         cardsLeftLabel.alpha = 0
 
         // load the 100 cards
