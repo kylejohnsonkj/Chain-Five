@@ -40,6 +40,7 @@ class Card: UIImageView {
                 return
             }
             let color = owner == 1 ? "orange" : "blue"
+            self.subviews.forEach { $0.removeFromSuperview() }
             let markerImage = UIImage(named: color)
             marker = UIImageView(image: markerImage)
             marker.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize)
@@ -52,7 +53,7 @@ class Card: UIImageView {
     
     var isMostRecent: Bool {
         didSet {
-            var color = owner == 1 ? "orange" : "blue"
+            var color: String
             if owner == 2 {
                 color = "blue"
             } else if owner == 1 {

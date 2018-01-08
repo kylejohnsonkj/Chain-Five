@@ -121,9 +121,11 @@ class GameViewController: UIViewController {
                     playerIndicator.image = UIImage(named: "blue")
                 }
             }
+            deadSwapped = false
         }
     }
     
+    // variable hell
     var l: Layout!
     var menuIcon: UIImageView!
     var helpIcon: UIImageView!
@@ -137,6 +139,7 @@ class GameViewController: UIViewController {
     var waitForReady = false
     var deckOutline = UIView()
     var deadCard = false
+    var deadSwapped = false
     
     // MARK: - Setup
         
@@ -157,29 +160,29 @@ class GameViewController: UIViewController {
         view.addSubview(gameTitle)
         
         playerIndicator = UIImageView(image: UIImage(named: "orange"))
-        playerIndicator.frame = CGRect(x: -l.cardSize - l.itemWidth * 2, y: l.btmMargin + (2 * l.cardSize * 1.21) + l.cardSize * 0.05, width: l.cardSize * 0.9, height: l.cardSize * 0.9)
+        playerIndicator.frame = CGRect(x: -l.cardSize - l.itemWidth * 2, y: l.btmMargin + (2 * l.cardSize * 1.23) + l.cardSize * 0.05, width: l.cardSize * 0.9, height: l.cardSize * 0.9)
         view.addSubview(playerIndicator)
         
         playerTurnLabel = UILabel()
         playerTurnLabel.text = "Kyle's turn"  // placeholder
         playerTurnLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        playerTurnLabel.frame = CGRect(x: -l.itemWidth * 2, y: l.btmMargin + (2 * l.cardSize * 1.21) - l.cardSize * 0.01, width: l.itemWidth * 2, height: l.cardSize)
+        playerTurnLabel.frame = CGRect(x: -l.itemWidth * 2, y: l.btmMargin + (2 * l.cardSize * 1.23) - l.cardSize * 0.01, width: l.itemWidth * 2, height: l.cardSize)
         playerTurnLabel.textAlignment = .left
         view.addSubview(playerTurnLabel)
         
         cardsLeftLabel = UILabel()
         cardsLeftLabel.text = "99"  // placeholder
         cardsLeftLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        cardsLeftLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 9.20, y: l.btmMargin + (2 * l.cardSize * 1.21) - l.cardSize * 0.01, width: l.itemWidth, height: l.cardSize)
+        cardsLeftLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 9.25, y: l.btmMargin + (2 * l.cardSize * 1.23) - l.cardSize * 0.01, width: l.itemWidth, height: l.cardSize)
         cardsLeftLabel.textAlignment = .left
         view.addSubview(cardsLeftLabel)
         
         menuIcon = UIImageView(image: UIImage(named: "menu"))
-        menuIcon.frame = CGRect(x: view.frame.minX - l.cardSize, y: l.topMargin - l.cardSize * 1.25, width: l.cardSize, height: l.cardSize)
+        menuIcon.frame = CGRect(x: view.frame.minX - l.cardSize, y: l.topMargin - l.cardSize * 1.9, width: l.cardSize, height: l.cardSize)
         view.addSubview(menuIcon)
         
         helpIcon = UIImageView(image: UIImage(named: "help"))
-        helpIcon.frame = CGRect(x: view.frame.maxX + l.cardSize, y: l.topMargin - l.cardSize * 1.25, width: l.cardSize, height: l.cardSize)
+        helpIcon.frame = CGRect(x: view.frame.maxX + l.cardSize, y: l.topMargin - l.cardSize * 1.9, width: l.cardSize, height: l.cardSize)
         view.addSubview(helpIcon)
         
         generateBoard()
@@ -212,35 +215,38 @@ class GameViewController: UIViewController {
                 seed = generateDeckWithSeedAndSend()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
                     UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
-                        self.menuIcon.frame.origin.x = self.l.leftMargin
-                        self.helpIcon.frame.origin.x = self.l.leftMargin + 9 * self.l.cardSize
-                        self.deck.frame.origin.x = self.l.leftMargin + self.l.cardSize * 8
-                        self.playerIndicator.frame.origin.x = self.l.leftMargin + self.l.cardSize * 0.18
-                        self.playerTurnLabel.frame.origin.x = self.l.leftMargin + self.l.cardSize * 1.18
+                        self.animateItemsIntoView()
                     }, completion: { _ in
                         self.drawCards()
                     })
                 }
             } else {
                 playerID = 2
+                UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
+                    self.animateItemsIntoView()
+                })
             }
         } else {
             // Pass 'N Play game
             cardsInDeck = createAndShuffleDeck(seed: nil)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-                self.playerTurnLabel.text = "Orange, tap for control"
+                self.playerTurnLabel.text = "Orange, tap when ready"
                 UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
-                    self.menuIcon.frame.origin.x = self.l.leftMargin
-                    self.helpIcon.frame.origin.x = self.l.leftMargin + 9 * self.l.cardSize
-                    self.deck.frame.origin.x = self.l.leftMargin + self.l.cardSize * 8
-                    self.playerIndicator.frame.origin.x = self.l.leftMargin + self.l.cardSize * 0.18
-                    self.playerTurnLabel.frame.origin.x = self.l.leftMargin + self.l.cardSize * 1.18
+                    self.animateItemsIntoView()
                 }, completion: { _ in
                     self.waitForReady = true
                 })
             }
         }
         currentPlayer = 1
+    }
+    
+    func animateItemsIntoView() {
+        self.menuIcon.frame.origin.x = self.l.leftMargin
+        self.helpIcon.frame.origin.x = self.l.leftMargin + 9 * self.l.cardSize
+        self.deck.frame.origin.x = self.l.leftMargin + self.l.cardSize * 8
+        self.playerIndicator.frame.origin.x = self.l.leftMargin + self.l.cardSize * 0.05
+        self.playerTurnLabel.frame.origin.x = self.l.leftMargin + self.l.cardSize * 1.1
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -378,7 +384,7 @@ class GameViewController: UIViewController {
                 } else {
                     // other player removed marker using jack
                     print("cardIndex \(cardIndex) removed by player \(senderDisplayName)")
-                    cardsOnBoard[cardIndex].owner = owner
+                    cardsOnBoard[cardIndex].owner = 0
                     cardsOnBoard[cardIndex].isMarked = false
                     cardsOnBoard[cardIndex].isMostRecent = true
                     cardsOnBoard[cardIndex].fadeMarker()
@@ -631,7 +637,7 @@ class GameViewController: UIViewController {
                 }
             }
             
-            if deadCard == true && deck.frame.contains(touchLocation) {
+            if deadSwapped == false && deadCard == true && deck.frame.contains(touchLocation) {
                 
                 let container = UIView()
                 container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.23)
@@ -644,6 +650,7 @@ class GameViewController: UIViewController {
                 container.addSubview(back)
                 
                 cardsInHand = animateNextCardToHand(cardsInHand, container, back)
+                deadSwapped = true
                 return
             }
             
@@ -677,7 +684,12 @@ class GameViewController: UIViewController {
                             if (isJack()) {
                                 c.owner = 0
                                 c.isMarked = false
-                                c.removeMarker()
+                                c.isMostRecent = true
+                                if isMPCGame {
+                                    c.removeMarker()
+                                } else {
+                                    c.fadeMarker()
+                                }
                             }
                         }
 
@@ -793,7 +805,8 @@ class GameViewController: UIViewController {
                         jackOutline.layer.borderWidth = 0
                     }
                     
-                    if deadCard {
+                    // can only swap one dead card per turn
+                    if deadSwapped == false && deadCard {
                         deckOutline.layer.borderWidth = l.highlight
                     } else {
                         deckOutline.layer.borderWidth = 0
@@ -999,10 +1012,10 @@ class GameViewController: UIViewController {
             UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
                 if self.currentPlayer != 1 {
                     self.playerIndicator.image = UIImage(named: "orange")
-                    self.playerTurnLabel.text = "Orange, tap for control"
+                    self.playerTurnLabel.text = "Orange, tap when ready"
                 } else {
                     self.playerIndicator.image = UIImage(named: "blue")
-                    self.playerTurnLabel.text = "Blue, tap for control"
+                    self.playerTurnLabel.text = "Blue, tap when ready"
                 }
                 self.playerIndicator.alpha = 1
                 self.playerTurnLabel.alpha = 1
