@@ -11,8 +11,18 @@ import GameplayKit
 import AudioToolbox
 import MultipeerConnectivity
 
-// MARK: - Main Class
+extension UIView {
+    // Used to bring attention to player indicator and turn label when user tries to go off-turn
+    func shake() {
+        let animation = CAKeyframeAnimation(keyPath: "transform.translation.x")
+        animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
+        animation.duration = 0.6
+        animation.values = [-20.0, 20.0, -20.0, 20.0, -10.0, 10.0, -5.0, 5.0, 0.0]
+        layer.add(animation, forKey: "shake")
+    }
+}
 
+// MARK: - Main Class
 class GameViewController: UIViewController {
     
     let suits = ["C", "D", "H", "S"]
@@ -39,20 +49,28 @@ class GameViewController: UIViewController {
     var appDelegate: AppDelegate!
     var isMPCGame = false
     var isHost = false
+    var seed: Int!
     
     var detector: ChainDetector!
 
     // 2 decks -- 104 cards total (ignoring backs)
     var cardsInDeck = [Card]() {
         didSet {
-            cardsLeftLabel.text = "\(cardsInDeck.count)"
+            if cardsInDeck.count == 0 {
+                self.cardsLeftLabel.text = "\(totalCards)"
+            } else {
+                self.cardsLeftLabel.text = "\(self.cardsInDeck.count)"
+            }
         }
     }
     
     var cardsInHand1 = [Card]()
     var cardsInHand2 = [Card]()
-    let beforeP2Deal = 98
-    let afterP2Deal = 93
+    var totalCards = 104
+    
+    var beforeP1Deal: Int!
+    var beforeP2Deal: Int!
+    var afterP2Deal: Int!
     
     var cardChosen: Bool = false {
         didSet {
@@ -61,6 +79,7 @@ class GameViewController: UIViewController {
                     c.isSelected = false
                 }
                 jackOutline.layer.borderWidth = 0
+                deckOutline.layer.borderWidth = 0
             }
         }
     }
@@ -92,7 +111,7 @@ class GameViewController: UIViewController {
                         playerIndicator.image = UIImage(named: "blue")
                     }
                 }
-                
+                waitForAnimations = false
             } else {
                 if currentPlayer == 1 {
                     playerTurnLabel.text = "Orange's turn"
@@ -102,8 +121,6 @@ class GameViewController: UIViewController {
                     playerIndicator.image = UIImage(named: "blue")
                 }
             }
-            
-            waitForAnimations = false
         }
     }
     
@@ -117,12 +134,20 @@ class GameViewController: UIViewController {
     var helpPresented = false
     var mostRecentIndex = -1
     var deck: UIImageView!
+    var waitForReady = false
+    var deckOutline = UIView()
+    var deadCard = false
     
     // MARK: - Setup
         
     override func viewDidLoad() {
         super.viewDidLoad()
         l = Layout()
+        
+        // for changing deck size in testing
+        beforeP1Deal = totalCards
+        beforeP2Deal = totalCards - 6
+        afterP2Deal = totalCards - 11
         
         // Game Title
         let gameTitle = UIImageView(image: UIImage(named: "title"))
@@ -132,20 +157,20 @@ class GameViewController: UIViewController {
         view.addSubview(gameTitle)
         
         playerIndicator = UIImageView(image: UIImage(named: "orange"))
-        playerIndicator.frame = CGRect(x: l.leftMargin + l.cardSize * 0.05, y: l.btmMargin + (2 * l.cardSize * 1.23) + l.cardSize * 0.05, width: l.cardSize * 0.9, height: l.cardSize * 0.9)
+        playerIndicator.frame = CGRect(x: l.leftMargin + l.cardSize * 0.18, y: l.btmMargin + (2 * l.cardSize * 1.21) + l.cardSize * 0.05, width: l.cardSize * 0.9, height: l.cardSize * 0.9)
         view.addSubview(playerIndicator)
         
         playerTurnLabel = UILabel()
         playerTurnLabel.text = "Kyle's turn"  // placeholder
         playerTurnLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        playerTurnLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 1.1, y: l.btmMargin + (2 * l.cardSize * 1.23) - l.cardSize * 0.01, width: l.itemWidth, height: l.cardSize)
+        playerTurnLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 1.18, y: l.btmMargin + (2 * l.cardSize * 1.21) - l.cardSize * 0.01, width: l.itemWidth * 2, height: l.cardSize)
         playerTurnLabel.textAlignment = .left
         view.addSubview(playerTurnLabel)
         
         cardsLeftLabel = UILabel()
         cardsLeftLabel.text = "99"  // placeholder
         cardsLeftLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        cardsLeftLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 9.25, y: l.btmMargin + (2 * l.cardSize * 1.23) - l.cardSize * 0.01, width: l.itemWidth, height: l.cardSize)
+        cardsLeftLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 9.20, y: l.btmMargin + (2 * l.cardSize * 1.21) - l.cardSize * 0.01, width: l.itemWidth, height: l.cardSize)
         cardsLeftLabel.textAlignment = .left
         view.addSubview(cardsLeftLabel)
         
@@ -165,7 +190,12 @@ class GameViewController: UIViewController {
         view.addSubview(deck)
         
         deck.alpha = 0
-
+        
+        deckOutline.frame = CGRect(x: l.leftMargin + l.cardSize * 8 - l.highlight, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23 - l.highlight, width: l.cardSize + (2 * l.highlight), height: l.cardSize * 1.4 + (l.highlight * 2))
+        deckOutline.layer.borderColor = UIColor.green.cgColor
+        deckOutline.layer.borderWidth = 0
+        view.addSubview(deckOutline)
+        
         detector = ChainDetector()
         appDelegate = UIApplication.shared.delegate as! AppDelegate
         NotificationCenter.default.addObserver(self, selector: #selector(peerChangedStateWithNotification(notification:)), name: .didChangeState, object: nil)
@@ -178,32 +208,35 @@ class GameViewController: UIViewController {
 
         
         if isMPCGame {
-            if cardsInDeck.count == 0 {
-                if isHost {
-                    playerID = 1
-                    generateDeckWithSeedAndSend()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
-                        UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
-                            self.menuIcon.frame.origin.x = self.l.leftMargin
-                            self.helpIcon.frame.origin.x = self.l.leftMargin + 9 * self.l.cardSize
-                            self.deck.alpha = 1
-                        }, completion: { _ in
-                            self.drawCards()
-                        })
-                    }
-                } else {
-                    playerID = 2
+            // Multiplayer game
+            if isHost {
+                playerID = 1
+                seed = generateDeckWithSeedAndSend()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
+                    UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
+                        self.menuIcon.frame.origin.x = self.l.leftMargin
+                        self.helpIcon.frame.origin.x = self.l.leftMargin + 9 * self.l.cardSize
+                        self.deck.alpha = 1
+                    }, completion: { _ in
+                        self.drawCards()
+                    })
                 }
+            } else {
+                playerID = 2
             }
         } else {
+            // Pass 'N Play game
             cardsInDeck = createAndShuffleDeck(seed: nil)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [unowned self] in
                 UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
                     self.menuIcon.frame.origin.x = self.l.leftMargin
                     self.helpIcon.frame.origin.x = self.l.leftMargin + 9 * self.l.cardSize
                     self.deck.alpha = 1
+                    self.playerIndicator.alpha = 1
+                    self.playerTurnLabel.text = "Orange, tap for control"
+                    self.playerTurnLabel.alpha = 1
                 }, completion: { _ in
-                    self.drawCards(forPlayer: 1)
+                    self.waitForReady = true
                 })
             }
         }
@@ -212,10 +245,9 @@ class GameViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         // should use for UI stuff, but has delay
-        
     }
     
-    func generateDeckWithSeedAndSend() {
+    func generateDeckWithSeedAndSend() -> Int {
         
         let seed = Int(arc4random_uniform(1000000))  // 1 million
         
@@ -233,6 +265,8 @@ class GameViewController: UIViewController {
             ac.addAction(UIAlertAction(title: "OK", style: .default))
             present(ac, animated: true)
         }
+        
+        return seed
     }
     
     // only called in multiplayer
@@ -261,7 +295,7 @@ class GameViewController: UIViewController {
 
             // receiving seed for randomizer
             if data.count == 1 {
-                let seed = (data.object(forKey: "seed") as AnyObject).integerValue
+                seed = (data.object(forKey: "seed") as AnyObject).integerValue
                 cardsInDeck = createAndShuffleDeck(seed: seed!)
                 
                 // discard player 1's draw
@@ -280,21 +314,26 @@ class GameViewController: UIViewController {
             
             // receiving placed card info
             if data.count == 2 {
-                let cardIndex = (data.object(forKey: "cardIndex") as AnyObject).integerValue
-                let owner = (data.object(forKey: "owner") as AnyObject).integerValue
+                let cardIndex = (data.object(forKey: "cardIndex") as AnyObject).integerValue!
+                let owner = (data.object(forKey: "owner") as AnyObject).integerValue!
+                
+                // opponent drew for dead card, update our own deck
+                if cardIndex == -1 {
+                    popLastCard()
+                    return
+                }
                 
                 // avoid repeat calls
-                if cardsOnBoard[cardIndex!].isMarked == false {
-                    print("cardIndex \(cardIndex!) placed by player \(senderDisplayName)")
-                    cardsOnBoard[cardIndex!].owner = owner!
-                    cardsOnBoard[cardIndex!].isMarked = true
+                if cardsOnBoard[cardIndex].isMarked == false {
+                    print("cardIndex \(cardIndex) placed by player \(senderDisplayName)")
+                    cardsOnBoard[cardIndex].owner = owner
+                    cardsOnBoard[cardIndex].isMarked = true
                     
                     for c in cardsOnBoard {
                         c.isMostRecent = false
                     }
-//                    cardsOnBoard[cardIndex!].isMostReifcent = true
-                    
-                    _ = cardsInDeck.popLast()   // discard other player's drawn card
+
+                    popLastCard()  // discard other player's drawn card
                     
                     // test for chain
                     var (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, self.currentPlayer)
@@ -333,17 +372,17 @@ class GameViewController: UIViewController {
                         }
                     } else {
                         AudioServicesPlaySystemSound(Taptics.peek.rawValue)
-                        cardsOnBoard[cardIndex!].isMostRecent = true
+                        cardsOnBoard[cardIndex].isMostRecent = true
                         self.changeTurns()
                     }
                 } else {
                     // other player removed marker using jack
-                    print("cardIndex \(cardIndex!) removed by player \(senderDisplayName)")
-                    cardsOnBoard[cardIndex!].owner = owner!
-                    cardsOnBoard[cardIndex!].isMarked = false
-                    cardsOnBoard[cardIndex!].isMostRecent = true
-                    cardsOnBoard[cardIndex!].fadeMarker()
-                    _ = cardsInDeck.popLast()   // discard other player's drawn card
+                    print("cardIndex \(cardIndex) removed by player \(senderDisplayName)")
+                    cardsOnBoard[cardIndex].owner = owner
+                    cardsOnBoard[cardIndex].isMarked = false
+                    cardsOnBoard[cardIndex].isMostRecent = true
+                    cardsOnBoard[cardIndex].fadeMarker()
+                    popLastCard()   // discard other player's drawn card
                     AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                     self.changeTurns()
                 }
@@ -351,6 +390,34 @@ class GameViewController: UIViewController {
 
         } catch let error as NSError {
             print("RECEIVING ERROR: \(error.localizedDescription)")
+        }
+    }
+    
+    func popLastCard() {
+        if let _ = self.cardsInDeck.popLast() {
+            // removes card from our deck
+        } else {
+            
+            beforeP1Deal = totalCards + 1
+            beforeP2Deal = totalCards + 1
+            afterP2Deal = totalCards + 1
+            
+            cardsInDeck = createAndShuffleDeck(seed: seed)
+            
+            // shuffle again
+            if seed == nil {
+                cardsInDeck = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
+            } else {
+                let lcg = GKLinearCongruentialRandomSource(seed: UInt64(seed!))
+                cardsInDeck = lcg.arrayByShufflingObjects(in: cardsInDeck) as! [Card]
+            }
+            
+            for i in 0..<cardsInDeck.count {
+                cardsInDeck[i].index = i
+            }
+            cardsInDeck = cardsInDeck.reversed()
+            
+            popLastCard()
         }
     }
     
@@ -367,6 +434,11 @@ class GameViewController: UIViewController {
         jackOutline.layer.borderColor = UIColor.green.cgColor
         jackOutline.layer.borderWidth = 0
         view.addSubview(jackOutline)
+        
+//        handOutline.frame = CGRect(x: l.leftMargin + l.cardSize - l.highlight, y: l.btmMargin + l.cardSize - l.highlight, width: (l.cardSize * 5) + (2 * l.highlight), height: (l.cardSize * 1.23) + (l.highlight * 2))
+//        handOutline.layer.borderColor = UIColor.green.cgColor
+//        handOutline.layer.borderWidth = 0
+//        view.addSubview(handOutline)
         
         playerIndicator.alpha = 0
         playerTurnLabel.alpha = 0
@@ -400,7 +472,7 @@ class GameViewController: UIViewController {
             for suit in 0..<suits.count {
                 for rank in 1...13 {
                     let card = Card(named: "\(suits[suit])\(rank)+")
-//                    let card = Card(named: "H11+")    // testing
+//                    let card = Card(named: "C4+")    // testing
                     cardsInDeck.append(card)
                 }
             }
@@ -418,6 +490,7 @@ class GameViewController: UIViewController {
         for i in 0..<array.count {
             array[i].index = i
         }
+        
         return array.reversed()
     }
     
@@ -456,8 +529,9 @@ class GameViewController: UIViewController {
                     }
                     
                     if col == 5 {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.85) { [unowned self] in
                             self.waitForAnimations = false
+//                            self.handOutline.layer.borderWidth = self.l.highlight
                         }
                     }
                     
@@ -497,7 +571,7 @@ class GameViewController: UIViewController {
             // only forward movements through hand
             let currentHand = getCurrentHand()
             for card in currentHand {
-                if card.frame.contains(touchLocation) {
+                if card.frame.contains(touchLocation) && waitForAnimations == false {
                     touchesBegan(touches, with: event)
                 }
             }
@@ -508,6 +582,9 @@ class GameViewController: UIViewController {
         if let touch = touches.first {
             let touchLocation = touch.location(in: self.view)
             
+            var cardsInHand = getCurrentHand()
+            
+            // dismiss help view
             if helpPresented == true {
                 helpView.removeFromSuperview()
                 helpPresented = false
@@ -516,18 +593,31 @@ class GameViewController: UIViewController {
             
             // go back to main menu
             if menuIcon.frame.contains(touchLocation) {
+//                handOutline.layer.borderWidth = 0
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
                 presentMenuAlert()
+                return
             }
             
             // show tutorial
             if helpIcon.frame.contains(touchLocation) {
+//                handOutline.layer.borderWidth = 0
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
                 presentHelpView()
                 helpPresented = true
+                return
             }
             
-            var cardsInHand = getCurrentHand()
+            // for pass-n-play
+            if waitForReady == true {
+                waitForAnimations = true
+                AudioServicesPlaySystemSound(Taptics.peek.rawValue)
+                swapToNextPlayer(cardsInHand)
+                waitForReady = false
+                return
+            }
+            
+//            handOutline.layer.borderWidth = 0
             
             // reset taptic feedback if no cards in hand are selected
             var cardTouched = false
@@ -542,6 +632,24 @@ class GameViewController: UIViewController {
                     }
                 }
             }
+            
+            if deadCard == true && deck.frame.contains(touchLocation) {
+                
+                let container = UIView()
+                container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.23)
+                container.layer.zPosition = 1
+                
+                let back = Card(named: "-back")
+                back.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize * 1.23)
+                
+                view.addSubview(container)
+                container.addSubview(back)
+                
+                cardsInHand = animateNextCardToHand(cardsInHand, container, back)
+                return
+            }
+            
+            deadCard = false
             
             for c in cardsOnBoard {
                 if ((c.isSelected || isJack()) && !c.isFreeSpace && c.owner != currentPlayer && c.frame.contains(touchLocation)) {
@@ -592,11 +700,12 @@ class GameViewController: UIViewController {
 
                         let container = UIView()
                         container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.23)
-                        view.addSubview(container)
                         container.layer.zPosition = 1
                         
                         let back = Card(named: "-back")
                         back.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize * 1.23)
+                        
+                        view.addSubview(container)
                         container.addSubview(back)
                         
                         let (isValidChain, winningIndices) = detector.isValidChain(cardsOnBoard, currentPlayer)
@@ -628,57 +737,19 @@ class GameViewController: UIViewController {
                         AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                         mostRecentIndex = c.index
                         
-                        if cardsInDeck.isEmpty == false {
-                            
-                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
-                            
-                            if isMPCGame {
-                                self.changeTurns()
-                            }
-
-                            UIView.animate(withDuration: 1, delay: 0, options: [.curveEaseOut], animations: {
-                                container.frame.origin = cardsInHand[self.chosenCardIndex].frame.origin
-                                cardsInHand[self.chosenCardIndex].removeFromSuperview()
-                                
-                            }, completion: { _ in
-                                
-                                if let nextCard = self.getNextCardFromDeck() {
-                                    cardsInHand[self.chosenCardIndex].removeFromSuperview()
-                                    cardsInHand[self.chosenCardIndex] = nextCard
-                                    
-                                    if self.currentPlayer == 1 || self.isMPCGame {
-                                        self.cardsInHand1[self.chosenCardIndex].removeFromSuperview()
-                                        self.cardsInHand1[self.chosenCardIndex] = nextCard
-                                    } else {
-                                        self.cardsInHand1[self.chosenCardIndex].removeFromSuperview()
-                                        self.cardsInHand2[self.chosenCardIndex] = nextCard
-                                    }
-                                    
-                                    nextCard.frame = CGRect(x: 0, y: 0, width: self.l.cardSize, height: self.l.cardSize * 1.23)
-                                    
-                                    UIView.transition(from: back, to: nextCard, duration: 1, options: [.transitionFlipFromRight]) { (completed: Bool) in
-                                        for i in 0..<5 {
-                                            self.cardsInHand1[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(i+1) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
-                                            self.view.addSubview(self.cardsInHand1[i])
-                                        }
-                                    }
-                                    
-                                }
-                                
-                                if self.isMPCGame == false {
-                                    // if it's player 2's turn to draw their cards
-                                    if self.cardsInDeck.count == self.beforeP2Deal {
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
-                                            self.drawCards(forPlayer: 2)
-                                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count + 5)"
-                                        }
-                                    }
-                                    self.swapHands(cardsInHand)
-                                }
-                            })
+                        if cardsInDeck.count == 1 {
+                            self.cardsLeftLabel.text = "\(totalCards)"
+                        } else if cardsInDeck.count == 0 {
+                            self.cardsLeftLabel.text = "\(totalCards - 1)"
                         } else {
-                            // TODO: no more cards to draw
+                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
                         }
+                        
+                        if isMPCGame {
+                            self.changeTurns()
+                        }
+                        
+                        cardsInHand = animateNextCardToHand(cardsInHand, container, back)
                     }
                 }
             }
@@ -703,6 +774,7 @@ class GameViewController: UIViewController {
                     chosenCardIndex = i
                     chosenCardId = cardsInHand[i].id
                     
+                    deadCard = true
                     for c in cardsOnBoard {
                         c.isSelected = false
                         c.isMostRecent = false
@@ -711,14 +783,22 @@ class GameViewController: UIViewController {
                         }
                         if !c.isMarked && chosenCardId == "\(c.id)+" {
                             c.isSelected = true
+                            deadCard = false
                         }
                     }
                     
                     // special case for jacks
                     if isJack() {
                         jackOutline.layer.borderWidth = l.highlight
+                        deadCard = false
                     } else {
                         jackOutline.layer.borderWidth = 0
+                    }
+                    
+                    if deadCard {
+                        deckOutline.layer.borderWidth = l.highlight
+                    } else {
+                        deckOutline.layer.borderWidth = 0
                     }
                 }
             }
@@ -741,17 +821,11 @@ class GameViewController: UIViewController {
 //        self.present(ac, animated: true)
         
         helpView = UIView()
-        helpView.layer.borderWidth = 3 * l.stroke
-        helpView.frame = CGRect(x: l.leftMargin, y: view.frame.maxY, width: l.cardSize * 10, height: l.cardSize * 14)
+        helpView.frame = view.frame
         helpView.backgroundColor = .white
-        helpView.layer.cornerRadius = l.cardSize;
-        helpView.layer.masksToBounds = true;
         helpView.layer.zPosition = 10
         view.addSubview(helpView)
-        
-        UIView.animate(withDuration: 0.5) {
-            self.helpView.frame.origin.y = self.l.topMargin - self.l.cardSize * 0.75
-        }
+        helpView.alpha = 0.5
         
         // maybe use arrows instead to point out each part (step by step?)
     }
@@ -814,14 +888,89 @@ class GameViewController: UIViewController {
         }
     }
     
+    func animateNextCardToHand(_ hand: [Card], _ container: UIView, _ back: Card) -> [Card] {
+        
+        var cardsInHand = hand
+        deckOutline.layer.borderWidth = 0
+        
+        UIView.animate(withDuration: 1, delay: 0, options: [.curveEaseOut], animations: {
+            container.frame.origin = cardsInHand[self.chosenCardIndex].frame.origin
+            cardsInHand[self.chosenCardIndex].removeFromSuperview()
+            
+        }, completion: { _ in
+            
+            if let nextCard = self.getNextCardFromDeck() {
+                cardsInHand[self.chosenCardIndex].removeFromSuperview()
+                cardsInHand[self.chosenCardIndex] = nextCard
+                
+                if self.currentPlayer == 1 || self.isMPCGame {
+                    self.cardsInHand1[self.chosenCardIndex].removeFromSuperview()
+                    self.cardsInHand1[self.chosenCardIndex] = nextCard
+                } else {
+                    self.cardsInHand2[self.chosenCardIndex].removeFromSuperview()
+                    self.cardsInHand2[self.chosenCardIndex] = nextCard
+                }
+                
+                nextCard.frame = CGRect(x: 0, y: 0, width: self.l.cardSize, height: self.l.cardSize * 1.23)
+                
+                UIView.transition(from: back, to: nextCard, duration: 1.0, options: [.transitionFlipFromRight]) { (completed: Bool) in
+                    for i in 0..<5 {
+                        self.cardsInHand1[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(i+1) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
+                        self.view.addSubview(self.cardsInHand1[i])
+                    }
+                }
+            }
+            
+            if self.deadCard == false && self.isMPCGame == false {
+                self.swapHands(cardsInHand)
+            } else {
+                
+                if self.deadCard && self.isMPCGame && self.appDelegate.mpcHandler.session.connectedPeers.count > 0 {
+                    // convert data to json
+                    let cardIndexDict = ["cardIndex": -1, "owner": self.currentPlayer] as [String : Int]
+                    let cardIndexData = try! JSONSerialization.data(withJSONObject: cardIndexDict, options: .prettyPrinted)
+                    
+                    // try to send the data
+                    do {
+                        try self.appDelegate.mpcHandler.session.send(cardIndexData, toPeers: self.appDelegate.mpcHandler.session.connectedPeers, with: .reliable)
+                    } catch let error as NSError {
+                        print("SENDING ERROR: \(error.localizedDescription)")
+                    }
+                }
+                self.deadCard = false
+            }
+        })
+        
+        return cardsInHand
+    }
+    
     func getNextCardFromDeck() -> Card? {
         if let nextCard = self.cardsInDeck.popLast() {
             nextCard.frame = CGRect(x: l.leftMargin + (CGFloat(chosenCardIndex + 1) * l.cardSize), y: l.btmMargin + l.cardSize, width: l.cardSize, height: l.cardSize * 1.23)
             self.view.addSubview(nextCard)
             return nextCard
         } else {
-            presentAlert(title: "Out of cards!", message: "This is pretty rare. I guess we'll call this a draw...")     // very buggy rn
-            return nil
+            
+            beforeP1Deal = totalCards + 1
+            beforeP2Deal = totalCards + 1
+            afterP2Deal = totalCards + 1
+            
+            cardsInDeck = createAndShuffleDeck(seed: seed)
+            
+            // shuffle again
+            if seed == nil {
+                cardsInDeck = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
+            } else {
+                let lcg = GKLinearCongruentialRandomSource(seed: UInt64(seed!))
+                cardsInDeck = lcg.arrayByShufflingObjects(in: cardsInDeck) as! [Card]
+            }
+            
+            for i in 0..<cardsInDeck.count {
+                cardsInDeck[i].index = i
+            }
+            cardsInDeck = cardsInDeck.reversed()
+            
+            return getNextCardFromDeck()
         }
     }
     
@@ -829,7 +978,7 @@ class GameViewController: UIViewController {
     
     // pass-n-play
     func swapHands(_ hand: [Card]) {
-        var cardsInHand = getCurrentHand()
+        let cardsInHand = getCurrentHand()
         
         UIView.animate(withDuration: 0.5, delay: 1.5, options: [], animations: {
             // fade out cards and player indicator label
@@ -846,52 +995,79 @@ class GameViewController: UIViewController {
             }
             
         }, completion: { _ in
-            
+            self.waitForReady = true
             self.cardsOnBoard[self.mostRecentIndex].isMostRecent = true
             
-            for card in cardsInHand {
-                card.removeFromSuperview()
-            }
-
-            // shows cards on turns after dealing has taken place
-            if self.currentPlayer == 1 {
-                self.cardsInHand1 = hand
-                self.currentPlayer = 2
-                
-                if self.cardsInDeck.count < self.afterP2Deal {
-                    for i in 0..<5 {
-                        self.cardsInHand2[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(i + 1) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
-                        self.view.addSubview(self.cardsInHand2[i])
-                    }
-                }
-            } else {
-                self.cardsInHand2 = hand
-                self.currentPlayer = 1
-                
-                for i in 0..<5 {
-                    self.cardsInHand1[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(i + 1) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
-                    self.view.addSubview(self.cardsInHand1[i])
-                }
-            }
-            
-            cardsInHand = self.getCurrentHand()
-            
-            for card in cardsInHand {
-                card.alpha = 0
-            }
-            
-            UIView.animate(withDuration: 0.5, animations: {
-                for card in cardsInHand {
-                    card.alpha = 1
-                }
-                
-                if self.cardsInDeck.count < self.afterP2Deal {
-                    self.playerIndicator.alpha = 1
-                    self.playerTurnLabel.alpha = 1
+            UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+                if self.currentPlayer != 1 {
+                    self.playerIndicator.image = UIImage(named: "orange")
+                    self.playerTurnLabel.text = "Orange, tap for control"
                 } else {
-                    self.waitForAnimations = true
+                    self.playerIndicator.image = UIImage(named: "blue")
+                    self.playerTurnLabel.text = "Blue, tap for control"
                 }
+                self.playerIndicator.alpha = 1
+                self.playerTurnLabel.alpha = 1
             })
+        })
+    }
+    
+    func swapToNextPlayer(_ hand: [Card]) {
+        
+        var cardsInHand = getCurrentHand()
+        
+        if self.cardsInDeck.count == self.beforeP1Deal {
+            self.playerTurnLabel.text = "Orange's turn"
+            self.drawCards(forPlayer: 1)
+            return
+        }
+        
+        if self.cardsInDeck.count == self.beforeP2Deal {
+            self.drawCards(forPlayer: 2)
+        }
+        
+        for card in cardsInHand {
+            card.removeFromSuperview()
+        }
+        
+        // shows cards on turns after dealing has taken place
+        if self.currentPlayer == 1 {
+            self.cardsInHand1 = hand
+            self.currentPlayer = 2
+            
+            if self.cardsInDeck.count < self.afterP2Deal {
+                for i in 0..<5 {
+                    self.cardsInHand2[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(i + 1) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
+                    self.view.addSubview(self.cardsInHand2[i])
+                }
+            }
+        } else {
+            self.cardsInHand2 = hand
+            self.currentPlayer = 1
+            
+            for i in 0..<5 {
+                self.cardsInHand1[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(i + 1) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
+                self.view.addSubview(self.cardsInHand1[i])
+            }
+        }
+        
+        waitForAnimations = true
+        cardsInHand = self.getCurrentHand()
+        
+        for card in cardsInHand {
+            card.alpha = 0
+        }
+        
+        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+            for card in cardsInHand {
+                card.alpha = 1
+            }
+            if self.cardsInDeck.count < self.afterP2Deal {
+                self.playerIndicator.alpha = 1
+                self.playerTurnLabel.alpha = 1
+            }
+        }, completion: { _ in
+            self.waitForAnimations = false
         })
     }
     
@@ -917,16 +1093,6 @@ class GameViewController: UIViewController {
                 self.playerTurnLabel.alpha = 1
             })
         })
-    }
-}
-
-extension UIView {
-    func shake() {
-        let animation = CAKeyframeAnimation(keyPath: "transform.translation.x")
-        animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
-        animation.duration = 0.6
-        animation.values = [-20.0, 20.0, -20.0, 20.0, -10.0, 10.0, -5.0, 5.0, 0.0 ]
-        layer.add(animation, forKey: "shake")
     }
 }
 
