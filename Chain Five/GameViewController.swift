@@ -65,6 +65,31 @@ extension GameViewController: GCHelperDelegate {
                     for c in cardsOnBoard {
                         c.isMostRecent = false
                     }
+                    
+                    if isRedJack() {
+                        cardsOnBoard[cardIndex].isSelected = true
+                    } else {
+                        cardsOnBoard[cardIndex].isSelected = false
+                        var noneSelected = true
+                        if cardChosen {
+                            for c in cardsOnBoard {
+                                if c.isSelected {
+                                    noneSelected = false
+                                }
+                            }
+                            if noneSelected == true {
+                                deadCard = true
+                            } else {
+                                deadCard = false
+                            }
+                            // can only swap one dead card per turn
+                            if deadCard == true && deadSwapped == false {
+                                deckOutline.layer.borderWidth = l.highlight
+                            } else {
+                                deckOutline.layer.borderWidth = 0
+                            }
+                        }
+                    }
 
                     popLastCard()  // discard other player's drawn card
 
@@ -104,6 +129,13 @@ extension GameViewController: GCHelperDelegate {
                     cardsOnBoard[cardIndex].isMostRecent = true
                     cardsOnBoard[cardIndex].owner = 0
                     cardsOnBoard[cardIndex].fadeMarker()
+                    
+                    if !cardsOnBoard[cardIndex].isMarked && chosenCardId == "\(cardsOnBoard[cardIndex].id)+" {
+                        cardsOnBoard[cardIndex].isSelected = true
+                        deadCard = false
+                        deckOutline.layer.borderWidth = 0
+                    }
+                    
                     popLastCard()   // discard other player's drawn card
                     AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                     self.changeTurns()
@@ -446,10 +478,6 @@ class GameViewController: UIViewController {
             for suit in 0..<suits.count {
                 for rank in 1...13 {
                     let card = Card(named: "\(suits[suit])\(rank)+")
-//                    var card = Card(named: "H11+")
-//                    if j % 2 == 0 {
-//                        card = Card(named: "C11+")    // testing
-//                    }
                     cardsInDeck.append(card)
                 }
             }
@@ -572,7 +600,6 @@ class GameViewController: UIViewController {
             if helpPresented == true {
                 helpView.removeFromSuperview()
                 helpPresented = false
-                helpIcon.alpha = 1
                 return
             }
             
@@ -595,9 +622,9 @@ class GameViewController: UIViewController {
             if waitForReady == true {
                 if currentPlayer == 0 {
                     self.currentPlayer = 1
+                    self.playerID = 1
                 }
                 waitForAnimations = true
-                AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                 swapToNextPlayer(cardsInHand)
                 waitForReady = false
                 return
@@ -620,6 +647,17 @@ class GameViewController: UIViewController {
             }
             
             if deadSwapped == false && deadCard == true && deck.frame.contains(touchLocation) {
+                
+                if currentPlayer != playerID {
+                    playerIndicator.shake()
+                    playerTurnLabel.shake()
+                    AudioServicesPlaySystemSound(Taptics.nope.rawValue)
+                    deckOutline.layer.borderWidth = 0
+                    cardsInHand[chosenCardIndex].isSelected = false
+                    return
+                }
+                
+                AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                 
                 let container = UIView()
                 container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.23)
@@ -660,7 +698,7 @@ class GameViewController: UIViewController {
             deadCard = false
             
             for c in cardsOnBoard {
-                if ((c.isSelected || (isBlackJack() && c.isMarked == false)) && !c.isFreeSpace && c.owner != currentPlayer && c.frame.contains(touchLocation)) {
+                if ((c.isSelected || (isBlackJack() && c.isMarked == false)) && !c.isFreeSpace && (c.owner != playerID || deckOutline.layer.borderWidth != 0) && c.frame.contains(touchLocation)) {
                     
                     if isMPCGame && currentPlayer != playerID {
                         playerIndicator.shake()
@@ -811,7 +849,7 @@ class GameViewController: UIViewController {
                     // special case for red jack
                     if isRedJack() {
                         for c in cardsOnBoard {
-                            if c.isMarked && c.owner != currentPlayer {
+                            if c.isMarked && c.owner != playerID {
                                 c.isSelected = true
                             }
                         }
@@ -833,7 +871,6 @@ class GameViewController: UIViewController {
     }
     
     func presentMenuAlert() {
-        menuIcon.alpha = 0.5
         let ac = UIAlertController(title: "Are you sure?", message: "This will end the game in progress.", preferredStyle: .alert)
         ac.addAction(UIAlertAction(title: "Yes", style: .default) { _ in
             if self.isMPCGame {
@@ -842,14 +879,11 @@ class GameViewController: UIViewController {
             self.gameOver.removeFromSuperview()
             self.performSegue(withIdentifier: "toMain", sender: self)
         })
-        ac.addAction(UIAlertAction(title: "No", style: .cancel) { _ in
-            self.menuIcon.alpha = 1
-        })
+        ac.addAction(UIAlertAction(title: "No", style: .cancel))
         self.present(ac, animated: true)
     }
     
     func presentHelpView() {
-        helpIcon.alpha = 0.5
         helpView = UIView()
         helpView.frame = CGRect(x: l.leftMargin, y: l.topMargin, width: l.cardSize * 10, height: l.cardSize * 10)
         helpView.backgroundColor = .white
@@ -1107,6 +1141,7 @@ class GameViewController: UIViewController {
         if self.currentPlayer == 1 {
             self.cardsInHand1 = hand
             self.currentPlayer = 2
+            self.playerID = 2
             
             if self.cardsInDeck.count < self.afterP2Deal {
                 for i in 0..<5 {
@@ -1117,6 +1152,7 @@ class GameViewController: UIViewController {
         } else {
             self.cardsInHand2 = hand
             self.currentPlayer = 1
+            self.playerID = 1
             
             for i in 0..<5 {
                 self.cardsInHand1[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(i + 1) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
