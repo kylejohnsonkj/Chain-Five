@@ -100,9 +100,9 @@ extension GameViewController: GCHelperDelegate {
                 } else {
                     // other player removed marker using jack
                     print("marker at \(cardIndex) removed by \(opponentName!)")
-                    cardsOnBoard[cardIndex].owner = 0
                     cardsOnBoard[cardIndex].isMarked = false
                     cardsOnBoard[cardIndex].isMostRecent = true
+                    cardsOnBoard[cardIndex].owner = 0
                     cardsOnBoard[cardIndex].fadeMarker()
                     popLastCard()   // discard other player's drawn card
                     AudioServicesPlaySystemSound(Taptics.peek.rawValue)
@@ -445,13 +445,11 @@ class GameViewController: UIViewController {
         while (j < 2) {
             for suit in 0..<suits.count {
                 for rank in 1...13 {
-                    let card = Card(named: "\(suits[suit])\(rank)+")
-//                    var card = Card(named: "H11+")
-//                    if j % 2 == 0 {
-//                        card = Card(named: "C4+")    // testing
-//                    } else {
-//                        card = Card(named: "D4+")    // testing
-//                    }
+//                    let card = Card(named: "\(suits[suit])\(rank)+")
+                    var card = Card(named: "H11+")
+                    if j % 2 == 0 {
+                        card = Card(named: "C11+")    // testing
+                    }
                     cardsInDeck.append(card)
                 }
             }
@@ -574,6 +572,7 @@ class GameViewController: UIViewController {
             if helpPresented == true {
                 helpView.removeFromSuperview()
                 helpPresented = false
+                helpIcon.alpha = 1
                 return
             }
             
@@ -661,7 +660,7 @@ class GameViewController: UIViewController {
             deadCard = false
             
             for c in cardsOnBoard {
-                if ((c.isSelected || isJack()) && !c.isFreeSpace && c.owner != currentPlayer && c.frame.contains(touchLocation)) {
+                if ((c.isSelected || (isBlackJack() && c.isMarked == false)) && !c.isFreeSpace && c.owner != currentPlayer && c.frame.contains(touchLocation)) {
                     
                     if isMPCGame && currentPlayer != playerID {
                         playerIndicator.shake()
@@ -686,7 +685,7 @@ class GameViewController: UIViewController {
                             }
                             print("marker at index \(c.index) placed by self")
                         } else {
-                            if (isJack()) {
+                            if (isRedJack()) {
                                 c.owner = 0
                                 c.isMarked = false
                                 c.isMostRecent = true
@@ -802,12 +801,24 @@ class GameViewController: UIViewController {
                         }
                     }
                     
-                    // special case for jacks
-                    if isJack() {
+                    // special case for black jack
+                    if isBlackJack() {
                         jackOutline.layer.borderWidth = l.highlight
-                        deadCard = false
                     } else {
                         jackOutline.layer.borderWidth = 0
+                    }
+                    
+                    // special case for red jack
+                    if isRedJack() {
+                        for c in cardsOnBoard {
+                            if c.isMarked && c.owner != currentPlayer {
+                                c.isSelected = true
+                            }
+                        }
+                    }
+                    
+                    if isJack() {
+                        deadCard = false
                     }
                     
                     // can only swap one dead card per turn
@@ -838,47 +849,61 @@ class GameViewController: UIViewController {
     }
     
     func presentHelpView() {
+        helpIcon.alpha = 0.5
         helpView = UIView()
-        helpView.frame = view.frame
+        helpView.frame = CGRect(x: l.leftMargin, y: l.topMargin, width: l.cardSize * 10, height: l.cardSize * 10)
         helpView.backgroundColor = .white
         helpView.layer.zPosition = 10
         view.addSubview(helpView)
-        helpView.alpha = 0.85
         
         let temp1 = UILabel()
-        temp1.text = "temporary help page :)"
+        temp1.text = "temporary help page"
         temp1.font = UIFont(name: "GillSans", size: l.cardSize / 1.5)
-        temp1.frame = CGRect(x: 0, y: l.topMargin, width: view.frame.width, height: 30)
+        temp1.frame = CGRect(x: 0, y: 30, width: helpView.frame.width, height: 60)
         temp1.textAlignment = .center
         helpView.addSubview(temp1)
         
         let temp2 = UILabel()
         temp2.text = "first to 5 in a row wins"
         temp2.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        temp2.frame = CGRect(x: 0, y: l.topMargin + 60, width: view.frame.width, height: 30)
+        temp2.frame = CGRect(x: 0, y: 90, width: helpView.frame.width, height: 30)
         temp2.textAlignment = .center
         helpView.addSubview(temp2)
         
         let temp3 = UILabel()
-        temp3.text = "jacks can go anywhere OR replace"
+        temp3.text = "black jacks can be placed anywhere"
         temp3.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        temp3.frame = CGRect(x: 0, y: l.topMargin + 90, width: view.frame.width, height: 30)
+        temp3.frame = CGRect(x: 0, y: 120, width: helpView.frame.width, height: 30)
         temp3.textAlignment = .center
         helpView.addSubview(temp3)
         
         let temp4 = UILabel()
-        temp4.text = "one dead card can be swapped per turn"
+        temp4.text = "red jacks can remove an opponent's piece"
         temp4.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        temp4.frame = CGRect(x: 0, y: l.topMargin + 120, width: view.frame.width, height: 30)
+        temp4.frame = CGRect(x: 0, y: 150, width: helpView.frame.width, height: 30)
         temp4.textAlignment = .center
         helpView.addSubview(temp4)
         
         let temp5 = UILabel()
-        temp5.text = "enjoy the game!"
+        temp5.text = "the white dot marks your opponent's last move"
         temp5.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        temp5.frame = CGRect(x: 0, y: l.topMargin + 175, width: view.frame.width, height: 30)
+        temp5.frame = CGRect(x: 0, y: 180, width: helpView.frame.width, height: 30)
         temp5.textAlignment = .center
         helpView.addSubview(temp5)
+        
+        let temp6 = UILabel()
+        temp6.text = "one dead card can be swapped per turn"
+        temp6.font = UIFont(name: "GillSans", size: l.cardSize / 2)
+        temp6.frame = CGRect(x: 0, y: 210, width: helpView.frame.width, height: 30)
+        temp6.textAlignment = .center
+        helpView.addSubview(temp6)
+        
+        let temp7 = UILabel()
+        temp7.text = "enjoy the game!"
+        temp7.font = UIFont(name: "GillSans", size: l.cardSize / 2)
+        temp7.frame = CGRect(x: 0, y: 240, width: helpView.frame.width, height: 30)
+        temp7.textAlignment = .center
+        helpView.addSubview(temp7)
     }
     
     // MARK: - Win Screen and Helper Methods
@@ -926,9 +951,19 @@ class GameViewController: UIViewController {
     }
     
     // MARK: - Other Helper Methods
-    
+
     func isJack() -> Bool {
-        return (chosenCardId == "C11+" || chosenCardId == "D11+" || chosenCardId == "H11+" || chosenCardId == "S11+")
+        return (chosenCardId == "C11+" || chosenCardId == "S11+" || chosenCardId == "D11+" || chosenCardId == "H11+")
+    }
+    
+    // goes anywhere
+    func isBlackJack() -> Bool {
+        return (chosenCardId == "C11+" || chosenCardId == "S11+")
+    }
+    
+    // removes an opponent
+    func isRedJack() -> Bool {
+        return (chosenCardId == "D11+" || chosenCardId == "H11+")
     }
     
     func getCurrentHand() -> [Card] {

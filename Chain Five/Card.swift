@@ -36,18 +36,17 @@ class Card: UIImageView {
     
     var isMarked: Bool {
         didSet {
-            guard owner != 0 else {
-                return
+            if isMarked == true {
+                let color = owner == 1 ? "orange" : "blue"
+                self.subviews.forEach { $0.removeFromSuperview() }
+                let markerImage = UIImage(named: color)
+                marker = UIImageView(image: markerImage)
+                marker.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize)
+                self.addSubview(marker)
+                
+                // pulse marker when placed
+                pulseMarker()
             }
-            let color = owner == 1 ? "orange" : "blue"
-            self.subviews.forEach { $0.removeFromSuperview() }
-            let markerImage = UIImage(named: color)
-            marker = UIImageView(image: markerImage)
-            marker.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize)
-            self.addSubview(marker)
-            
-            // pulse marker when placed
-            pulseMarker()
         }
     }
     
@@ -59,7 +58,7 @@ class Card: UIImageView {
             } else if owner == 1 {
                 color = "orange"
             } else {
-                color = prevOwner == 1 ? "orange" : "blue"
+                color = prevOwner == 1 ? "blue" : "orange"
             }
             if isMostRecent == true {
                 marker.image = UIImage(named: "\(color)_recent")
@@ -118,18 +117,19 @@ class Card: UIImageView {
     
     func fadeMarker() {
         UIView.animate(withDuration: 0.2, delay: 0, options: [], animations: {
-            self.marker.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+            self.marker.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+            self.marker.alpha = 0.5
         }, completion: { _ in
             UIView.animate(withDuration: 0.4, animations: {
                 self.marker.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
-                self.marker.alpha = 0.5
             })
         })
     }
     
     func removeMarker() {
         UIView.animate(withDuration: 0.2, delay: 0, options: [], animations: {
-            self.marker.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+            self.marker.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+            self.marker.alpha = 0.5
         }, completion: { _ in
             UIView.animate(withDuration: 0.4, animations: {
                 self.marker.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
