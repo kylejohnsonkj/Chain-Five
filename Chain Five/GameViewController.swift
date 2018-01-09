@@ -445,11 +445,11 @@ class GameViewController: UIViewController {
         while (j < 2) {
             for suit in 0..<suits.count {
                 for rank in 1...13 {
-//                    let card = Card(named: "\(suits[suit])\(rank)+")
-                    var card = Card(named: "H11+")
-                    if j % 2 == 0 {
-                        card = Card(named: "C11+")    // testing
-                    }
+                    let card = Card(named: "\(suits[suit])\(rank)+")
+//                    var card = Card(named: "H11+")
+//                    if j % 2 == 0 {
+//                        card = Card(named: "C11+")    // testing
+//                    }
                     cardsInDeck.append(card)
                 }
             }
