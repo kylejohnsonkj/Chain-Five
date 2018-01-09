@@ -8,10 +8,41 @@
 
 import UIKit
 import AudioToolbox
-import MultipeerConnectivity
 import StoreKit
+import GameKit
+import UserNotifications
 
-class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
+extension MainViewController: GCHelperDelegate {
+    func matchStarted() {
+        print("matchStarted (MVC)")
+        prepareMPCGame = true
+        UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+            self.container.frame.origin.y += 200
+            self.container.alpha = 0
+            
+        }, completion: { _ in
+            self.performSegue(withIdentifier: "toGame", sender: self)
+        })
+    }
+    
+    func match(_ theMatch: GKMatch, didReceiveData data: Data, fromPlayer playerID: String) {
+        print("match:\(theMatch) didReceiveData: fromPlayer:\(playerID) (MVC) -- should never occur")
+    }
+    
+    func matchEnded() {
+        print("matchEnded (MVC) -- should never occur")
+    }
+}
+
+class MainViewController: UIViewController {
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "toGame" && prepareMPCGame == true {
+            let gameViewController = (segue.destination as! GameViewController)
+            GCHelper.sharedInstance.delegate = gameViewController
+            gameViewController.isMPCGame = true
+        }
+    }
     
     let cardsLayout = ["-free", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "-free",
                        "D10", "D13", "C6", "C5", "C4", "H4", "H5", "H6", "S13", "S10",
@@ -47,8 +78,6 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
     // for MultipeerConnectivity purposes
     var appDelegate: AppDelegate!
     var prepareMPCGame = false
-    var isHost = false
-    
     var l: Layout!
     
     override func viewDidLoad() {
@@ -56,9 +85,8 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         l = Layout()
         
         // reset MPC related stuff
-        resetMPC()
+//        resetMPC()
         prepareMPCGame = false
-        isHost = false
         
         // check if we should request a review
 //        if UserDefaults.standard.integer(forKey: "gamesFinished") % 10 == 0 {
@@ -76,52 +104,10 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         }
     }
     
-    func resetMPC() {
-        
-        // reset all session junk
-        appDelegate = UIApplication.shared.delegate as! AppDelegate
-        appDelegate.mpcHandler.peerID = nil
-        appDelegate.mpcHandler.session = nil
-        appDelegate.mpcHandler.browser = nil
-        appDelegate.mpcHandler.advertiser = nil
-        
-        // show device to others looking for local opponents
-        appDelegate.mpcHandler.setupPeerWithDisplayName(displayName: UIDevice.current.name)
-        appDelegate.mpcHandler.setupSession()
-        appDelegate.mpcHandler.advertiseSelf(advertise: true)
-        
-        // monitor for state changes (.notConnected -> .connecting -> .connected)
-        NotificationCenter.default.addObserver(self, selector: #selector(peerChangedStateWithNotification(notification:)), name: .didChangeState, object: nil)
-    }
-    
     func incrementGamesFinished() {
         let currentCount = UserDefaults.standard.integer(forKey: "gamesFinished")
         UserDefaults.standard.set(currentCount + 1, forKey:"gamesFinished")
         UserDefaults.standard.synchronize()
-    }
-    
-    @objc func peerChangedStateWithNotification(notification: Notification) {
-        
-        let userInfo = NSDictionary(dictionary: notification.userInfo!)
-        appDelegate.mpcHandler.state = userInfo.object(forKey: "state") as? Int
-        
-        // if connected to other player, prepare and send into game
-        if appDelegate.mpcHandler.state == 2 {
-            prepareMPCGame = true
-            if appDelegate.mpcHandler.browser != nil {
-                isHost = true
-                appDelegate.mpcHandler.browser.dismiss(animated: true)
-            }
-            
-            if isHost == false {
-                // delay so both devices are on same timing
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
-                    self.performSegue(withIdentifier: "toGame", sender: self)
-                }
-            } else {
-                self.performSegue(withIdentifier: "toGame", sender: self)
-            }
-        }
     }
     
     func generateBoard() {
@@ -174,7 +160,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
         
         // Pass N' Play text
         leftText = UILabel()
-        leftText.text = "Pass 'N Play"
+        leftText.text = "Same Device"
         leftText.font = UIFont(name: "GillSans", size: l.cardSize / 2)
         leftText.frame = CGRect(x: container.bounds.midX - l.offset - l.itemWidth, y: container.bounds.minY + l.textPadding + leftImage.frame.height, width: l.itemWidth, height: 30)
         leftText.textAlignment = .center
@@ -190,7 +176,7 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
 
         // Local Match text
         rightText = UILabel()
-        rightText.text = "Local Match"
+        rightText.text = "Online Match"
         rightText.font = UIFont(name: "GillSans", size: l.cardSize / 2)
         rightText.frame = CGRect(x: container.bounds.midX + l.offset, y: container.bounds.minY + l.textPadding + leftImage.frame.height, width: l.itemWidth, height: 30)
         rightText.textAlignment = .center
@@ -248,6 +234,9 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
             if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
                 
+                leftImage.alpha = 0.5
+                leftText.alpha = 0.5
+                
                 UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
                     self.container.frame.origin.y += 200
                     self.container.alpha = 0
@@ -260,11 +249,15 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
             if rightImage.frame.contains(touchLocation) || rightText.frame.contains(touchLocation) {
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
                 
-                if appDelegate.mpcHandler.session != nil {
-                    appDelegate.mpcHandler.setupBrowser()
-                    appDelegate.mpcHandler.browser.delegate = self
-                    present(appDelegate.mpcHandler.browser, animated: true)
+                rightImage.alpha = 0.5
+                rightText.alpha = 0.5
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
+                    self.rightImage.alpha = 1
+                    self.rightText.alpha = 1
                 }
+                
+                GCHelper.sharedInstance.findMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)
             }
             
             // link copyright text to homepage
@@ -273,24 +266,6 @@ class MainViewController: UIViewController, MCBrowserViewControllerDelegate {
                 UIApplication.shared.open(url!, options: [:])
             }
         }
-    }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "toGame" && prepareMPCGame == true {
-            let gameViewController = (segue.destination as! GameViewController)
-            gameViewController.isMPCGame = true
-            if isHost {
-                gameViewController.isHost = true
-            }
-        }
-    }
-
-    func browserViewControllerWasCancelled(_ browserViewController: MCBrowserViewController) {
-        appDelegate.mpcHandler.browser.dismiss(animated: true)
-        appDelegate.mpcHandler.browser = nil
-    }
-    
-    func browserViewControllerDidFinish(_ browserViewController: MCBrowserViewController) {
     }
 }
 

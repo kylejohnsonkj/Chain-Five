@@ -32,6 +32,7 @@ class Layout {
     var titleWidth: CGFloat
     var titleHeight: CGFloat
     var itemWidth: CGFloat
+    var push: CGFloat
     
     init() {
         let view = UIApplication.shared.keyWindow!
@@ -41,16 +42,18 @@ class Layout {
             // it's an iPad, adapt for different aspect ratio
             iPad = true
             cardSize = view.bounds.width / 14
+            push = cardSize * 0.73
         } else {
             iPad = false
             cardSize = view.bounds.width / 10.7
+            push = cardSize * 0.63
         }
         
         highlight = cardSize / 12
         leftMargin = view.frame.midX - (self.cardSize * 5)
-        topMargin = view.frame.midY - (self.cardSize * 5) - cardSize * 0.6
-        btmMargin = view.frame.midY + (self.cardSize * 5) - cardSize * 0.6
-        centerY = view.frame.midY - cardSize * 0.6
+        topMargin = view.frame.midY - (self.cardSize * 5) - push
+        btmMargin = view.frame.midY + (self.cardSize * 5) - push
+        centerY = view.frame.midY - push
 
         if iPad {
             scale = 3
