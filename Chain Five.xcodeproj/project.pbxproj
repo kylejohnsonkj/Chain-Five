@@ -19,6 +19,7 @@
 		E5EF7C721FC7C4DE00E09193 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E5EF7C701FC7C4DE00E09193 /* Main.storyboard */; };
 		E5EF7C741FC7C4DE00E09193 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E5EF7C731FC7C4DE00E09193 /* Assets.xcassets */; };
 		E5EF7C771FC7C4DE00E09193 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E5EF7C751FC7C4DE00E09193 /* LaunchScreen.storyboard */; };
+		E5FA006A2005BF4F006C6C01 /* MainVCViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5FA00692005BF4E006C6C01 /* MainVCViews.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		E5EF7C731FC7C4DE00E09193 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E5EF7C761FC7C4DE00E09193 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		E5EF7C781FC7C4DE00E09193 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E5FA00692005BF4E006C6C01 /* MainVCViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainVCViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +84,7 @@
 				E5C265BA1FFC038800F395D6 /* Layout.swift */,
 				E541EFDE1FFACDE400F294F3 /* InitViewController.swift */,
 				E56AD0571FCF2CA900F0E1E8 /* MainViewController.swift */,
+				E5FA00692005BF4E006C6C01 /* MainVCViews.swift */,
 				E5EF7C6E1FC7C4DE00E09193 /* GameViewController.swift */,
 				E505403D1FD25B2F0040F5F4 /* Card.swift */,
 				E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */,
@@ -178,6 +181,7 @@
 				E5A53F851FD3D14E00B109A1 /* ChainDetector.swift in Sources */,
 				E5C265BB1FFC038800F395D6 /* Layout.swift in Sources */,
 				E52B2AB520030F5100C03B81 /* GCHelper.swift in Sources */,
+				E5FA006A2005BF4F006C6C01 /* MainVCViews.swift in Sources */,
 				E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

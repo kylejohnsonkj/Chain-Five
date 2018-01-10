@@ -10,34 +10,34 @@ import UIKit
 
 class Layout {
     
-    // main scale indicators
+    // primary scale indicators
     var iPad = false
     var cardSize: CGFloat
-    var highlight: CGFloat
+    var push: CGFloat
     
-    // margins
+    // margins (based off primary)
     var leftMargin: CGFloat
     var topMargin: CGFloat
     var btmMargin: CGFloat
     var centerY: CGFloat
     
-    // other scale indiactors
+    // secondary scale indicators
     var scale: CGFloat
     var offset: CGFloat
     var textPadding: CGFloat
     var imgSize: CGFloat
     var stroke: CGFloat
     
-    // scale dependent
+    // widths (based off secondary)
     var titleWidth: CGFloat
     var titleHeight: CGFloat
     var itemWidth: CGFloat
-    var push: CGFloat
+    var highlight: CGFloat
     
     init() {
         let view = UIApplication.shared.keyWindow!
         
-        // determine if iPad or not and set scale
+        // determine if iPad or not
         if (UIApplication.shared.keyWindow?.bounds.width)! > CGFloat(414) {
             // it's an iPad, adapt for different aspect ratio
             iPad = true
@@ -49,12 +49,11 @@ class Layout {
             push = cardSize * 0.63
         }
         
-        highlight = cardSize / 12
         leftMargin = view.frame.midX - (self.cardSize * 5)
         topMargin = view.frame.midY - (self.cardSize * 5) - push
         btmMargin = view.frame.midY + (self.cardSize * 5) - push
         centerY = view.frame.midY - push
-
+        
         if iPad {
             scale = 3
             offset = cardSize / 2
@@ -72,5 +71,7 @@ class Layout {
         titleWidth = view.bounds.width / scale
         titleHeight = titleWidth * 0.2
         itemWidth = titleWidth / 1.5
+        highlight = cardSize / 12
     }
 }
+

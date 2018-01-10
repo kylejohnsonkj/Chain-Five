@@ -17,11 +17,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         GCHelper.sharedInstance.authenticateLocalUser()
         suppressGCBanner(0, originalWindowCount: UIApplication.shared.windows.count)
+        
         return true
     }
     
     func suppressGCBanner(_ iteration: Int, originalWindowCount: Int) {
-        
+
         let windows = UIApplication.shared.windows
         
         if windows.count > originalWindowCount {

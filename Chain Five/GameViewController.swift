@@ -193,7 +193,7 @@ class GameViewController: UIViewController {
     
     // for MultipeerConnectivity purposes
     var appDelegate: AppDelegate!
-    var isMPCGame = false
+    var isMultiplayer = false
     var seed: Int!
     var isHost = false
     
@@ -241,7 +241,7 @@ class GameViewController: UIViewController {
     var playerID = 0
     var currentPlayer = 0 {
         didSet {
-            if isMPCGame {
+            if isMultiplayer {
                 if playerID == currentPlayer {
                     playerTurnLabel.text = "Your turn"
                     if playerID == 1 {
@@ -293,7 +293,7 @@ class GameViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if isMPCGame {
+        if isMultiplayer {
             if var displayName = GCHelper.sharedInstance.match.players.first?.displayName {
                 displayName.removeFirst()
                 displayName.removeFirst()
@@ -354,13 +354,14 @@ class GameViewController: UIViewController {
         view.addSubview(deckOutline)
         
         detector = ChainDetector()
-        print("isMPCGame: \(isMPCGame)")
+        print("isMultiplayer: \(isMultiplayer)")
         generateRandomSeed()
     }
     
-    override func viewDidAppear(_ animated: Bool) {
+    // change back to DidAppear if crashes
+    override func viewWillAppear(_ animated: Bool) {
         
-        if isMPCGame {
+        if isMultiplayer {
             // Multiplayer
             self.sendRandomSeed()
         } else {
@@ -504,7 +505,7 @@ class GameViewController: UIViewController {
         waitForAnimations = true
         
         // discard player 1's draw if player 2
-        if isMPCGame && playerID == 2 {
+        if isMultiplayer && playerID == 2 {
             for _ in 1...5 {
                 _ = self.cardsInDeck.popLast()
             }
@@ -565,7 +566,7 @@ class GameViewController: UIViewController {
         }
         
         // discard player 2's draw if player 1
-        if isMPCGame && playerID == 1 {
+        if isMultiplayer && playerID == 1 {
             for _ in 1...5 {
                 _ = cardsInDeck.popLast()
             }
@@ -680,7 +681,7 @@ class GameViewController: UIViewController {
                 cardsInHand = animateNextCardToHand(cardsInHand, container, back)
                 deadSwapped = true
                 
-                if isMPCGame {
+                if isMultiplayer {
                     // convert data to json
                     let cardIndexDict = ["cardIndex": -1, "owner": self.currentPlayer] as [String : Int]
                     let cardIndexData = try! JSONSerialization.data(withJSONObject: cardIndexDict, options: .prettyPrinted)
@@ -700,17 +701,17 @@ class GameViewController: UIViewController {
             for c in cardsOnBoard {
                 if ((c.isSelected || (isBlackJack() && c.isMarked == false)) && !c.isFreeSpace && (c.owner != playerID || deckOutline.layer.borderWidth != 0) && c.frame.contains(touchLocation)) {
                     
-                    if isMPCGame && currentPlayer != playerID {
+                    if isMultiplayer && currentPlayer != playerID {
                         playerIndicator.shake()
                         playerTurnLabel.shake()
                         AudioServicesPlaySystemSound(Taptics.nope.rawValue)
                     }
                     
-                    if !(isMPCGame && currentPlayer != playerID) {
+                    if !(isMultiplayer && currentPlayer != playerID) {
                         
                         waitForAnimations = true
                         
-                        if isMPCGame {
+                        if isMultiplayer {
                             c.owner = playerID
                         } else {
                             c.owner = currentPlayer
@@ -727,7 +728,7 @@ class GameViewController: UIViewController {
                                 c.owner = 0
                                 c.isMarked = false
                                 c.isMostRecent = true
-                                if isMPCGame {
+                                if isMultiplayer {
                                     c.removeMarker()
                                 } else {
                                     c.fadeMarker()
@@ -740,7 +741,7 @@ class GameViewController: UIViewController {
                         let cardIndexDict = ["cardIndex": c.index, "owner": c.owner] as [String : Int]
                         let cardIndexData = try! JSONSerialization.data(withJSONObject: cardIndexDict, options: .prettyPrinted)
                         
-                        if isMPCGame {
+                        if isMultiplayer {
                             // try to send the data
                             do {
                                 try GCHelper.sharedInstance.match.sendData(toAllPlayers: cardIndexData, with: .reliable)
@@ -797,7 +798,7 @@ class GameViewController: UIViewController {
                             self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
                         }
                         
-                        if isMPCGame {
+                        if isMultiplayer {
                             self.changeTurns()
                         }
                         
@@ -873,7 +874,7 @@ class GameViewController: UIViewController {
     func presentMenuAlert() {
         let ac = UIAlertController(title: "Are you sure?", message: "This will end the game in progress.", preferredStyle: .alert)
         ac.addAction(UIAlertAction(title: "Yes", style: .default) { _ in
-            if self.isMPCGame {
+            if self.isMultiplayer {
                 GCHelper.sharedInstance.match.disconnect()
             }
             self.gameOver.removeFromSuperview()
@@ -1001,7 +1002,7 @@ class GameViewController: UIViewController {
     }
     
     func getCurrentHand() -> [Card] {
-        if isMPCGame == true {
+        if isMultiplayer == true {
             return cardsInHand1
         } else {
             return currentPlayer == 1 ? cardsInHand1 : cardsInHand2
@@ -1023,7 +1024,7 @@ class GameViewController: UIViewController {
                 cardsInHand[self.chosenCardIndex].removeFromSuperview()
                 cardsInHand[self.chosenCardIndex] = nextCard
                 
-                if self.currentPlayer == 1 || self.isMPCGame {
+                if self.currentPlayer == 1 || self.isMultiplayer {
                     self.cardsInHand1[self.chosenCardIndex].removeFromSuperview()
                     self.cardsInHand1[self.chosenCardIndex] = nextCard
                 } else {
@@ -1041,7 +1042,7 @@ class GameViewController: UIViewController {
                 }
             }
             
-            if self.deadCard == false && self.isMPCGame == false {
+            if self.deadCard == false && self.isMultiplayer == false {
                 self.swapHands(cardsInHand)
             } else {
                 self.deadCard = false
