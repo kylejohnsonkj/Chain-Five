@@ -20,3 +20,4 @@ class InitViewController: UIViewController {
         self.performSegue(withIdentifier: "init", sender: self)
     }
 }
+

@@ -33,11 +33,11 @@ class MainViewController: UIViewController {
     var l = Layout()
     var views: MainVCViews!
     
-    // tell game if multiplayer or not
+    // tell Game VC if multiplayer or not
     var prepareMultiplayer = false
 
     // main elements
-    var cardsOnBoard = [Card]()    // 10x10 grid -- 100 cards total (ignoring jacks)
+    var cardsOnBoard = [Card]()    // 10x10 grid -- 100 cards total
     var bottomBorder = UIView()
     var gameTitle = UIImageView()
     var container = UIView()
