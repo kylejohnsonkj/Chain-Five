@@ -67,11 +67,12 @@ class ChainDetector {
         winningIndices = []
         
         // MARK: - Diagonal Chains
-        // left up right
+        // top down left
         length = 0
-        for left in 1...9 {
-            var current = left * 10
-            while (current > 0) {
+        var iterations = 0
+        for top in 1...9 {
+            var current = top
+            while (iterations < top + 1) {
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
                     if cardsOnBoard[current].isFreeSpace {
@@ -83,21 +84,24 @@ class ChainDetector {
                     winningIndices = []
                 }
                 if length == chain {
-                    print("diagonal left up right")
+                    print("diagonal top down left")
                     print(winningIndices)
                     return (true, winningIndices)
                 }
-                current -= 9
+                current += 9
+                iterations += 1
             }
             length = 0
+            iterations = 0
         }
         winningIndices = []
         
-        // btm up right
+        // right down left
         length = 0
-        for btm in 91...98 {
-            var current = btm
-            while (current > 0) {
+        iterations = 0
+        for right in 1...8 {
+            var current = (right * 10) + 9
+            while (iterations < 10 - right) {
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
                     if cardsOnBoard[current].isFreeSpace {
@@ -109,47 +113,24 @@ class ChainDetector {
                     winningIndices = []
                 }
                 if length == chain {
-                    print("diagonal btm up right")
+                    print("diagonal right down left")
                     print(winningIndices)
                     return (true, winningIndices)
                 }
-                current -= 9
+                current += 9
+                iterations += 1
             }
             length = 0
-        }
-        winningIndices = []
-        
-        // left down right
-        length = 0
-        for left in 0...8 {
-            var current = left * 10
-            while (current < 100) {
-                if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
-                    length += 1
-                    if cardsOnBoard[current].isFreeSpace {
-                        cardsOnBoard[current].owner = currentPlayer
-                    }
-                    winningIndices.append(current)
-                } else {
-                    length = 0
-                    winningIndices = []
-                }
-                if length == chain {
-                    print("diagonal left down right")
-                    print(winningIndices)
-                    return (true, winningIndices)
-                }
-                current += 11
-            }
-            length = 0
+            iterations = 0
         }
         winningIndices = []
         
         // top down right
         length = 0
-        for top in 1...8 {
+        iterations = 0
+        for top in (0...8).reversed() {
             var current = top
-            while (current < 100) {
+            while (iterations < 10 - top) {
                 if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
                     length += 1
                     if cardsOnBoard[current].isFreeSpace {
@@ -166,8 +147,39 @@ class ChainDetector {
                     return (true, winningIndices)
                 }
                 current += 11
+                iterations += 1
             }
             length = 0
+            iterations = 0
+        }
+        winningIndices = []
+        
+        // left down right
+        length = 0
+        iterations = 0
+        for left in 1...8 {
+            var current = left * 10
+            while (iterations < 10 - left) {
+                if cardsOnBoard[current].isFreeSpace || (cardsOnBoard[current].isMarked && cardsOnBoard[current].owner == currentPlayer) {
+                    length += 1
+                    if cardsOnBoard[current].isFreeSpace {
+                        cardsOnBoard[current].owner = currentPlayer
+                    }
+                    winningIndices.append(current)
+                } else {
+                    length = 0
+                    winningIndices = []
+                }
+                if length == chain {
+                    print("diagonal left down right")
+                    print(winningIndices)
+                    return (true, winningIndices)
+                }
+                current += 11
+                iterations += 1
+            }
+            length = 0
+            iterations = 0
         }
         winningIndices = []
         
