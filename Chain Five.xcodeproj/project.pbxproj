@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = E505403D1FD25B2F0040F5F4 /* Card.swift */; };
+		E511BB91200850F1004B1936 /* GameVCViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E511BB90200850F1004B1936 /* GameVCViews.swift */; };
 		E52B2AB520030F5100C03B81 /* GCHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E52B2AB420030F5100C03B81 /* GCHelper.swift */; };
 		E53223912006B654009E6317 /* ProgressHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = E53223902006B654009E6317 /* ProgressHUD.swift */; };
 		E541EFDF1FFACDE400F294F3 /* InitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E541EFDE1FFACDE400F294F3 /* InitViewController.swift */; };
@@ -25,6 +26,7 @@
 
 /* Begin PBXFileReference section */
 		E505403D1FD25B2F0040F5F4 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
+		E511BB90200850F1004B1936 /* GameVCViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameVCViews.swift; sourceTree = "<group>"; };
 		E52B2AB420030F5100C03B81 /* GCHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GCHelper.swift; sourceTree = "<group>"; };
 		E53223902006B654009E6317 /* ProgressHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressHUD.swift; sourceTree = "<group>"; };
 		E541EFDE1FFACDE400F294F3 /* InitViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitViewController.swift; sourceTree = "<group>"; };
@@ -88,9 +90,10 @@
 				E56AD0571FCF2CA900F0E1E8 /* MainViewController.swift */,
 				E5FA00692005BF4E006C6C01 /* MainVCViews.swift */,
 				E5EF7C6E1FC7C4DE00E09193 /* GameViewController.swift */,
+				E511BB90200850F1004B1936 /* GameVCViews.swift */,
 				E505403D1FD25B2F0040F5F4 /* Card.swift */,
-				E53223902006B654009E6317 /* ProgressHUD.swift */,
 				E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */,
+				E53223902006B654009E6317 /* ProgressHUD.swift */,
 				E52B2AB420030F5100C03B81 /* GCHelper.swift */,
 				E5EF7C701FC7C4DE00E09193 /* Main.storyboard */,
 				E5EF7C731FC7C4DE00E09193 /* Assets.xcassets */,
@@ -186,6 +189,7 @@
 				E52B2AB520030F5100C03B81 /* GCHelper.swift in Sources */,
 				E5FA006A2005BF4F006C6C01 /* MainVCViews.swift in Sources */,
 				E53223912006B654009E6317 /* ProgressHUD.swift in Sources */,
+				E511BB91200850F1004B1936 /* GameVCViews.swift in Sources */,
 				E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

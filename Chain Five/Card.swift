@@ -90,10 +90,16 @@ class Card: UIImageView {
         self.owner = 0
         self.prevOwner = 0
         self.isMarked = false
-        self.isFreeSpace = false
         self.index = -1
         self.isChecked = false
         self.isMostRecent = false
+        
+        // mark free spaces
+        if id == "-free" {
+            self.isFreeSpace = true
+        } else {
+            self.isFreeSpace = false
+        }
         
         let markerImage = UIImage(named: "orange_chain")
         marker = UIImageView(image: markerImage)

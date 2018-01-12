@@ -32,11 +32,8 @@ class MainViewController: UIViewController {
     
     var l = Layout()
     var views: MainVCViews!
-    
-    // tell Game VC if multiplayer or not
-    var prepareMultiplayer = false
 
-    // main elements
+    // main UI views
     var cardsOnBoard = [Card]()    // 10x10 grid -- 100 cards total
     var bottomBorder = UIView()
     var gameTitle = UIImageView()
@@ -50,14 +47,16 @@ class MainViewController: UIViewController {
     var divider = UIView()
     var kjAppsText = UILabel()
     
+    // tell Game VC if multiplayer or not
+    var prepareMultiplayer = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         views = MainVCViews(view: self.view)
-        prepareMultiplayer = false
         
+        generateTitleAndViews()
         generateBoard()
-        generateTitleAndButtons()
         
         // check if we should request a review
 //        if UserDefaults.standard.integer(forKey: "gamesFinished") % 10 == 0 {
@@ -70,22 +69,7 @@ class MainViewController: UIViewController {
         animateViews()
     }
     
-    func generateBoard() {
-        
-        bottomBorder = views.getBottomBorder()
-
-        // load the 100 cards initially into the center
-        var i = 0
-        while i < 100 {
-            let card = Card(named: self.cardsLayout[i])
-            card.frame = CGRect(x: view.frame.midX - l.cardSize / 2, y: l.centerY - l.cardSize / 2, width: l.cardSize, height: l.cardSize)
-            self.view.addSubview(card)
-            self.cardsOnBoard.append(card)
-            i += 1
-        }
-    }
-    
-    func generateTitleAndButtons() {
+    func generateTitleAndViews() {
 
         gameTitle = views.getGameTitle()
         container = views.getContainer()
@@ -127,6 +111,21 @@ class MainViewController: UIViewController {
             self.container.frame.origin.y -= 200
             self.container.alpha = 1
         })
+    }
+    
+    func generateBoard() {
+        
+        bottomBorder = views.getBottomBorder()
+        
+        // load the 100 cards initially into the center
+        var i = 0
+        while i < 100 {
+            let card = Card(named: self.cardsLayout[i])
+            card.frame = CGRect(x: view.frame.midX - l.cardSize / 2, y: l.centerY - l.cardSize / 2, width: l.cardSize, height: l.cardSize)
+            self.view.addSubview(card)
+            self.cardsOnBoard.append(card)
+            i += 1
+        }
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {

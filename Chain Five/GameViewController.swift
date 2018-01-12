@@ -11,187 +11,12 @@ import AudioToolbox
 import GameplayKit
 import GameKit
 
-extension GameViewController: GCHelperDelegate {
-    func matchStarted() {
-        print("matchStarted (GVC) -- should never occur")
-    }
-    
-    func match(_ theMatch: GKMatch, didReceiveData data: Data, fromPlayer playerID: String) {
-        
-        do {
-            let data = try JSONSerialization.jsonObject(with: data as Data, options: JSONSerialization.ReadingOptions.allowFragments) as! NSDictionary
-            
-            // determine who goes first, and generate same decks based on theirs
-            if let opponentSeed = data["seed"] as? Int, currentPlayer == 0 {
-                print("opponent: \(opponentSeed)")
-                print("my seed: \(self.seed!)")
-                
-                UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
-                    self.animateItemsIntoView()
-                }, completion: { _ in
-                    if self.seed > opponentSeed {
-                        self.isHost = true
-                        self.playerID = 1
-                        
-                    } else {
-                        self.seed = opponentSeed
-                        self.playerID = 2
-                    }
-                    
-                    print("isHost? \(self.isHost)")
-                    self.cardsInDeck = self.createAndShuffleDeck(seed: self.seed)
-                    self.currentPlayer = 1
-                    
-                    self.drawCards()
-                })
-            }
-            
-            if let cardIndex = data["cardIndex"] as? Int, let owner = data["owner"] as? Int {
-                // opponent drew for dead card, update our own deck
-                if cardIndex == -1 {
-                    popLastCard()
-                    return
-                }
-                
-                // avoid repeat calls
-                if cardsOnBoard[cardIndex].isMarked == false {
-                    print("marker at index \(cardIndex) placed by \(opponentName!)")
-                    cardsOnBoard[cardIndex].owner = owner
-                    cardsOnBoard[cardIndex].isMarked = true
-
-                    for c in cardsOnBoard {
-                        c.isMostRecent = false
-                    }
-                    
-                    if isRedJack() {
-                        cardsOnBoard[cardIndex].isSelected = true
-                    } else {
-                        cardsOnBoard[cardIndex].isSelected = false
-                        var noneSelected = true
-                        if cardChosen {
-                            for c in cardsOnBoard {
-                                if c.isSelected {
-                                    noneSelected = false
-                                }
-                            }
-                            if noneSelected == true {
-                                deadCard = true
-                            } else {
-                                deadCard = false
-                            }
-                            // can only swap one dead card per turn
-                            if deadCard == true && deadSwapped == false {
-                                deckOutline.layer.borderWidth = l.highlight
-                            } else {
-                                deckOutline.layer.borderWidth = 0
-                            }
-                        }
-                    }
-
-                    popLastCard()  // discard other player's drawn card
-
-                    // test for chain
-                    var (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, self.currentPlayer)
-
-                    if isValidChain {
-
-                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-                        for i in 0..<winningIndices.count {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.15) { [unowned self] in
-                                self.cardsOnBoard[winningIndices[i]].isChecked = true
-                            }
-                        }
-
-                        let cardsInHand = self.getCurrentHand()
-                        for card in cardsInHand {
-                            card.isSelected = false
-                        }
-                        for c in self.cardsOnBoard {
-                            c.isSelected = false
-                        }
-                        self.jackOutline.layer.borderWidth = 0
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
-                            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
-                            self.presentWinScreen()
-                        }
-                    } else {
-                        AudioServicesPlaySystemSound(Taptics.peek.rawValue)
-                        cardsOnBoard[cardIndex].isMostRecent = true
-                        self.changeTurns()
-                    }
-                } else {
-                    // other player removed marker using jack
-                    print("marker at \(cardIndex) removed by \(opponentName!)")
-                    cardsOnBoard[cardIndex].isMarked = false
-                    cardsOnBoard[cardIndex].isMostRecent = true
-                    cardsOnBoard[cardIndex].owner = 0
-                    cardsOnBoard[cardIndex].fadeMarker()
-                    
-                    if !cardsOnBoard[cardIndex].isMarked && chosenCardId == "\(cardsOnBoard[cardIndex].id)+" {
-                        cardsOnBoard[cardIndex].isSelected = true
-                        deadCard = false
-                        deckOutline.layer.borderWidth = 0
-                    }
-                    
-                    popLastCard()   // discard other player's drawn card
-                    AudioServicesPlaySystemSound(Taptics.peek.rawValue)
-                    self.changeTurns()
-                }
-            }
-            
-            if let rematch = data["rematch"] as? Int {
-                print("rematch?: \(rematch)")
-                if rematch == 1 {
-                    self.approvesRematch = true
-                } else {
-                    print("opponent quit the game")
-                    let ac = UIAlertController(title: "Rematch Denied", message: "Opponent has left the game!", preferredStyle: .alert)
-                    ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-                        self.performSegue(withIdentifier: "toMain", sender: self)
-                    })
-                    self.present(ac, animated: true)
-                }
-            }
-            
-            if let message = data["message"] as? String {
-                print("message: \(message)")
-                
-                let ac = UIAlertController(title: "From \"\(opponentName!)\"", message: message, preferredStyle: .alert)
-                ac.addAction(UIAlertAction(title: "Dismiss", style: .default))
-                self.present(ac, animated: true, completion: nil)
-            }
-            
-        } catch {
-            print("An unknown error occured while receiving data")
-        }
-    }
-    
-    func matchEnded() {
-        print("matchEnded (GVC)")
-        let ac = UIAlertController(title: "Connection Lost", message: "Opponent has left the game!", preferredStyle: .alert)
-        ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-            self.performSegue(withIdentifier: "toMain", sender: self)
-        })
-        self.present(ac, animated: true)
-    }
-}
-
-extension UIView {
-    // Used to bring attention to player indicator and turn label when user tries to go off-turn
-    func shake() {
-        let animation = CAKeyframeAnimation(keyPath: "transform.translation.x")
-        animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
-        animation.duration = 0.6
-        animation.values = [-20.0, 20.0, -20.0, 20.0, -10.0, 10.0, -5.0, 5.0, 0.0]
-        layer.add(animation, forKey: "shake")
-    }
-}
-
-// MARK: - Main Class
 class GameViewController: UIViewController {
     
+    // clubs, diamonds, hearts, spades
     let suits = ["C", "D", "H", "S"]
 
+    // board layout
     let cardsLayout = ["-free", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "-free",
                        "D10", "D13", "C6", "C5", "C4", "H4", "H5", "H6", "S13", "S10",
                        "D9", "D6", "D12", "C3", "C2", "H2", "H3", "S12", "S6", "S9",
@@ -203,20 +28,41 @@ class GameViewController: UIViewController {
                        "S10", "S13", "H6", "H5", "H4", "C4", "C5", "C6", "D13", "D10",
                        "-free", "H10", "H9", "H8", "H7", "C7", "C8", "C9", "C10", "-free"]
 
+    // taptic engine shortcuts
     enum Taptics: SystemSoundID {
         case peek = 1519, pop = 1520, nope = 1521
     }
     
-    // 10x10 grid -- 100 cards total (ignoring jacks)
-    var cardsOnBoard = [Card]()
+    var l = Layout()
+    var detector = ChainDetector()
+    var views: GameVCViews!
+    var progressHUD: ProgressHUD!
     
-    var isMultiplayer = false
-    var seed: Int!
-    var isHost = false
+    // main UI views
+    var cardsOnBoard = [Card]()    // 10x10 grid -- 100 cards total
+    var bottomBorder = UIView()
+    var gameTitle = UIImageView()
+    var deck = UIImageView()
+    var jackOutline = UIView()
+    var deckOutline = UIView()
+    var gameOver = UIView()
+    var helpView = UIView()
     
-    var detector: ChainDetector!
-
-    // 2 decks -- 104 cards total (ignoring backs)
+    // status elements
+    var playerIndicator = UIImageView()
+    var playerTurnLabel = UILabel()
+    var cardsLeftLabel = UILabel()
+    
+    // tapable icons
+    var menuIcon = UIImageView()
+    var helpIcon = UIImageView()
+    var messageIcon = UIImageView()
+    
+    // random seed for shuffle
+    var seed = Int()
+    
+    // related to deck
+    let totalCards = 104
     var cardsInDeck = [Card]() {
         didSet {
             if cardsInDeck.count == 0 {
@@ -227,14 +73,18 @@ class GameViewController: UIViewController {
         }
     }
     
+    // related to hand
     var cardsInHand1 = [Card]()
     var cardsInHand2 = [Card]()
-    let totalCards = 104
+    var beforeP1Deal = 104
+    var beforeP2Deal = 98   // - 6
+    var afterP2Deal = 93    // - 11
     
-    var beforeP1Deal: Int!
-    var beforeP2Deal: Int!
-    var afterP2Deal: Int!
-    
+    // related to currently chosen card
+    var chosenCardId = ""
+    var chosenCardIndex = -1
+    var lastSelectedCardIndex = -1
+    var mostRecentIndex = -1
     var cardChosen: Bool = false {
         didSet {
             if cardChosen == false {
@@ -247,14 +97,7 @@ class GameViewController: UIViewController {
         }
     }
     
-    var chosenCardIndex = -1
-    var chosenCardId = ""
-    var lastSelectedCardIndex = -1
-
-    var jackOutline = UIView()
-    var gameOver = UIView()
-    var waitForAnimations = false
-    
+    // for keeping track of whose turn it is
     var playerID = 0
     var currentPlayer = 0 {
         didSet {
@@ -267,7 +110,7 @@ class GameViewController: UIViewController {
                         playerIndicator.image = UIImage(named: "blue")
                     }
                 } else {
-                    playerTurnLabel.text = "\(opponentName!)'s turn"
+                    playerTurnLabel.text = "\(opponentName)'s turn"
                     if playerID != 1 {
                         playerIndicator.image = UIImage(named: "orange")
                     } else {
@@ -288,111 +131,40 @@ class GameViewController: UIViewController {
         }
     }
     
-    // variable hell
-    var l: Layout!
-    var menuIcon: UIImageView!
-    var helpIcon: UIImageView!
-    var playerIndicator: UIImageView!
-    var playerTurnLabel: UILabel!
-    var cardsLeftLabel: UILabel!
-    var helpView: UIView!
-    var helpPresented = false
-    var mostRecentIndex = -1
-    var deck: UIImageView!
+    // other checks
     var waitForReady = false
-    var deckOutline = UIView()
+    var waitForAnimations = false
+    var helpPresented = false
     var deadCard = false
     var deadSwapped = false
-    var opponentName: String!
-    var approvesRematch = false
-    var progressHUD: ProgressHUD!
-    var messageIcon = UIImageView()
     
-    // MARK: - Setup
-        
+    // set by Main VC, host determined by seed
+    var isMultiplayer = false
+    var isHost = false
+    var approvesRematch = false
+    var opponentName = String()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if isMultiplayer {
-            if var displayName = GCHelper.sharedInstance.match.players.first?.displayName {
-                displayName.removeFirst()
-                displayName.removeFirst()
-                displayName.removeLast()
-                self.opponentName = displayName
-            }
-        }
-        l = Layout()
-        
-        // for changing deck size in testing
-        beforeP1Deal = totalCards
-        beforeP2Deal = totalCards - 6
-        afterP2Deal = totalCards - 11
-        
-        // Game Title
-        let gameTitle = UIImageView(image: UIImage(named: "title"))
-        gameTitle.frame = CGRect(x: view.bounds.midX - (l.titleWidth / 2), y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
-        gameTitle.contentMode = .scaleAspectFit
-        //        gameTitle.layer.borderWidth = 1
-        view.addSubview(gameTitle)
-        
-        playerIndicator = UIImageView(image: UIImage(named: "orange"))
-        playerIndicator.frame = CGRect(x: -l.cardSize - l.itemWidth * 2, y: l.btmMargin + (2 * l.cardSize * 1.23) + l.cardSize * 0.05, width: l.cardSize * 0.9, height: l.cardSize * 0.9)
-        view.addSubview(playerIndicator)
-        
-        playerTurnLabel = UILabel()
-        playerTurnLabel.text = "Picking host..."  // placeholder
-        playerTurnLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        playerTurnLabel.frame = CGRect(x: -l.itemWidth * 2, y: l.btmMargin + (2 * l.cardSize * 1.23) - l.cardSize * 0.01, width: l.itemWidth * 2, height: l.cardSize)
-        playerTurnLabel.textAlignment = .left
-        view.addSubview(playerTurnLabel)
-        
-        cardsLeftLabel = UILabel()
-        cardsLeftLabel.text = "99"  // placeholder
-        cardsLeftLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        cardsLeftLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 9.25, y: l.btmMargin + (2 * l.cardSize * 1.23) - l.cardSize * 0.01, width: l.itemWidth, height: l.cardSize)
-        cardsLeftLabel.textAlignment = .left
-        view.addSubview(cardsLeftLabel)
-        
-        menuIcon = UIImageView(image: UIImage(named: "menu"))
-        menuIcon.frame = CGRect(x: -l.cardSize, y: l.topMargin - l.cardSize * 1.9, width: l.cardSize, height: l.cardSize)
-        view.addSubview(menuIcon)
-        
-        helpIcon = UIImageView(image: UIImage(named: "help"))
-        helpIcon.frame = CGRect(x: view.frame.maxX, y: l.topMargin - l.cardSize * 1.9, width: l.cardSize, height: l.cardSize)
-        view.addSubview(helpIcon)
-        
-        if isMultiplayer {
-            messageIcon = UIImageView(image: UIImage(named: "message"))
-            messageIcon.frame = CGRect(x: view.frame.maxX, y: l.btmMargin + (2 * l.cardSize * 1.23) + l.cardSize * 0.05, width: l.cardSize * 0.9, height: l.cardSize * 0.9)
-            view.addSubview(messageIcon)
-        }
-        
-        generateBoard()
-        
-        // load the deck image
-        deck = Card(named: "-deck")
-        deck.frame = CGRect(x: view.frame.maxX + l.cardSize * 1.25, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.4)
-        view.addSubview(deck)
-        
-        deckOutline.frame = CGRect(x: l.leftMargin + l.cardSize * 8 - l.highlight, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23 - l.highlight, width: l.cardSize + (2 * l.highlight), height: l.cardSize * 1.4 + (l.highlight * 2))
-        deckOutline.layer.borderColor = UIColor.green.cgColor
-        deckOutline.layer.borderWidth = 0
-        view.addSubview(deckOutline)
-        
-        detector = ChainDetector()
+        views = GameVCViews(view: self.view)
+
         print("isMultiplayer: \(isMultiplayer)")
+        getOpponentName() // multiplayer only
+        
+        generateTitleAndViews()
+        generateBoard()
         generateRandomSeed()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         
         if isMultiplayer {
-            // Multiplayer
-            self.sendRandomSeed()
+            sendRandomSeed()
         } else {
-            // Pass 'N Play game
-            cardsInDeck = createAndShuffleDeck(seed: nil)
-            self.playerTurnLabel.text = "Orange, tap when ready"
+            playerTurnLabel.text = "Orange, tap when ready"
+            cardsInDeck = createDeck()
+            cardsInDeck = shuffleDeck()
             UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
                 self.animateItemsIntoView()
             }, completion: { _ in
@@ -401,20 +173,19 @@ class GameViewController: UIViewController {
         }
     }
     
-    func animateItemsIntoView() {
-        self.menuIcon.frame.origin.x = self.l.leftMargin
-        self.helpIcon.frame.origin.x = self.l.leftMargin + 9 * self.l.cardSize
-        self.deck.frame.origin.x = self.l.leftMargin + self.l.cardSize * 8
-        self.playerIndicator.frame.origin.x = self.l.leftMargin + self.l.cardSize * 0.05
-        self.playerTurnLabel.frame.origin.x = self.l.leftMargin + self.l.cardSize * 1.1
+    func getOpponentName() {
+        guard isMultiplayer else { return }
         
-        if isMultiplayer {
-            self.messageIcon.frame.origin.x = self.l.leftMargin + self.l.cardSize * 6.85
+        if var displayName = GCHelper.sharedInstance.match.players.first?.displayName {
+            displayName.removeFirst()
+            displayName.removeFirst()
+            displayName.removeLast()
+            opponentName = displayName
         }
     }
     
     func generateRandomSeed() {
-        seed = Int(arc4random_uniform(1000000))  // 1 million
+        seed = Int(arc4random_uniform(1000000))  // 1 million possibilities
     }
     
     func sendRandomSeed() {
@@ -431,55 +202,34 @@ class GameViewController: UIViewController {
         }
     }
     
-    func popLastCard() {
-        if let _ = self.cardsInDeck.popLast() {
-            // removes card from our deck
-        } else {
-            
-            beforeP1Deal = totalCards + 1
-            beforeP2Deal = totalCards + 1
-            afterP2Deal = totalCards + 1
-            
-            cardsInDeck = createAndShuffleDeck(seed: seed)
-            
-            // shuffle again
-            if seed == nil {
-                cardsInDeck = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
-            } else {
-                let lcg = GKLinearCongruentialRandomSource(seed: UInt64(seed!))
-                cardsInDeck = lcg.arrayByShufflingObjects(in: cardsInDeck) as! [Card]
-            }
-            
-            for i in 0..<cardsInDeck.count {
-                cardsInDeck[i].index = i
-            }
-            cardsInDeck = cardsInDeck.reversed()
-            
-            popLastCard()
+    func generateTitleAndViews() {
+        
+        gameTitle = views.getGameTitle()
+        
+        (playerIndicator, playerTurnLabel) = views.getPlayerDetails()
+        (deck, deckOutline, cardsLeftLabel) = views.getDeckAndRelated()
+        
+        (menuIcon, helpIcon) = views.getMenuAndHelpIcons()
+        
+        if isMultiplayer {
+            messageIcon = views.getMessageIcon()
+        }
+    }
+    
+    func animateItemsIntoView() {
+        menuIcon.frame.origin.x = l.leftMargin
+        helpIcon.frame.origin.x = l.leftMargin + 9 * l.cardSize
+        deck.frame.origin.x = l.leftMargin + l.cardSize * 8
+        playerIndicator.frame.origin.x = l.leftMargin + l.cardSize * 0.05
+        playerTurnLabel.frame.origin.x = l.leftMargin + l.cardSize * 1.1
+        
+        if isMultiplayer {
+            messageIcon.frame.origin.x = self.l.leftMargin + self.l.cardSize * 6.85
         }
     }
     
     func generateBoard() {
-
-        // adds black line below bottom row of cards
-        let bottomBorder = UIView()
-        bottomBorder.frame = CGRect(x: l.leftMargin, y: l.btmMargin, width: l.cardSize * 10, height: l.stroke)
-        bottomBorder.layer.backgroundColor = UIColor.black.cgColor
-        view.addSubview(bottomBorder)
-
-        // used for jack highlighting
-        jackOutline.frame = CGRect(x: l.leftMargin - l.highlight, y: l.topMargin - l.highlight, width: (l.cardSize * 10) + (2 * l.highlight), height: (l.cardSize * 10) + (l.highlight * 2) + l.stroke)
-        jackOutline.layer.borderColor = UIColor.green.cgColor
-        jackOutline.layer.borderWidth = 0
-        view.addSubview(jackOutline)
         
-//        handOutline.frame = CGRect(x: l.leftMargin + l.cardSize - l.highlight, y: l.btmMargin + l.cardSize - l.highlight, width: (l.cardSize * 5) + (2 * l.highlight), height: (l.cardSize * 1.23) + (l.highlight * 2))
-//        handOutline.layer.borderColor = UIColor.green.cgColor
-//        handOutline.layer.borderWidth = 0
-//        view.addSubview(handOutline)
-        
-        cardsLeftLabel.alpha = 0
-
         // load the 100 cards
         var i = 0
         for row in 0...9 {
@@ -492,41 +242,43 @@ class GameViewController: UIViewController {
                 i += 1
             }
         }
-
-        // mark the free spaces
-        cardsOnBoard[0].isFreeSpace = true      // top left
-        cardsOnBoard[9].isFreeSpace = true      // top right
-        cardsOnBoard[90].isFreeSpace = true     // btm left
-        cardsOnBoard[99].isFreeSpace = true     // btm right
+        
+        bottomBorder = views.getBottomBorder()
+        jackOutline = views.getJackOutline()
     }
     
-    func createAndShuffleDeck(seed: Int?) -> [Card] {
+    func createDeck() -> [Card] {
+        
+        var array: [Card] = []
         
         // generate two decks
         var j = 0
         while (j < 2) {
             for suit in 0..<suits.count {
                 for rank in 1...13 {
-//                    let card = Card(named: "C11+")
+                    // let card = Card(named: "C11+")
                     let card = Card(named: "\(suits[suit])\(rank)+")
-                    cardsInDeck.append(card)
+                    array.append(card)
                 }
             }
             j += 1
         }
-
-        var array: [Card] = []
-        if seed == nil {
-            array = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
-        } else {
-            let lcg = GKLinearCongruentialRandomSource(seed: UInt64(seed!))
-            array = lcg.arrayByShufflingObjects(in: cardsInDeck) as! [Card]
-        }
+        
+        return array
+    }
+    
+    func shuffleDeck() -> [Card] {
+        
+        var array = cardsInDeck
+        
+        let lcg = GKLinearCongruentialRandomSource(seed: UInt64(seed))
+        array = lcg.arrayByShufflingObjects(in: cardsInDeck) as! [Card]
         
         for i in 0..<array.count {
             array[i].index = i
         }
         
+        // reversed so that indices are in a logical order (1st card, 2nd card, etc.)
         return array.reversed()
     }
     
@@ -574,7 +326,6 @@ class GameViewController: UIViewController {
                     if col == 5 {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.85) { [unowned self] in
                             self.waitForAnimations = false
-//                            self.handOutline.layer.borderWidth = self.l.highlight
                         }
                     }
                     
@@ -603,8 +354,6 @@ class GameViewController: UIViewController {
         }
     }
     
-    // MARK: - Gameplay
-    
     // forward move events to touches began
     // allows smooth scrolling through cards
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -621,55 +370,129 @@ class GameViewController: UIViewController {
         }
     }
     
+    func triggerFullscreenEvents(_ touchLocation: CGPoint) -> Bool {
+        
+        var touch = false
+        
+        // dismiss help view
+        if helpPresented {
+            helpView.removeFromSuperview()
+            helpPresented = false
+            touch = true
+        }
+        
+        guard touch == false else { return touch }
+        
+        // for pass-n-play
+        if waitForReady {
+            if currentPlayer == 0 {
+                currentPlayer = 1
+                playerID = 1
+            }
+            waitForAnimations = true
+            swapToNextPlayer(getCurrentHand())
+            waitForReady = false
+            touch = true
+        }
+        
+        return touch
+    }
+    
+    func replaceDeadCard() {
+        
+        var cardsInHand = getCurrentHand()
+        AudioServicesPlaySystemSound(Taptics.peek.rawValue)
+        
+        let container = UIView()
+        container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.23)
+        container.layer.zPosition = 1
+        
+        let back = Card(named: "-back")
+        back.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize * 1.23)
+        
+        view.addSubview(container)
+        container.addSubview(back)
+        
+        if cardsInDeck.count == 1 {
+            self.cardsLeftLabel.text = "\(totalCards)"
+        } else if cardsInDeck.count == 0 {
+            self.cardsLeftLabel.text = "\(totalCards - 1)"
+        } else {
+            self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
+        }
+        
+        cardsInHand = animateNextCardToHand(cardsInHand, container, back)
+        deadSwapped = true
+        
+        if isMultiplayer {
+            // convert data to json
+            let cardIndexDict = ["cardIndex": -1, "owner": self.currentPlayer] as [String : Int]
+            let cardIndexData = try! JSONSerialization.data(withJSONObject: cardIndexDict, options: .prettyPrinted)
+            
+            // try to send the data
+            do {
+                try GCHelper.sharedInstance.match.sendData(toAllPlayers: cardIndexData, with: .reliable)
+            } catch {
+                print("An unknown error occured while sending data")
+            }
+        }
+    }
+    
+    func triggerIconEvents(_ touchLocation: CGPoint) {
+        
+        // go back to main menu
+        if menuIcon.frame.contains(touchLocation) {
+            AudioServicesPlaySystemSound(Taptics.pop.rawValue)
+            presentMenuAlert()
+        }
+        
+        // show tutorial
+        if helpIcon.frame.contains(touchLocation) {
+            AudioServicesPlaySystemSound(Taptics.pop.rawValue)
+            presentHelpView()
+            helpPresented = true
+        }
+        
+        // compose message to other player
+        if messageIcon.frame.contains(touchLocation) {
+            AudioServicesPlaySystemSound(Taptics.pop.rawValue)
+            presentMessageView()
+        }
+    }
+    
+    func wrongTurn() {
+        playerIndicator.shake()
+        playerTurnLabel.shake()
+        AudioServicesPlaySystemSound(Taptics.nope.rawValue)
+    }
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
             let touchLocation = touch.location(in: self.view)
             
+            guard triggerFullscreenEvents(touchLocation) == false else { return }
+            triggerIconEvents(touchLocation)
+            
             var cardsInHand = getCurrentHand()
             
-            // dismiss help view
-            if helpPresented == true {
-                helpView.removeFromSuperview()
-                helpPresented = false
-                return
-            }
-            
-            if messageIcon.frame.contains(touchLocation) {
-                AudioServicesPlaySystemSound(Taptics.pop.rawValue)
-                presentMessageView()
-                return
-            }
-            
-            // go back to main menu
-            if menuIcon.frame.contains(touchLocation) {
-                AudioServicesPlaySystemSound(Taptics.pop.rawValue)
-                presentMenuAlert()
-                return
-            }
-            
-            // show tutorial
-            if helpIcon.frame.contains(touchLocation) {
-                AudioServicesPlaySystemSound(Taptics.pop.rawValue)
-                presentHelpView()
-                helpPresented = true
-                return
-            }
-            
-            // for pass-n-play
-            if waitForReady == true {
-                if currentPlayer == 0 {
-                    self.currentPlayer = 1
-                    self.playerID = 1
+            // check if we are trading out a dead card (doesn't count as a turn so exit early)
+            if deadCard == true && deck.frame.contains(touchLocation) {
+                // don't allow replacing a dead card if off turn or already swapped
+                if currentPlayer != playerID || deadSwapped == true {
+                    wrongTurn()
+                    deckOutline.layer.borderWidth = 0
+                    cardsInHand[chosenCardIndex].isSelected = false
+                } else {
+                    replaceDeadCard()
                 }
-                waitForAnimations = true
-                swapToNextPlayer(cardsInHand)
-                waitForReady = false
+                
+                // disables deck highlighting
+                deadCard = false
                 return
             }
             
-//            handOutline.layer.borderWidth = 0
-            
-            // reset taptic feedback if no cards in hand are selected
+            // reset taptic feedback if no card in hand is touched
+            // this ensures feedback is always registered if same card is touched over and over again
             var cardTouched = false
             for i in 0..<cardsInHand.count {
                 if cardTouched == false {
@@ -683,64 +506,14 @@ class GameViewController: UIViewController {
                 }
             }
             
-            if deadSwapped == false && deadCard == true && deck.frame.contains(touchLocation) {
-                
-                if currentPlayer != playerID {
-                    playerIndicator.shake()
-                    playerTurnLabel.shake()
-                    AudioServicesPlaySystemSound(Taptics.nope.rawValue)
-                    deckOutline.layer.borderWidth = 0
-                    cardsInHand[chosenCardIndex].isSelected = false
-                    return
-                }
-                
-                AudioServicesPlaySystemSound(Taptics.peek.rawValue)
-                
-                let container = UIView()
-                container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.23)
-                container.layer.zPosition = 1
-                
-                let back = Card(named: "-back")
-                back.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize * 1.23)
-                
-                view.addSubview(container)
-                container.addSubview(back)
-                
-                if cardsInDeck.count == 1 {
-                    self.cardsLeftLabel.text = "\(totalCards)"
-                } else if cardsInDeck.count == 0 {
-                    self.cardsLeftLabel.text = "\(totalCards - 1)"
-                } else {
-                    self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
-                }
-                
-                cardsInHand = animateNextCardToHand(cardsInHand, container, back)
-                deadSwapped = true
-                
-                if isMultiplayer {
-                    // convert data to json
-                    let cardIndexDict = ["cardIndex": -1, "owner": self.currentPlayer] as [String : Int]
-                    let cardIndexData = try! JSONSerialization.data(withJSONObject: cardIndexDict, options: .prettyPrinted)
-                    
-                    // try to send the data
-                    do {
-                        try GCHelper.sharedInstance.match.sendData(toAllPlayers: cardIndexData, with: .reliable)
-                    } catch {
-                        print("An unknown error occured while sending data")
-                    }
-                }
-                return
-            }
-            
-            deadCard = false
+            // PICKUP REFACTORING FROM HERE!
             
             for c in cardsOnBoard {
                 if ((c.isSelected || (isBlackJack() && c.isMarked == false)) && !c.isFreeSpace && (c.owner != playerID || deckOutline.layer.borderWidth != 0) && c.frame.contains(touchLocation)) {
                     
+                    // disallow play off turn
                     if isMultiplayer && currentPlayer != playerID {
-                        playerIndicator.shake()
-                        playerTurnLabel.shake()
-                        AudioServicesPlaySystemSound(Taptics.nope.rawValue)
+                        wrongTurn()
                     }
                     
                     if !(isMultiplayer && currentPlayer != playerID) {
@@ -921,7 +694,7 @@ class GameViewController: UIViewController {
     
     func presentMessageView() {
         
-        let ac = UIAlertController(title: "To \"\(opponentName!)\"", message: "", preferredStyle: .alert)
+        let ac = UIAlertController(title: "To \"\(opponentName)\"", message: "", preferredStyle: .alert)
         
         ac.addAction(UIAlertAction(title: "Send", style: .default, handler: {
             alert -> Void in
@@ -946,7 +719,7 @@ class GameViewController: UIViewController {
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         ac.addTextField(configurationHandler: { (textField) -> Void in
-            textField.placeholder = "Your message to \(self.opponentName!)"
+            textField.placeholder = "Your message to \(self.opponentName)"
             textField.textAlignment = .left
         })
         
@@ -1109,7 +882,7 @@ class GameViewController: UIViewController {
         cardsInHand1 = []
         cardsInHand2 = []
         
-        seed = nil
+        seed = Int()
         isHost = false
         
         cardChosen = false
@@ -1230,34 +1003,45 @@ class GameViewController: UIViewController {
         return cardsInHand
     }
 
+    // called for player on turn
     func getNextCardFromDeck() -> Card? {
+        
         if let nextCard = self.cardsInDeck.popLast() {
             nextCard.frame = CGRect(x: l.leftMargin + (CGFloat(chosenCardIndex + 1) * l.cardSize), y: l.btmMargin + l.cardSize, width: l.cardSize, height: l.cardSize * 1.23)
             self.view.addSubview(nextCard)
             return nextCard
         } else {
-            
-            beforeP1Deal = totalCards + 1
-            beforeP2Deal = totalCards + 1
-            afterP2Deal = totalCards + 1
-            
-            cardsInDeck = createAndShuffleDeck(seed: seed)
-            
-            // shuffle again
-            if seed == nil {
-                cardsInDeck = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: cardsInDeck) as! [Card]
-            } else {
-                let lcg = GKLinearCongruentialRandomSource(seed: UInt64(seed!))
-                cardsInDeck = lcg.arrayByShufflingObjects(in: cardsInDeck) as! [Card]
-            }
-            
-            for i in 0..<cardsInDeck.count {
-                cardsInDeck[i].index = i
-            }
-            cardsInDeck = cardsInDeck.reversed()
-            
+            // our deck is out of cards, so get a fresh deck
+            generateNewDeckWhenOutOfCards()
             return getNextCardFromDeck()
         }
+    }
+    
+    // called for opponent off turn
+    func popLastCard() {
+        
+        if let _ = self.cardsInDeck.popLast() {
+            // removes card from our deck
+        } else {
+            // our deck is out of cards, so get a fresh deck
+            generateNewDeckWhenOutOfCards()
+            popLastCard()
+        }
+    }
+    
+    func generateNewDeckWhenOutOfCards() {
+        
+        // ensure dealing does not happen again
+        beforeP1Deal = totalCards + 1
+        beforeP2Deal = totalCards + 1
+        afterP2Deal = totalCards + 1
+        
+        // generate and shuffle a new deck
+        cardsInDeck = createDeck()
+        cardsInDeck = shuffleDeck()
+        
+        // shuffle it again
+        cardsInDeck = shuffleDeck()
     }
     
     // MARK: - Turn-Based Methods
@@ -1303,7 +1087,6 @@ class GameViewController: UIViewController {
         var cardsInHand = getCurrentHand()
         
         if self.cardsInDeck.count == self.beforeP1Deal {
-            self.playerTurnLabel.text = "Orange's turn"
             self.drawCards(forPlayer: 1)
             return
         }
@@ -1381,6 +1164,194 @@ class GameViewController: UIViewController {
                 self.playerTurnLabel.alpha = 1
             })
         })
+    }
+}
+
+// add a function for sending ints
+// and a separate one for sending card data
+
+extension UIView {
+    // Used to bring attention to player indicator and turn label when user tries to go off-turn
+    func shake() {
+        let animation = CAKeyframeAnimation(keyPath: "transform.translation.x")
+        animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
+        animation.duration = 0.6
+        animation.values = [-20.0, 20.0, -20.0, 20.0, -10.0, 10.0, -5.0, 5.0, 0.0]
+        layer.add(animation, forKey: "shake")
+    }
+    
+    func addOutline() {
+        // use for jack and deck outline
+    }
+    
+    func removeOutline() {
+        // use for jack and deck outline
+    }
+}
+
+extension GameViewController: GCHelperDelegate {
+    func matchStarted() {
+        print("matchStarted (GVC) -- should never occur")
+    }
+    
+    func match(_ theMatch: GKMatch, didReceiveData data: Data, fromPlayer playerID: String) {
+        
+        do {
+            let data = try JSONSerialization.jsonObject(with: data as Data, options: JSONSerialization.ReadingOptions.allowFragments) as! NSDictionary
+            
+            // determine who goes first, and generate same decks based on theirs
+            if let opponentSeed = data["seed"] as? Int, currentPlayer == 0 {
+                print("opponent: \(opponentSeed)")
+                print("my seed: \(self.seed)")
+                
+                UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
+                    self.animateItemsIntoView()
+                }, completion: { _ in
+                    if self.seed > opponentSeed {
+                        self.isHost = true
+                        self.playerID = 1
+                        
+                    } else {
+                        self.seed = opponentSeed
+                        self.playerID = 2
+                    }
+                    
+                    print("isHost? \(self.isHost)")
+                    self.cardsInDeck = self.createDeck()
+                    self.cardsInDeck = self.shuffleDeck()
+                    self.currentPlayer = 1
+                    
+                    self.drawCards()
+                })
+            }
+            
+            if let cardIndex = data["cardIndex"] as? Int, let owner = data["owner"] as? Int {
+                // opponent drew for dead card, update our own deck
+                if cardIndex == -1 {
+                    popLastCard()
+                    return
+                }
+                
+                // avoid repeat calls
+                if cardsOnBoard[cardIndex].isMarked == false {
+                    print("marker at index \(cardIndex) placed by \(opponentName)")
+                    cardsOnBoard[cardIndex].owner = owner
+                    cardsOnBoard[cardIndex].isMarked = true
+                    
+                    for c in cardsOnBoard {
+                        c.isMostRecent = false
+                    }
+                    
+                    if isRedJack() {
+                        cardsOnBoard[cardIndex].isSelected = true
+                    } else {
+                        cardsOnBoard[cardIndex].isSelected = false
+                        var noneSelected = true
+                        if cardChosen {
+                            for c in cardsOnBoard {
+                                if c.isSelected {
+                                    noneSelected = false
+                                }
+                            }
+                            if noneSelected == true {
+                                deadCard = true
+                            } else {
+                                deadCard = false
+                            }
+                            // can only swap one dead card per turn
+                            if deadCard == true && deadSwapped == false {
+                                deckOutline.layer.borderWidth = l.highlight
+                            } else {
+                                deckOutline.layer.borderWidth = 0
+                            }
+                        }
+                    }
+                    
+                    popLastCard()  // discard other player's drawn card
+                    
+                    // test for chain
+                    var (isValidChain, winningIndices) = self.detector.isValidChain(self.cardsOnBoard, self.currentPlayer)
+                    
+                    if isValidChain {
+                        
+                        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+                        for i in 0..<winningIndices.count {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.15) { [unowned self] in
+                                self.cardsOnBoard[winningIndices[i]].isChecked = true
+                            }
+                        }
+                        
+                        let cardsInHand = self.getCurrentHand()
+                        for card in cardsInHand {
+                            card.isSelected = false
+                        }
+                        for c in self.cardsOnBoard {
+                            c.isSelected = false
+                        }
+                        self.jackOutline.layer.borderWidth = 0
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [unowned self] in
+                            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+                            self.presentWinScreen()
+                        }
+                    } else {
+                        AudioServicesPlaySystemSound(Taptics.peek.rawValue)
+                        cardsOnBoard[cardIndex].isMostRecent = true
+                        self.changeTurns()
+                    }
+                } else {
+                    // other player removed marker using jack
+                    print("marker at \(cardIndex) removed by \(opponentName)")
+                    cardsOnBoard[cardIndex].isMarked = false
+                    cardsOnBoard[cardIndex].isMostRecent = true
+                    cardsOnBoard[cardIndex].owner = 0
+                    cardsOnBoard[cardIndex].fadeMarker()
+                    
+                    if !cardsOnBoard[cardIndex].isMarked && chosenCardId == "\(cardsOnBoard[cardIndex].id)+" {
+                        cardsOnBoard[cardIndex].isSelected = true
+                        deadCard = false
+                        deckOutline.layer.borderWidth = 0
+                    }
+                    
+                    popLastCard()   // discard other player's drawn card
+                    AudioServicesPlaySystemSound(Taptics.peek.rawValue)
+                    self.changeTurns()
+                }
+            }
+            
+            if let rematch = data["rematch"] as? Int {
+                print("rematch?: \(rematch)")
+                if rematch == 1 {
+                    self.approvesRematch = true
+                } else {
+                    print("opponent quit the game")
+                    let ac = UIAlertController(title: "Rematch Denied", message: "Opponent has left the game!", preferredStyle: .alert)
+                    ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                        self.performSegue(withIdentifier: "toMain", sender: self)
+                    })
+                    self.present(ac, animated: true)
+                }
+            }
+            
+            if let message = data["message"] as? String {
+                print("message: \(message)")
+                
+                let ac = UIAlertController(title: "From \"\(opponentName)\"", message: message, preferredStyle: .alert)
+                ac.addAction(UIAlertAction(title: "Dismiss", style: .default))
+                self.present(ac, animated: true, completion: nil)
+            }
+            
+        } catch {
+            print("An unknown error occured while receiving data")
+        }
+    }
+    
+    func matchEnded() {
+        print("matchEnded (GVC)")
+        let ac = UIAlertController(title: "Connection Lost", message: "Opponent has left the game!", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            self.performSegue(withIdentifier: "toMain", sender: self)
+        })
+        self.present(ac, animated: true)
     }
 }
 
