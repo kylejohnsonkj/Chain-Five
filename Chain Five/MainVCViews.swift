@@ -8,12 +8,13 @@
 
 import UIKit
 
+/// Since I'm not using storyboards, this class holds all the views needed for the Main VC.
 class MainVCViews {
 
-    var l = Layout()
+    let l = Layout()
     var view: UIView
     
-    var bottomBorder: UIView
+    // title and views
     var gameTitle: UIImageView
     var container: UIView
     
@@ -24,15 +25,11 @@ class MainVCViews {
     var divider: UIView
     var kjAppsText: UILabel
     
+    // board
+    var bottomBorder: UIView
+    
     init(view: UIView) {
         self.view = view
-        
-        // adds black line below bottom row of cards
-        bottomBorder = UIView()
-        bottomBorder.frame = CGRect(x: l.leftMargin, y: l.btmMargin, width: l.cardSize * 10, height: l.stroke)
-        bottomBorder.layer.backgroundColor = UIColor.black.cgColor
-        view.addSubview(bottomBorder)
-        bottomBorder.alpha = 0
         
         // game title
         gameTitle = UIImageView(image: UIImage(named: "title"))
@@ -80,10 +77,13 @@ class MainVCViews {
         kjAppsText.frame = CGRect(x: container.bounds.midX - l.itemWidth / 2, y: leftText.frame.maxY - container.bounds.minY + l.textPadding + l.cardSize / 2, width: l.itemWidth, height: 30)
         kjAppsText.textAlignment = .center
         container.addSubview(kjAppsText)
-    }
-    
-    func getBottomBorder() -> UIView {
-        return bottomBorder
+        
+        // adds black line below bottom row of cards
+        bottomBorder = UIView()
+        bottomBorder.frame = CGRect(x: l.leftMargin, y: l.btmMargin, width: l.cardSize * 10, height: l.stroke)
+        bottomBorder.layer.backgroundColor = UIColor.black.cgColor
+        view.addSubview(bottomBorder)
+        bottomBorder.alpha = 0
     }
     
     func getGameTitle() -> UIImageView {
@@ -97,6 +97,10 @@ class MainVCViews {
     // tuples FTW
     func getContainerSubviews() -> (UIImageView, UILabel, UIImageView, UILabel, UIView, UILabel) {
         return (leftImage, leftText, rightImage, rightText, divider, kjAppsText)
+    }
+    
+    func getBottomBorder() -> UIView {
+        return bottomBorder
     }
     
     required init?(coder aDecoder: NSCoder) {

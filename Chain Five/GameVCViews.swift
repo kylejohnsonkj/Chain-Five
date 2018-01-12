@@ -8,13 +8,15 @@
 
 import UIKit
 
+/// Since I'm not using storyboards, this class holds all the views needed for the Game VC.
 class GameVCViews {
     
-    var l = Layout()
+    let l = Layout()
     var view: UIView
     
     // title and views
     var gameTitle: UIImageView
+    
     var playerIndicator: UIImageView
     var playerTurnLabel: UILabel
     var deck: UIImageView

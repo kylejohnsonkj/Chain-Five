@@ -2,12 +2,14 @@
 //  ProgressHUD.swift
 //  Chain Five
 //
-//  Created by Kyle Johnson on 1/10/18.
-//  Copyright © 2018 Kyle Johnson. All rights reserved.
+//  Solution by Elliott Minns on 3/6/15.
+//  https://stackoverflow.com/a/28897852/5156466
+//  Customized by Kyle Johnson
 //
 
 import UIKit
 
+/// Used to display rematch popup paired with activity indicator when user wants to play again.
 class ProgressHUD: UIVisualEffectView {
     
     var text: String? {

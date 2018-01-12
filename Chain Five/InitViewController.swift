@@ -8,13 +8,13 @@
 
 import UIKit
 
+/// Ensures main menu is presented modally on launch.
 class InitViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
     }
     
-    // ensures main menu view is presented modally on launch
     // this is to fix issues with large status bars screwing up non-modal views
     override func viewDidAppear(_ animated: Bool) {
         self.performSegue(withIdentifier: "init", sender: self)

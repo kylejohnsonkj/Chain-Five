@@ -1,6 +1,8 @@
 // GCHelper.swift (v. 0.5.1)
 //
 // Copyright (c) 2017 Jack Cook
+// https://github.com/jackcook/GCHelper
+// Customized by Kyle Johnson
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -327,3 +329,4 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
         presentingViewController.present(mmvc, animated: true, completion: nil)
     }
 }
+

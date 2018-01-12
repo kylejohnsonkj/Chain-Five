@@ -6,17 +6,18 @@
 //  Copyright © 2017 Kyle Johnson. All rights reserved.
 //
 
-// Just a fancy UIImageView. Stores details with card such as ID, and whether it is selected, marked and by which player.
-
 import UIKit
 
+/// Just a fancy UIImageView. Stores details like card ID, whether it's selected, marked, and by which player.
 class Card: UIImageView {
     
-    var l: Layout
+    let l = Layout()
+    
     var id: String
+    var index: Int
     var isSelected: Bool {
         didSet {
-            if isSelected == true {
+            if isSelected {
                 self.layer.borderWidth = l.highlight
             } else {
                 self.layer.borderWidth = 0
@@ -24,21 +25,20 @@ class Card: UIImageView {
         }
     }
     
-    var index: Int
+    var prevOwner: Int
     var owner: Int {
         didSet {
             prevOwner = oldValue
         }
     }
-    var prevOwner: Int
-    var isFreeSpace: Bool
-    var marker: UIImageView
     
+    var marker: UIImageView
     var isMarked: Bool {
         didSet {
-            if isMarked == true {
-                let color = owner == 1 ? "orange" : "blue"
+            if isMarked {
                 self.subviews.forEach { $0.removeFromSuperview() }
+                
+                let color = owner == 1 ? "orange" : "blue"
                 let markerImage = UIImage(named: color)
                 marker = UIImageView(image: markerImage)
                 marker.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize)
@@ -53,13 +53,15 @@ class Card: UIImageView {
     var isMostRecent: Bool {
         didSet {
             var color: String
-            if owner == 2 {
-                color = "blue"
-            } else if owner == 1 {
+            if owner == 1 {
                 color = "orange"
+            } else if owner == 2 {
+                color = "blue"
             } else {
+                // recently removed and owner == 0
                 color = prevOwner == 1 ? "blue" : "orange"
             }
+            
             if isMostRecent == true {
                 marker.image = UIImage(named: "\(color)_recent")
             } else {
@@ -71,7 +73,7 @@ class Card: UIImageView {
     // checked to show winning sequence
     var isChecked: Bool {
         didSet {
-            if isChecked == true {
+            if isChecked {
                 let color = owner == 1 ? "orange" : "blue"
                 let markerImage = UIImage(named: "\(color)_chain")
                 marker = UIImageView(image: markerImage)
@@ -84,17 +86,19 @@ class Card: UIImageView {
         }
     }
     
+    var isFreeSpace: Bool
+    
     init(named id: String) {
         self.id = id
-        self.isSelected = false
-        self.owner = 0
-        self.prevOwner = 0
-        self.isMarked = false
         self.index = -1
-        self.isChecked = false
+        self.isSelected = false
+        self.prevOwner = 0
+        self.owner = 0
+        self.isMarked = false
         self.isMostRecent = false
+        self.isChecked = false
         
-        // mark free spaces
+        // mark the free spaces
         if id == "-free" {
             self.isFreeSpace = true
         } else {
@@ -105,7 +109,6 @@ class Card: UIImageView {
         marker = UIImageView(image: markerImage)
         
         let image = UIImage(named: id)
-        l = Layout()
         super.init(image: image)
         
         self.layer.borderColor = UIColor.green.cgColor
@@ -150,3 +153,4 @@ class Card: UIImageView {
         fatalError("init(coder:) has not been implemented")
     }
 }
+

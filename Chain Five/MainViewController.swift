@@ -11,7 +11,12 @@ import AudioToolbox
 import StoreKit
 import GameKit
 
+// MARK: - Main
+
+/// The menu screen before a game mode is chosen.
 class MainViewController: UIViewController {
+    
+    // MARK: - Instance Variables
     
     // board layout
     let cardsLayout = ["-free", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "-free",
@@ -30,7 +35,7 @@ class MainViewController: UIViewController {
         case peek = 1519, pop = 1520, nope = 1521
     }
     
-    var l = Layout()
+    let l = Layout()
     var views: MainVCViews!
 
     // main UI views
@@ -50,6 +55,8 @@ class MainViewController: UIViewController {
     // tell Game VC if multiplayer or not
     var prepareMultiplayer = false
     
+    // MARK: - Setup
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -58,11 +65,21 @@ class MainViewController: UIViewController {
         generateTitleAndViews()
         generateBoard()
         
-        // check if we should request a review
-//        if UserDefaults.standard.integer(forKey: "gamesFinished") % 10 == 0 {
-//            SKStoreReviewController.requestReview()
-//            incrementGamesFinished()
-//        }
+        if #available(iOS 10.3, *) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [unowned self] in
+                // request review every 10 runs
+                if UserDefaults.standard.integer(forKey: "numberOfRuns") % 10 == 0 {
+                    SKStoreReviewController.requestReview()
+                    self.incrementNumberOfRuns()
+                }
+            }
+        }
+    }
+    
+    func incrementNumberOfRuns() {
+        let numberOfRuns = UserDefaults.standard.integer(forKey: "numberOfRuns")
+        UserDefaults.standard.set(numberOfRuns + 1, forKey: "numberOfRuns")
+        UserDefaults.standard.synchronize()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -127,7 +144,17 @@ class MainViewController: UIViewController {
             i += 1
         }
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "toGame" && prepareMultiplayer == true {
+            let gameVC = (segue.destination as! GameViewController)
+            GCHelper.sharedInstance.delegate = gameVC
+            gameVC.isMultiplayer = true
+        }
+    }
 
+    // MARK: - Touch Events
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
             let touchLocation = touch.location(in: self.container)
@@ -168,21 +195,9 @@ class MainViewController: UIViewController {
             }
         }
     }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "toGame" && prepareMultiplayer == true {
-            let gameVC = (segue.destination as! GameViewController)
-            GCHelper.sharedInstance.delegate = gameVC
-            gameVC.isMultiplayer = true
-        }
-    }
-    
-    //    func incrementGamesFinished() {
-    //        let currentCount = UserDefaults.standard.integer(forKey: "gamesFinished")
-    //        UserDefaults.standard.set(currentCount + 1, forKey:"gamesFinished")
-    //        UserDefaults.standard.synchronize()
-    //    }
 }
+
+// MARK: - Game Center Triggers
 
 extension MainViewController: GCHelperDelegate {
     

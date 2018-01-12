@@ -8,6 +8,7 @@
 
 import UIKit
 
+/// Everything needed for my custom AutoLayout.
 class Layout {
     
     // primary scale indicators
