@@ -1,7 +1,7 @@
 # Chain Five
 WIP: Recreating one of my favorite board games, Sequence. Now in Swift!
 
-<img src="promo.gif" width="250" height="445" />
+<img src="promo.png" width="563" height="667" />
 
 # License
 
