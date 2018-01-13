@@ -40,6 +40,7 @@ class GameViewController: UIViewController {
     
     let l = Layout()
     let detector = ChainDetector()
+    var confettiView = SAConfettiView()
     var views: GameVCViews!
     var helpView: HelpView!
     var progressHUD: ProgressHUD!
@@ -425,6 +426,31 @@ class GameViewController: UIViewController {
         return touch
     }
     
+    func triggerIconEvents(_ touchLocation: CGPoint) {
+        
+        // disable buttons if game is over
+        guard confettiView.isActive() == false else { return }
+        
+        // go back to main menu
+        if menuIcon.frame.contains(touchLocation) {
+            AudioServicesPlaySystemSound(Taptics.pop.rawValue)
+            presentMenuAlert()
+        }
+        
+        // show tutorial
+        if helpIcon.frame.contains(touchLocation) {
+            AudioServicesPlaySystemSound(Taptics.pop.rawValue)
+            presentHelpView()
+            helpPresented = true
+        }
+        
+        // compose message to other player
+        if messageIcon.frame.contains(touchLocation) {
+            AudioServicesPlaySystemSound(Taptics.pop.rawValue)
+            presentMessageView()
+        }
+    }
+    
     func triggerDeadCardSwap() {
         
         AudioServicesPlaySystemSound(Taptics.peek.rawValue)
@@ -451,28 +477,6 @@ class GameViewController: UIViewController {
             } catch {
                 print("An unknown error occured while sending data")
             }
-        }
-    }
-    
-    func triggerIconEvents(_ touchLocation: CGPoint) {
-        
-        // go back to main menu
-        if menuIcon.frame.contains(touchLocation) {
-            AudioServicesPlaySystemSound(Taptics.pop.rawValue)
-            presentMenuAlert()
-        }
-        
-        // show tutorial
-        if helpIcon.frame.contains(touchLocation) {
-            AudioServicesPlaySystemSound(Taptics.pop.rawValue)
-            presentHelpView()
-            helpPresented = true
-        }
-        
-        // compose message to other player
-        if messageIcon.frame.contains(touchLocation) {
-            AudioServicesPlaySystemSound(Taptics.pop.rawValue)
-            presentMessageView()
         }
     }
     
@@ -829,6 +833,7 @@ class GameViewController: UIViewController {
     
     func presentMenuAlert() {
         let ac = UIAlertController(title: "Are you sure?", message: "This will end the game in progress.", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "No", style: .cancel))
         ac.addAction(UIAlertAction(title: "Yes", style: .default) { _ in
             if self.isMultiplayer {
                 GCHelper.sharedInstance.match.disconnect()
@@ -836,7 +841,6 @@ class GameViewController: UIViewController {
             self.gameOver.removeFromSuperview()
             self.performSegue(withIdentifier: "toMain", sender: self)
         })
-        ac.addAction(UIAlertAction(title: "No", style: .cancel))
         self.present(ac, animated: true)
     }
     
@@ -849,6 +853,7 @@ class GameViewController: UIViewController {
         
         let ac = UIAlertController(title: "To \"\(opponentName)\"", message: "", preferredStyle: .alert)
         
+        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         ac.addAction(UIAlertAction(title: "Send", style: .default, handler: {
             alert -> Void in
             let message = ac.textFields![0] as UITextField
@@ -864,7 +869,6 @@ class GameViewController: UIViewController {
                 }
             }
         }))
-        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         ac.addTextField(configurationHandler: { (textField) -> Void in
             textField.placeholder = "Your message to \(self.opponentName)"
@@ -971,7 +975,9 @@ class GameViewController: UIViewController {
                 self.playerTurnLabel.alpha = 1
             }
         }, completion: { _ in
-            self.waitForAnimations = false
+            if self.cardsInDeck.count < self.afterP2Deal {
+                self.waitForAnimations = false
+            }
         })
     }
     
@@ -1054,30 +1060,34 @@ class GameViewController: UIViewController {
     }
     
     func showConfetti() {
-        let confettiView = SAConfettiView(frame: self.view.frame)
+        confettiView = SAConfettiView(frame: self.view.frame)
         view.addSubview(confettiView)
         confettiView.startConfetti()
     }
     
     func presentChainAlert(title: String, message: String) {
         let ac = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        ac.addAction(UIAlertAction(title: "Main Menu", style: .default) { _ in
+        ac.addAction(UIAlertAction(title: "Main Menu", style: .cancel) { _ in
             if self.isMultiplayer {
                 self.sendRematchStatus(status: 0)
             }
             self.performSegue(withIdentifier: "toMain", sender: self)
         })
-        ac.addAction(UIAlertAction(title: "Play Again", style: .default) { _ in
-            if self.isMultiplayer {
-                self.gameOver.removeFromSuperview()
+        if isMultiplayer {
+            ac.addAction(UIAlertAction(title: "Rematch!", style: .default) { _ in
                 self.progressHUD = ProgressHUD(text: "Waiting...")
+                self.progressHUD.layer.zPosition = 3
                 self.view.addSubview(self.progressHUD)
                 self.sendRematchStatus(status: 1)
                 self.waitForRematch(0)
-            } else {
+                self.waitForAnimations = true
+            })
+        } else {
+            ac.addAction(UIAlertAction(title: "Play Again!", style: .default) { _ in
                 self.reloadGame()
-            }
-        })
+            })
+        }
+        
         self.present(ac, animated: true)
     }
     
@@ -1094,15 +1104,16 @@ class GameViewController: UIViewController {
         }
     }
     
-    // polls 20 times per second for 30 seconds
+    // polls 10 times per second for 15 seconds
     func waitForRematch(_ iteration: Int) {
         
         if approvesRematch {
             reloadGame()
             
         } else {
-            if iteration > 600 {
+            if iteration > 150 {
                 print("other player did not accept in time, quitting")
+                self.sendRematchStatus(status: 0)
                 let ac = UIAlertController(title: "Connection Lost", message: "Opponent did not rematch within reasonable time!", preferredStyle: .alert)
                 ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
                     self.performSegue(withIdentifier: "toMain", sender: self)
@@ -1111,8 +1122,24 @@ class GameViewController: UIViewController {
                 return
             }
             
-            runThisAfterDelay(seconds: 0.05, after: {
+            runThisAfterDelay(seconds: 0.1, after: {
                 self.waitForRematch(iteration + 1)
+            })
+        }
+    }
+    
+    func denyRematch() {
+        
+        let ac = UIAlertController(title: "Rematch Denied", message: "Opponent has left the game!", preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+            self.performSegue(withIdentifier: "toMain", sender: self)
+        })
+        self.present(ac, animated: true)
+        
+        // ensures popup is shown if alert queue is clogged, but only in game over scenario
+        if confettiView.isActive() {
+            runThisAfterDelay(seconds: 1, after: {
+                self.denyRematch()
             })
         }
     }
@@ -1152,7 +1179,7 @@ class GameViewController: UIViewController {
         generateBoard()
         generateRandomSeed()
         
-        runThisAfterDelay(seconds: 0.1, after: {
+        runThisAfterDelay(seconds: 0.5, after: {
             self.beginGame()
         })
     }
@@ -1332,12 +1359,8 @@ extension GameViewController: GCHelperDelegate {
                     self.approvesRematch = true
                 } else {
                     print("opponent quit the game")
-                    
-                    let ac = UIAlertController(title: "Rematch Denied", message: "Opponent has left the game!", preferredStyle: .alert)
-                    ac.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-                        self.performSegue(withIdentifier: "toMain", sender: self)
-                    })
-                    self.present(ac, animated: true)
+                    self.approvesRematch = false
+                    self.denyRematch()
                 }
             }
             
