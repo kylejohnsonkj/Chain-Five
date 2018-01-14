@@ -10,11 +10,11 @@
 		E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = E505403D1FD25B2F0040F5F4 /* Card.swift */; };
 		E511BB91200850F1004B1936 /* GameVCViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E511BB90200850F1004B1936 /* GameVCViews.swift */; };
 		E52B2AB520030F5100C03B81 /* GCHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E52B2AB420030F5100C03B81 /* GCHelper.swift */; };
-		E53223912006B654009E6317 /* ProgressHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = E53223902006B654009E6317 /* ProgressHUD.swift */; };
 		E541EFDF1FFACDE400F294F3 /* InitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E541EFDE1FFACDE400F294F3 /* InitViewController.swift */; };
-		E5605470200919B100D6B75A /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E560546F200919B100D6B75A /* HelpView.swift */; };
 		E560547420094A8400D6B75A /* SAConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E560547320094A8400D6B75A /* SAConfettiView.swift */; };
 		E56AD0581FCF2CA900F0E1E8 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56AD0571FCF2CA900F0E1E8 /* MainViewController.swift */; };
+		E59F9C24200AB609000A58DD /* SCLAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59F9C22200AB609000A58DD /* SCLAlertView.swift */; };
+		E59F9C25200AB609000A58DD /* SCLExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59F9C23200AB609000A58DD /* SCLExtensions.swift */; };
 		E5A53F851FD3D14E00B109A1 /* ChainDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */; };
 		E5C265BB1FFC038800F395D6 /* Layout.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C265BA1FFC038800F395D6 /* Layout.swift */; };
 		E5C63C4A2003E48A00FEF710 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E5C63C492003E48A00FEF710 /* GameKit.framework */; };
@@ -30,11 +30,11 @@
 		E505403D1FD25B2F0040F5F4 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		E511BB90200850F1004B1936 /* GameVCViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameVCViews.swift; sourceTree = "<group>"; };
 		E52B2AB420030F5100C03B81 /* GCHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GCHelper.swift; sourceTree = "<group>"; };
-		E53223902006B654009E6317 /* ProgressHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressHUD.swift; sourceTree = "<group>"; };
 		E541EFDE1FFACDE400F294F3 /* InitViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitViewController.swift; sourceTree = "<group>"; };
-		E560546F200919B100D6B75A /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpView.swift; sourceTree = "<group>"; };
 		E560547320094A8400D6B75A /* SAConfettiView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SAConfettiView.swift; sourceTree = "<group>"; };
 		E56AD0571FCF2CA900F0E1E8 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
+		E59F9C22200AB609000A58DD /* SCLAlertView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SCLAlertView.swift; sourceTree = "<group>"; };
+		E59F9C23200AB609000A58DD /* SCLExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SCLExtensions.swift; sourceTree = "<group>"; };
 		E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChainDetector.swift; sourceTree = "<group>"; };
 		E5C265BA1FFC038800F395D6 /* Layout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Layout.swift; sourceTree = "<group>"; };
 		E5C63C492003E48A00FEF710 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
@@ -96,11 +96,11 @@
 				E5EF7C6E1FC7C4DE00E09193 /* GameViewController.swift */,
 				E511BB90200850F1004B1936 /* GameVCViews.swift */,
 				E505403D1FD25B2F0040F5F4 /* Card.swift */,
-				E560546F200919B100D6B75A /* HelpView.swift */,
 				E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */,
-				E53223902006B654009E6317 /* ProgressHUD.swift */,
 				E52B2AB420030F5100C03B81 /* GCHelper.swift */,
 				E560547320094A8400D6B75A /* SAConfettiView.swift */,
+				E59F9C22200AB609000A58DD /* SCLAlertView.swift */,
+				E59F9C23200AB609000A58DD /* SCLExtensions.swift */,
 				E5EF7C701FC7C4DE00E09193 /* Main.storyboard */,
 				E5EF7C731FC7C4DE00E09193 /* Assets.xcassets */,
 				E5EF7C751FC7C4DE00E09193 /* LaunchScreen.storyboard */,
@@ -187,7 +187,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				E56AD0581FCF2CA900F0E1E8 /* MainViewController.swift in Sources */,
-				E5605470200919B100D6B75A /* HelpView.swift in Sources */,
 				E541EFDF1FFACDE400F294F3 /* InitViewController.swift in Sources */,
 				E560547420094A8400D6B75A /* SAConfettiView.swift in Sources */,
 				E5EF7C6F1FC7C4DE00E09193 /* GameViewController.swift in Sources */,
@@ -196,8 +195,9 @@
 				E5C265BB1FFC038800F395D6 /* Layout.swift in Sources */,
 				E52B2AB520030F5100C03B81 /* GCHelper.swift in Sources */,
 				E5FA006A2005BF4F006C6C01 /* MainVCViews.swift in Sources */,
-				E53223912006B654009E6317 /* ProgressHUD.swift in Sources */,
 				E511BB91200850F1004B1936 /* GameVCViews.swift in Sources */,
+				E59F9C25200AB609000A58DD /* SCLExtensions.swift in Sources */,
+				E59F9C24200AB609000A58DD /* SCLAlertView.swift in Sources */,
 				E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

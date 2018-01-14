@@ -54,6 +54,7 @@ class MainViewController: UIViewController {
     
     // tell Game VC if multiplayer or not
     var prepareMultiplayer = false
+    var requestReview = false
     
     // MARK: - Setup
     
@@ -65,24 +66,18 @@ class MainViewController: UIViewController {
         generateTitleAndViews()
         generateBoard()
         
+        // request review after completed game
         if #available(iOS 10.3, *) {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [unowned self] in
-                // request review every 10 runs
-                if UserDefaults.standard.integer(forKey: "numberOfRuns") % 10 == 0 {
+            if self.requestReview {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     SKStoreReviewController.requestReview()
-                    self.incrementNumberOfRuns()
                 }
             }
         }
     }
     
-    func incrementNumberOfRuns() {
-        let numberOfRuns = UserDefaults.standard.integer(forKey: "numberOfRuns")
-        UserDefaults.standard.set(numberOfRuns + 1, forKey: "numberOfRuns")
-        UserDefaults.standard.synchronize()
-    }
-
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         animateViews()
     }
     
@@ -161,14 +156,14 @@ class MainViewController: UIViewController {
             
             if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
-                
+
                 leftImage.alpha = 0.5
                 leftText.alpha = 0.5
-                
+
                 UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
                     self.container.frame.origin.y += 200
                     self.container.alpha = 0
-                    
+
                 }, completion: { _ in
                     self.performSegue(withIdentifier: "toGame", sender: self)
                 })
@@ -214,11 +209,11 @@ extension MainViewController: GCHelperDelegate {
     }
     
     func match(_ theMatch: GKMatch, didReceiveData data: Data, fromPlayer playerID: String) {
-        print("match:\(theMatch) didReceiveData: fromPlayer:\(playerID) (MAIN -- should never occur)")
+        print("ignoring received data, on menu")
     }
     
     func matchEnded() {
-        print("matchEnded (MAIN -- should never occur)")
+        print("ignoring match ended data, on menu")
     }
 }
 

@@ -1,6 +1,6 @@
 //
 //  SAConfettiView.swift
-//  Chain Five
+//  SAConfettiView
 //
 //  Created by Sudeep Agarwal on 12/14/15.
 //  https://github.com/fjvaldera/SAConfettiView (Updated for Swift 4)

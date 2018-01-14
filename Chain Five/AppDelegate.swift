@@ -15,17 +15,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
-        incrementNumberOfRuns()
         GCHelper.sharedInstance.authenticateLocalUser()
         suppressGCBanner(0, originalWindowCount: UIApplication.shared.windows.count)
-        
         return true
-    }
-    
-    func incrementNumberOfRuns() {
-        let numberOfRuns = UserDefaults.standard.integer(forKey: "numberOfRuns")
-        UserDefaults.standard.set(numberOfRuns + 1, forKey: "numberOfRuns")
-        UserDefaults.standard.synchronize()
     }
     
     func suppressGCBanner(_ iteration: Int, originalWindowCount: Int) {
