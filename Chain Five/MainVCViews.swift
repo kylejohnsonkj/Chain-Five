@@ -74,7 +74,7 @@ class MainVCViews {
         kjAppsText = UILabel()
         kjAppsText.text = "© Kyle Johnson Apps"
         kjAppsText.font = UIFont(name: "GillSans", size: l.cardSize / 3)
-        kjAppsText.frame = CGRect(x: container.bounds.midX - l.itemWidth / 2, y: leftText.frame.maxY - container.bounds.minY + l.textPadding + l.cardSize / 2, width: l.itemWidth, height: 30)
+        kjAppsText.frame = CGRect(x: container.bounds.midX - l.itemWidth / 2, y: leftText.frame.maxY - container.bounds.minY + l.textPadding + l.cardSize / 2.2, width: l.itemWidth, height: 30)
         kjAppsText.textAlignment = .center
         container.addSubview(kjAppsText)
         

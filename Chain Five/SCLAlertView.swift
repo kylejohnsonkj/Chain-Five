@@ -304,6 +304,17 @@ open class SCLAlertView: UIViewController {
         view.autoresizingMask = [UIViewAutoresizing.flexibleHeight, UIViewAutoresizing.flexibleWidth]
         view.backgroundColor = UIColor(red:0, green:0, blue:0, alpha:appearance.kDefaultShadowOpacity)
         view.addSubview(baseView)
+        
+        var message = false
+        
+        if self.appearance.showCircularIcon == false {
+            message = true
+        }
+        
+        if message {
+            view.isUserInteractionEnabled = false
+        }
+        
         // Base View
         baseView.frame = view.frame
         baseView.addSubview(contentView)
@@ -858,12 +869,13 @@ open class SCLAlertView: UIViewController {
         var animationStartOrigin = self.baseView.frame.origin
         var animationCenter : CGPoint = rv.center
         
-        let l = Layout()
         var message = false
+        
+        let l = Layout()
         let offset = l.topMargin - l.titleHeight * 1.5
+        
         if self.appearance.showCircularIcon == false {
             message = true
-            resignFirstResponder()
         }
         
         switch animationStyle {

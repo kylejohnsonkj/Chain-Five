@@ -43,9 +43,6 @@ class Card: UIImageView {
                 marker = UIImageView(image: markerImage)
                 marker.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize)
                 self.addSubview(marker)
-                
-                // pulse marker when placed
-                pulseMarker()
             }
         }
     }

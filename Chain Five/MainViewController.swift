@@ -54,7 +54,7 @@ class MainViewController: UIViewController {
     
     // tell Game VC if multiplayer or not
     var prepareMultiplayer = false
-    var requestReview = false
+    var reviewRequested = false
     
     // TESTING!
     var messagePopupView = SCLAlertView()
@@ -68,20 +68,16 @@ class MainViewController: UIViewController {
         
         generateTitleAndViews()
         generateBoard()
-        
-        // request review after completed game
-        if #available(iOS 10.3, *) {
-            if self.requestReview {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    SKStoreReviewController.requestReview()
-                }
-            }
-        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         animateViews()
+        
+        // request review after completed game
+        if #available(iOS 10.3, *) {
+            requestReview()
+        }
     }
     
     func generateTitleAndViews() {
@@ -143,6 +139,18 @@ class MainViewController: UIViewController {
         }
     }
     
+    func requestReview() {
+        let gamesFinished = UserDefaults.standard.integer(forKey: "gamesFinished")
+        if reviewRequested && gamesFinished >= 3 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                // don't interrupt button presses
+                if self.leftImage.alpha != 0.5 && self.rightImage.alpha != 0.5 {
+                    SKStoreReviewController.requestReview()
+                }
+            }
+        }
+    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "toGame" && prepareMultiplayer == true {
             let gameVC = (segue.destination as! GameViewController)
@@ -156,21 +164,6 @@ class MainViewController: UIViewController {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
             let touchLocation = touch.location(in: self.container)
-
-            let appearance = SCLAlertView.SCLAppearance(
-                kDefaultShadowOpacity: 0,
-                kTitleTop: 12,
-                kWindowWidth: 300,
-                kTitleFont: UIFont.boldSystemFont(ofSize: 14),
-                showCloseButton: false,
-                showCircularIcon: false,
-                hideWhenBackgroundViewIsTapped: true
-                
-            )
-            self.messagePopupView = SCLAlertView(appearance: appearance)
-            messagePopupView.showCustom("From \"kylejohnsonkj\"", subTitle: "hey check out this message!", color: .white, icon: UIImage(named: "message_white")!, closeButtonTitle: "", timeout: SCLAlertView.SCLTimeoutConfiguration(timeoutValue: 3.0, timeoutAction: {}), colorStyle: 0x808080, colorTextButton: 0xFFFFFF, circleIconImage: UIImage(named: "message_white")!, animationStyle: SCLAnimationStyle.topToBottom)
-            
-            
             
             if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)

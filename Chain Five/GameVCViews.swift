@@ -47,7 +47,7 @@ class GameVCViews {
         playerTurnLabel = UILabel()
         playerTurnLabel.text = "Choosing host..."  // placeholder
         playerTurnLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        playerTurnLabel.frame = CGRect(x: -l.itemWidth * 2, y: l.btmMargin + (2 * l.cardSize * 1.23) - l.cardSize * 0.01, width: l.itemWidth * 2, height: l.cardSize)
+        playerTurnLabel.frame = CGRect(x: -l.itemWidth * 2, y: l.btmMargin + (2 * l.cardSize * 1.23), width: l.itemWidth * 2, height: l.cardSize)
         playerTurnLabel.textAlignment = .left
         view.addSubview(playerTurnLabel)
         
@@ -65,7 +65,7 @@ class GameVCViews {
         cardsLeftLabel = UILabel()
         cardsLeftLabel.text = "99"  // placeholder
         cardsLeftLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        cardsLeftLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 9.25, y: l.btmMargin + (2 * l.cardSize * 1.23) - l.cardSize * 0.01, width: l.itemWidth, height: l.cardSize)
+        cardsLeftLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 9.25, y: l.btmMargin + (2 * l.cardSize * 1.23), width: l.itemWidth, height: l.cardSize)
         cardsLeftLabel.textAlignment = .left
         cardsLeftLabel.alpha = 0
         view.addSubview(cardsLeftLabel)

@@ -44,7 +44,7 @@ class GameViewController: UIViewController {
     var views: GameVCViews!
     
     // random seed for shuffle
-    var seed = -1
+    var seed = Int()
     
     // main UI views
     var cardsOnBoard = [Card]()    // 10x10 grid -- 100 cards total
@@ -148,17 +148,21 @@ class GameViewController: UIViewController {
     var rematchApproved = false
     var rematchDenied = false
     
-    // main alert views
+    // all alert views
     var chainAlertView = SCLAlertView()
     var rematchAlertView = SCLAlertView()
     var messageAlertView = SCLAlertView()
     var messagePopupView = SCLAlertView()
+    var menuAlertView = SCLAlertView()
+    var helpAlertView = SCLAlertView()
+    var timeoutAlertView = SCLAlertView()
+    var denyAlertView = SCLAlertView()
+    var connectionAlertView = SCLAlertView()
     
     // MARK: - Setup
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        incrementGamesPlayed()
         
         // set these only once per session
         beforeP1Deal = totalCards
@@ -176,12 +180,6 @@ class GameViewController: UIViewController {
         generateBoard()
         generateRandomSeed()
     }
-    
-//    func incrementGamesPlayed() {
-//        let gamesPlayed = UserDefaults.standard.integer(forKey: "gamesPlayed")
-//        UserDefaults.standard.set(gamesPlayed + 1, forKey: "gamesPlayed")
-//        UserDefaults.standard.synchronize()
-//    }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -324,16 +322,6 @@ class GameViewController: UIViewController {
                 for rank in 1...13 {
                     let card = Card(named: "\(suits[suit])\(rank)+")
                     deck.append(card)
-                    
-                    /*
-                    if rank % 2 == 0 {
-                        let card = Card(named: "D11+")
-                        deck.append(card)
-                    } else {
-                        let card = Card(named: "D4+")
-                        deck.append(card)
-                    }
-                    */
                 }
             }
             j += 1
@@ -599,6 +587,7 @@ class GameViewController: UIViewController {
                         } else {
                             // not a chain, place and draw like normal
                             AudioServicesPlaySystemSound(Taptics.peek.rawValue)
+                            c.pulseMarker()
                             mostRecentIndex = c.index
                             
                             if cardsInDeck.count == 1 {
@@ -846,16 +835,16 @@ class GameViewController: UIViewController {
             kCircleIconHeight: 64,
             showCloseButton: false
         )
-        let alertView = SCLAlertView(appearance: appearance)
-        alertView.addButton("Confirm", backgroundColor: UIColor.cfRed, textColor: UIColor.white) {
+        menuAlertView = SCLAlertView(appearance: appearance)
+        menuAlertView.addButton("Confirm", backgroundColor: UIColor.cfRed, textColor: UIColor.white) {
             if self.isMultiplayer && GCHelper.sharedInstance.match.players.count > 0 {
                 GCHelper.sharedInstance.match.disconnect()
             }
             self.performSegue(withIdentifier: "toMain", sender: self)
         }
-        alertView.addButton("Cancel", backgroundColor: UIColor.gray, textColor: UIColor.white) {
+        menuAlertView.addButton("Cancel", backgroundColor: UIColor.gray, textColor: UIColor.white) {
         }
-        alertView.showCustom("Exit to menu?", subTitle: "This will end the current game in progress.", color: UIColor.white, icon: UIImage(named: "menu")!)
+        menuAlertView.showCustom("Exit to menu?", subTitle: "This will end the current game in progress.", color: UIColor.white, icon: UIImage(named: "menu")!)
     }
     
     func presentHelpAlert() {
@@ -863,10 +852,10 @@ class GameViewController: UIViewController {
             kCircleIconHeight: 64,
             showCloseButton: false
         )
-        let alertView = SCLAlertView(appearance: appearance)
-        alertView.addButton("Done", backgroundColor: UIColor.cfBlue, textColor: UIColor.white) {
+        helpAlertView = SCLAlertView(appearance: appearance)
+        helpAlertView.addButton("Done", backgroundColor: UIColor.cfBlue, textColor: UIColor.white) {
         }
-        alertView.showCustom("How to Play", subTitle: "First to 5 in a row wins. \n\nBlack jacks can be placed anywhere open. \n\nRed jacks can remove an opponent's piece. \n\nThe white dot marks your opponent's last move. \n\nOne dead card can be swapped per turn. \n\nEnjoy the game!", color: UIColor.white, icon: UIImage(named: "help")!)
+        helpAlertView.showCustom("How to Play", subTitle: "First to 5 in a row wins. \n\nBlack jacks can be placed anywhere open. \n\nRed jacks can remove an opponent's piece. \n\nThe white dot marks your opponent's last move. \n\nOne dead card can be swapped per turn. \n\nEnjoy the game!", color: UIColor.white, icon: UIImage(named: "help")!)
     }
     
     func presentMessageAlert() {
@@ -1028,11 +1017,20 @@ class GameViewController: UIViewController {
     func playChainAnimation(_ winningIndices: [Int]) {
         
         self.messageAlertView.hideView()
+        self.menuAlertView.hideView()
+        self.helpAlertView.hideView()
 
         AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
         
         // clear highlighting in hand and on board
         clearAllHighlighting()
+        
+        // add marker for any free spaces before animation
+        for i in 0..<winningIndices.count {
+            if cardsOnBoard[winningIndices[i]].isFreeSpace {
+                self.cardsOnBoard[winningIndices[i]].isMarked = true
+            }
+        }
         
         // play chain animation
         for i in 0..<winningIndices.count {
@@ -1052,6 +1050,7 @@ class GameViewController: UIViewController {
         
         showWinningColor()
         showConfetti()
+        incrementGamesFinished()
         
         if currentPlayer == 1 {
             presentChainAlert(title: "It's a Chain!", message: "Orange has won the game.")
@@ -1086,13 +1085,19 @@ class GameViewController: UIViewController {
         confettiView.startConfetti()
     }
     
+    func incrementGamesFinished() {
+        let gamesFinished = UserDefaults.standard.integer(forKey: "gamesFinished")
+        UserDefaults.standard.set(gamesFinished + 1, forKey: "gamesFinished")
+        UserDefaults.standard.synchronize()
+    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "toMain" {
             let mainVC = (segue.destination as! MainViewController)
             GCHelper.sharedInstance.delegate = mainVC
             
             if gameOver.superview != nil && currentPlayer == playerID {
-                mainVC.requestReview = true
+                mainVC.reviewRequested = true
             }
         }
     }
@@ -1108,8 +1113,10 @@ class GameViewController: UIViewController {
         
         if isMultiplayer {
             chainAlertView.addButton("Rematch!", backgroundColor: UIColor.cfGreen, textColor: UIColor.white) {
-                self.showRematchAlert()
-                self.sendRematchStatus(status: 1)
+                if self.rematchDenied == false {
+                    self.showRematchAlert()
+                    self.sendRematchStatus(status: 1)
+                }
                 self.waitForRematch(0)
             }
         } else {
@@ -1173,11 +1180,11 @@ class GameViewController: UIViewController {
                     let appearance = SCLAlertView.SCLAppearance(
                         showCloseButton: false
                     )
-                    let alertView = SCLAlertView(appearance: appearance)
-                    alertView.addButton("Exit to Menu", backgroundColor: UIColor.gray, textColor: UIColor.white) {
+                    timeoutAlertView = SCLAlertView(appearance: appearance)
+                    timeoutAlertView.addButton("Exit to Menu", backgroundColor: UIColor.gray, textColor: UIColor.white) {
                         self.performSegue(withIdentifier: "toMain", sender: self)
                     }
-                    alertView.showError("Connection Lost", subTitle: "Opponent did not rematch within reasonable time!")
+                    timeoutAlertView.showError("Connection Lost", subTitle: "Opponent did not rematch within reasonable time!")
                 }
                 
                 return
@@ -1205,11 +1212,11 @@ class GameViewController: UIViewController {
             let appearance = SCLAlertView.SCLAppearance(
                 showCloseButton: false
             )
-            let alertView = SCLAlertView(appearance: appearance)
-            alertView.addButton("Exit to Menu", backgroundColor: UIColor.gray, textColor: UIColor.white) {
+            self.denyAlertView = SCLAlertView(appearance: appearance)
+            self.denyAlertView.addButton("Exit to Menu", backgroundColor: UIColor.gray, textColor: UIColor.white) {
                 self.performSegue(withIdentifier: "toMain", sender: self)
             }
-            alertView.showError("Rematch Denied", subTitle: "Opponent has left the game!")
+            self.denyAlertView.showError("Rematch Denied", subTitle: "Opponent has left the game!")
         }
     }
     
@@ -1219,7 +1226,7 @@ class GameViewController: UIViewController {
         view.subviews.forEach({ $0.removeFromSuperview() })
         views = GameVCViews(view: self.view)
         
-        seed = -1
+        seed = Int()
         
         cardsOnBoard = []
         cardsInDeck = []
@@ -1397,6 +1404,7 @@ extension GameViewController: GCHelperDelegate {
                     } else {
                         popLastCard()  // discard other player's drawn card
                         AudioServicesPlaySystemSound(Taptics.peek.rawValue)
+                        cardsOnBoard[cardIndex].pulseMarker()
                         cardsOnBoard[cardIndex].isMostRecent = true
                         changeTurns()
                     }
@@ -1443,13 +1451,14 @@ extension GameViewController: GCHelperDelegate {
                 
                 DispatchQueue.main.async {
                     let appearance = SCLAlertView.SCLAppearance(
-                        kCircleIconHeight: 40,
-                        showCloseButton: false
+                        kDefaultShadowOpacity: 0,
+                        kTitleTop: 12,
+                        kTitleFont: UIFont.boldSystemFont(ofSize: 14),
+                        showCloseButton: false,
+                        showCircularIcon: false
                     )
                     self.messagePopupView = SCLAlertView(appearance: appearance)
-                    self.messagePopupView.addButton("Dismiss", backgroundColor: UIColor.cfBlue, textColor: UIColor.white) {
-                    }
-                    self.messagePopupView.showCustom("From \"\(self.opponentName)\"", subTitle: message, color: UIColor.black, icon: UIImage(named: "message_white")!)
+                    self.messagePopupView.showCustom("From \"\(self.opponentName)\"", subTitle: message, color: UIColor.black, icon: UIImage(named: "message_white")!, closeButtonTitle: "", timeout: SCLAlertView.SCLTimeoutConfiguration(timeoutValue: 5, timeoutAction: {}), colorStyle: 0x808080, colorTextButton: 0xFFFFFF, circleIconImage: UIImage(named: "message_white")!, animationStyle: SCLAnimationStyle.topToBottom)
                 }
             }
             
@@ -1463,17 +1472,22 @@ extension GameViewController: GCHelperDelegate {
         
         DispatchQueue.main.async {
             self.chainAlertView.hideView()
-            self.messageAlertView.hideView()
             self.rematchAlertView.hideView()
-            
+            self.messageAlertView.hideView()
+            self.messagePopupView.hideView()
+            self.menuAlertView.hideView()
+            self.helpAlertView.hideView()
+            self.timeoutAlertView.hideView()
+            self.denyAlertView.hideView()
+
             let appearance = SCLAlertView.SCLAppearance(
                 showCloseButton: false
             )
-            let alertView = SCLAlertView(appearance: appearance)
-            alertView.addButton("Exit to Menu", backgroundColor: UIColor.gray, textColor: UIColor.white) {
+            self.connectionAlertView = SCLAlertView(appearance: appearance)
+            self.connectionAlertView.addButton("Exit to Menu", backgroundColor: UIColor.gray, textColor: UIColor.white) {
                 self.performSegue(withIdentifier: "toMain", sender: self)
             }
-            alertView.showError("Connection Lost", subTitle: "Opponent has left the game!")
+            self.connectionAlertView.showError("Connection Lost", subTitle: "Opponent has left the game!")
         }
     }
 }
