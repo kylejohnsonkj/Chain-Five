@@ -75,7 +75,7 @@ class MainViewController: UIViewController {
             }
         }
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         animateViews()
@@ -160,13 +160,16 @@ class MainViewController: UIViewController {
                 leftImage.alpha = 0.5
                 leftText.alpha = 0.5
 
-                UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
-                    self.container.frame.origin.y += 200
-                    self.container.alpha = 0
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [unowned self] in
+                    
+                    UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
+                        self.container.frame.origin.y += 200
+                        self.container.alpha = 0
 
-                }, completion: { _ in
-                    self.performSegue(withIdentifier: "toGame", sender: self)
-                })
+                    }, completion: { _ in
+                        self.performSegue(withIdentifier: "toGame", sender: self)
+                    })
+                }
             }
             
             if rightImage.frame.contains(touchLocation) || rightText.frame.contains(touchLocation) {
@@ -175,12 +178,14 @@ class MainViewController: UIViewController {
                 rightImage.alpha = 0.5
                 rightText.alpha = 0.5
                 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
-                    self.rightImage.alpha = 1
-                    self.rightText.alpha = 1
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [unowned self] in
+                    GCHelper.sharedInstance.findMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
+                        self.rightImage.alpha = 1
+                        self.rightText.alpha = 1
+                    }
                 }
-                
-                GCHelper.sharedInstance.findMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)
             }
             
             // link copyright text to homepage

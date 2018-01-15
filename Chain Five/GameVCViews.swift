@@ -22,9 +22,9 @@ class GameVCViews {
     var deck: UIImageView
     var deckOutline: UIView
     var cardsLeftLabel: UILabel
-    var menuIcon: UIImageView
-    var helpIcon: UIImageView
-    var messageIcon: UIImageView
+    var menuIcon: DOFavoriteButton
+    var helpIcon: DOFavoriteButton
+    var messageIcon: DOFavoriteButton
     
     // board
     var bottomBorder: UIView
@@ -71,17 +71,30 @@ class GameVCViews {
         view.addSubview(cardsLeftLabel)
         
         // icons
-        menuIcon = UIImageView(image: UIImage(named: "menu"))
-        menuIcon.frame = CGRect(x: -l.cardSize, y: l.topMargin - l.cardSize * 1.9, width: l.cardSize, height: l.cardSize)
+        menuIcon = DOFavoriteButton(frame: CGRect(x: -l.cardSize * 2, y: l.topMargin - l.cardSize * 1.9 - l.cardSize / 2, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "menu"))
+        menuIcon.imageColorOff = UIColor.black
+        menuIcon.imageColorOn = UIColor.cfRed
+        menuIcon.circleColor = UIColor.white
+        menuIcon.lineColor = UIColor.cfRed
+        menuIcon.accessibilityIdentifier = "menu"
         view.addSubview(menuIcon)
         
-        helpIcon = UIImageView(image: UIImage(named: "help"))
-        helpIcon.frame = CGRect(x: view.frame.maxX, y: l.topMargin - l.cardSize * 1.9, width: l.cardSize, height: l.cardSize)
+        helpIcon = DOFavoriteButton(frame: CGRect(x: view.frame.maxX, y: l.topMargin - l.cardSize * 1.9 - l.cardSize / 2, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "help"))
+        helpIcon.imageColorOff = UIColor.black
+        helpIcon.imageColorOn = UIColor.cfBlue
+        helpIcon.circleColor = UIColor.white
+        helpIcon.lineColor = UIColor.cfBlue
+        helpIcon.accessibilityIdentifier = "help"
         view.addSubview(helpIcon)
         
         // multiplayer only
-        messageIcon = UIImageView(image: UIImage(named: "message"))
-        messageIcon.frame = CGRect(x: view.frame.maxX, y: l.btmMargin + (2 * l.cardSize * 1.23) + l.cardSize * 0.05, width: l.cardSize * 0.9, height: l.cardSize * 0.9)
+        messageIcon = DOFavoriteButton(frame: CGRect(x: l.leftMargin + l.cardSize * 6.9 - l.cardSize * 0.45, y: l.btmMargin + (2 * l.cardSize * 1.23) + l.cardSize * 0.05 - l.cardSize * 0.45, width: l.cardSize * 1.8, height: l.cardSize * 1.8), image: UIImage(named: "message"))
+        messageIcon.imageColorOff = UIColor.black
+        messageIcon.imageColorOn = UIColor.cfGreen
+        messageIcon.circleColor = UIColor.white
+        messageIcon.lineColor = UIColor.cfGreen
+        messageIcon.accessibilityIdentifier = "message"
+        messageIcon.alpha = 0
         view.addSubview(messageIcon)
         
         // for board
@@ -111,11 +124,11 @@ class GameVCViews {
         return (deck, deckOutline, cardsLeftLabel)
     }
     
-    func getMenuAndHelpIcons() -> (UIImageView, UIImageView) {
+    func getMenuAndHelpIcons() -> (DOFavoriteButton, DOFavoriteButton) {
         return (menuIcon, helpIcon)
     }
     
-    func getMessageIcon() -> UIImageView {
+    func getMessageIcon() -> DOFavoriteButton {
         return messageIcon
     }
     

@@ -9,6 +9,11 @@
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
+    <customFonts key="customFonts">
+        <array key="GillSans.ttc">
+            <string>GillSans</string>
+        </array>
+    </customFonts>
     <scenes>
         <!--Init View Controller-->
         <scene sceneID="Eh6-cd-OGA">
@@ -17,7 +22,32 @@
                     <view key="view" contentMode="scaleToFill" id="bZl-ma-g3Q">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="launch" translatesAutoresizingMaskIntoConstraints="NO" id="GE0-vS-TpB">
+                                <rect key="frame" x="112.5" y="293.5" width="150" height="40"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="150" id="GXd-Md-RmV"/>
+                                    <constraint firstAttribute="height" constant="40" id="tiY-wO-6Wz"/>
+                                </constraints>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Kyle Johnson Apps" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="a0I-1C-M4F">
+                                <rect key="frame" x="112" y="333" width="150" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="150" id="38H-Sz-dWe"/>
+                                    <constraint firstAttribute="height" constant="20" id="iQD-kK-Hrc"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="GillSans" family="Gill Sans" pointSize="14"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
                         <color key="backgroundColor" red="0.81568627449999997" green="0.78532271229999995" blue="0.6800557263" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="a0I-1C-M4F" firstAttribute="top" secondItem="GE0-vS-TpB" secondAttribute="bottom" constant="-0.5" id="L4M-Uc-DTD"/>
+                            <constraint firstItem="GE0-vS-TpB" firstAttribute="centerY" secondItem="bZl-ma-g3Q" secondAttribute="centerY" constant="-20" id="NsD-JH-wcS"/>
+                            <constraint firstItem="a0I-1C-M4F" firstAttribute="centerX" secondItem="GE0-vS-TpB" secondAttribute="centerX" id="cTk-B5-nAn"/>
+                            <constraint firstItem="GE0-vS-TpB" firstAttribute="centerX" secondItem="bZl-ma-g3Q" secondAttribute="centerX" id="oeh-dB-PEY"/>
+                        </constraints>
                         <viewLayoutGuide key="safeArea" id="fic-tN-TDS"/>
                     </view>
                     <connections>
@@ -65,7 +95,10 @@
             <point key="canvasLocation" x="-122.40000000000001" y="31.934032983508249"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="launch" width="818" height="172"/>
+    </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="tu8-s9-1JI"/>
+        <segue reference="psp-oB-BYK"/>
     </inferredMetricsTieBreakers>
 </document>

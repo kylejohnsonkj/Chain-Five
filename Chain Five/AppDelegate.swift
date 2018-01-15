@@ -38,14 +38,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return
         }
         
-        runThisAfterDelay(seconds: 0.02, after: {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
             self.suppressGCBanner(iteration + 1, originalWindowCount: originalWindowCount)
-        })
-    }
-    
-    func runThisAfterDelay(seconds: Double, after: @escaping () -> ()) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-            after()
         }
     }
 }

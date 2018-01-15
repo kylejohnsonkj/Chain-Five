@@ -43,11 +43,11 @@ class Layout {
             // it's an iPad, adapt for different aspect ratio
             iPad = true
             cardSize = view.bounds.width / 14
-            push = cardSize * 0.73
+            push = cardSize * 0.75
         } else {
             iPad = false
             cardSize = view.bounds.width / 10.7
-            push = cardSize * 0.63
+            push = cardSize * 0.6
         }
         
         leftMargin = view.frame.midX - (self.cardSize * 5)

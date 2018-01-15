@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = E505403D1FD25B2F0040F5F4 /* Card.swift */; };
 		E511BB91200850F1004B1936 /* GameVCViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E511BB90200850F1004B1936 /* GameVCViews.swift */; };
+		E5234A26200C0DC10047BBA9 /* DOFavoriteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5234A25200C0DC10047BBA9 /* DOFavoriteButton.swift */; };
+		E527CC21200BF380007998A3 /* DodoDistrib.swift in Sources */ = {isa = PBXBuildFile; fileRef = E527CC20200BF380007998A3 /* DodoDistrib.swift */; };
 		E52B2AB520030F5100C03B81 /* GCHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E52B2AB420030F5100C03B81 /* GCHelper.swift */; };
 		E541EFDF1FFACDE400F294F3 /* InitViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E541EFDE1FFACDE400F294F3 /* InitViewController.swift */; };
 		E560547420094A8400D6B75A /* SAConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E560547320094A8400D6B75A /* SAConfettiView.swift */; };
@@ -29,6 +31,8 @@
 /* Begin PBXFileReference section */
 		E505403D1FD25B2F0040F5F4 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		E511BB90200850F1004B1936 /* GameVCViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameVCViews.swift; sourceTree = "<group>"; };
+		E5234A25200C0DC10047BBA9 /* DOFavoriteButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DOFavoriteButton.swift; sourceTree = "<group>"; };
+		E527CC20200BF380007998A3 /* DodoDistrib.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DodoDistrib.swift; sourceTree = "<group>"; };
 		E52B2AB420030F5100C03B81 /* GCHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GCHelper.swift; sourceTree = "<group>"; };
 		E541EFDE1FFACDE400F294F3 /* InitViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitViewController.swift; sourceTree = "<group>"; };
 		E560547320094A8400D6B75A /* SAConfettiView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SAConfettiView.swift; sourceTree = "<group>"; };
@@ -60,6 +64,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E5234A22200C0CDC0047BBA9 /* Helper */ = {
+			isa = PBXGroup;
+			children = (
+				E52B2AB420030F5100C03B81 /* GCHelper.swift */,
+				E560547320094A8400D6B75A /* SAConfettiView.swift */,
+				E59F9C22200AB609000A58DD /* SCLAlertView.swift */,
+				E59F9C23200AB609000A58DD /* SCLExtensions.swift */,
+				E527CC20200BF380007998A3 /* DodoDistrib.swift */,
+				E5234A25200C0DC10047BBA9 /* DOFavoriteButton.swift */,
+			);
+			name = Helper;
+			sourceTree = "<group>";
+		};
 		E5C63C482003E48A00FEF710 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -97,13 +114,10 @@
 				E511BB90200850F1004B1936 /* GameVCViews.swift */,
 				E505403D1FD25B2F0040F5F4 /* Card.swift */,
 				E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */,
-				E52B2AB420030F5100C03B81 /* GCHelper.swift */,
-				E560547320094A8400D6B75A /* SAConfettiView.swift */,
-				E59F9C22200AB609000A58DD /* SCLAlertView.swift */,
-				E59F9C23200AB609000A58DD /* SCLExtensions.swift */,
+				E5234A22200C0CDC0047BBA9 /* Helper */,
 				E5EF7C701FC7C4DE00E09193 /* Main.storyboard */,
-				E5EF7C731FC7C4DE00E09193 /* Assets.xcassets */,
 				E5EF7C751FC7C4DE00E09193 /* LaunchScreen.storyboard */,
+				E5EF7C731FC7C4DE00E09193 /* Assets.xcassets */,
 				E5EF7C781FC7C4DE00E09193 /* Info.plist */,
 			);
 			path = "Chain Five";
@@ -191,6 +205,7 @@
 				E560547420094A8400D6B75A /* SAConfettiView.swift in Sources */,
 				E5EF7C6F1FC7C4DE00E09193 /* GameViewController.swift in Sources */,
 				E5EF7C6D1FC7C4DE00E09193 /* AppDelegate.swift in Sources */,
+				E527CC21200BF380007998A3 /* DodoDistrib.swift in Sources */,
 				E5A53F851FD3D14E00B109A1 /* ChainDetector.swift in Sources */,
 				E5C265BB1FFC038800F395D6 /* Layout.swift in Sources */,
 				E52B2AB520030F5100C03B81 /* GCHelper.swift in Sources */,
@@ -198,6 +213,7 @@
 				E511BB91200850F1004B1936 /* GameVCViews.swift in Sources */,
 				E59F9C25200AB609000A58DD /* SCLExtensions.swift in Sources */,
 				E59F9C24200AB609000A58DD /* SCLAlertView.swift in Sources */,
+				E5234A26200C0DC10047BBA9 /* DOFavoriteButton.swift in Sources */,
 				E505403E1FD25B2F0040F5F4 /* Card.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
