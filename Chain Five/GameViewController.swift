@@ -150,8 +150,9 @@ class GameViewController: UIViewController {
     
     // main alert views
     var chainAlertView = SCLAlertView()
-    var messageAlertView = SCLAlertView()
     var rematchAlertView = SCLAlertView()
+    var messageAlertView = SCLAlertView()
+    var messagePopupView = SCLAlertView()
     
     // MARK: - Setup
     
@@ -1441,18 +1442,14 @@ extension GameViewController: GCHelperDelegate {
                 print("message: \(message)")
                 
                 DispatchQueue.main.async {
-                    self.view.dodo.style.bar.backgroundColor = DodoColor.fromHexString("#28bc56")
-                    self.view.dodo.style.bar.hideAfterDelaySeconds = 5
-                    self.view.dodo.style.bar.onTap = {
-                        AudioServicesPlaySystemSound(Taptics.pop.rawValue)
-                        self.presentMessageAlert()
+                    let appearance = SCLAlertView.SCLAppearance(
+                        kCircleIconHeight: 40,
+                        showCloseButton: false
+                    )
+                    self.messagePopupView = SCLAlertView(appearance: appearance)
+                    self.messagePopupView.addButton("Dismiss", backgroundColor: UIColor.cfBlue, textColor: UIColor.white) {
                     }
-                    self.view.dodo.style.rightButton.icon = DodoIcons.close
-                    self.view.dodo.style.rightButton.hideOnTap = true
-                    self.view.dodo.style.bar.animationShow = DodoAnimations.slideVertically.show
-                    self.view.dodo.style.bar.animationHide = DodoAnimations.slideVertically.hide
-                    self.view.dodo.topAnchor = self.view.safeAreaLayoutGuide.topAnchor
-                    self.view.dodo.success("\"\(self.opponentName)\": \(message)")
+                    self.messagePopupView.showCustom("From \"\(self.opponentName)\"", subTitle: message, color: UIColor.black, icon: UIImage(named: "message_white")!)
                 }
             }
             

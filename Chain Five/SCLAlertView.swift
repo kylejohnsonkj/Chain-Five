@@ -858,6 +858,14 @@ open class SCLAlertView: UIViewController {
         var animationStartOrigin = self.baseView.frame.origin
         var animationCenter : CGPoint = rv.center
         
+        let l = Layout()
+        var message = false
+        let offset = l.topMargin - l.titleHeight * 1.5
+        if self.appearance.showCircularIcon == false {
+            message = true
+            resignFirstResponder()
+        }
+        
         switch animationStyle {
 
         case .noAnimation:
@@ -866,7 +874,7 @@ open class SCLAlertView: UIViewController {
             
         case .topToBottom:
             animationStartOrigin = CGPoint(x: animationStartOrigin.x, y: self.baseView.frame.origin.y + animationStartOffset)
-            animationCenter = CGPoint(x: animationCenter.x, y: animationCenter.y + boundingAnimationOffset)
+            animationCenter = CGPoint(x: animationCenter.x, y: message ? offset + boundingAnimationOffset : animationCenter.y + boundingAnimationOffset)
             
         case .bottomToTop:
             animationStartOrigin = CGPoint(x: animationStartOrigin.x, y: self.baseView.frame.origin.y - animationStartOffset)
@@ -887,7 +895,7 @@ open class SCLAlertView: UIViewController {
             UIView.animate(withDuration: animationDuration, animations: { 
                 self.view.alpha = 1.0
             })
-            self.animate(item: self.baseView, center: rv.center)
+            self.animate(item: self.baseView, center: message ? CGPoint(x: rv.center.x, y: offset) : rv.center)
         } else {
             UIView.animate(withDuration: animationDuration, animations: {
                 self.view.alpha = 1.0
@@ -895,7 +903,7 @@ open class SCLAlertView: UIViewController {
                 }, completion: { finished in
                     UIView.animate(withDuration: animationDuration, animations: {
                         self.view.alpha = 1.0
-                        self.baseView.center = rv.center
+                        self.baseView.center = message ? CGPoint(x: rv.center.x, y: offset) : rv.center
                     })
             })
         }

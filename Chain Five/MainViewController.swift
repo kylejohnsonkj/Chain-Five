@@ -56,8 +56,11 @@ class MainViewController: UIViewController {
     var prepareMultiplayer = false
     var requestReview = false
     
-    // MARK: - Setup
+    // TESTING!
+    var messagePopupView = SCLAlertView()
     
+    // MARK: - Setup
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -153,12 +156,35 @@ class MainViewController: UIViewController {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
             let touchLocation = touch.location(in: self.container)
+
+            let appearance = SCLAlertView.SCLAppearance(
+                kDefaultShadowOpacity: 0,
+                kTitleTop: 12,
+                kWindowWidth: 300,
+                kTitleFont: UIFont.boldSystemFont(ofSize: 14),
+                showCloseButton: false,
+                showCircularIcon: false,
+                hideWhenBackgroundViewIsTapped: true
+                
+            )
+            self.messagePopupView = SCLAlertView(appearance: appearance)
+            messagePopupView.showCustom("From \"kylejohnsonkj\"", subTitle: "hey check out this message!", color: .white, icon: UIImage(named: "message_white")!, closeButtonTitle: "", timeout: SCLAlertView.SCLTimeoutConfiguration(timeoutValue: 3.0, timeoutAction: {}), colorStyle: 0x808080, colorTextButton: 0xFFFFFF, circleIconImage: UIImage(named: "message_white")!, animationStyle: SCLAnimationStyle.topToBottom)
+            
+            
             
             if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
 
                 leftImage.alpha = 0.5
                 leftText.alpha = 0.5
+                
+                UIView.animate(withDuration: 0.2, delay: 0, options: [], animations: {
+                    self.leftImage.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+                }, completion: { _ in
+                    UIView.animate(withDuration: 0.15, animations: {
+                        self.leftImage.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+                    })
+                })
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [unowned self] in
                     
@@ -177,6 +203,14 @@ class MainViewController: UIViewController {
                 
                 rightImage.alpha = 0.5
                 rightText.alpha = 0.5
+                
+                UIView.animate(withDuration: 0.2, delay: 0, options: [], animations: {
+                    self.rightImage.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+                }, completion: { _ in
+                    UIView.animate(withDuration: 0.15, animations: {
+                        self.rightImage.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
+                    })
+                })
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [unowned self] in
                     GCHelper.sharedInstance.findMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)

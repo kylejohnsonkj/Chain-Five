@@ -24,14 +24,14 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="launch" translatesAutoresizingMaskIntoConstraints="NO" id="GE0-vS-TpB">
-                                <rect key="frame" x="112.5" y="293.5" width="150" height="40"/>
+                                <rect key="frame" x="112.5" y="283.5" width="150" height="40"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="150" id="GXd-Md-RmV"/>
                                     <constraint firstAttribute="height" constant="40" id="tiY-wO-6Wz"/>
                                 </constraints>
                             </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Kyle Johnson Apps" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="a0I-1C-M4F">
-                                <rect key="frame" x="112" y="333" width="150" height="20"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="© Kyle Johnson Apps" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="a0I-1C-M4F">
+                                <rect key="frame" x="112" y="323" width="150" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="150" id="38H-Sz-dWe"/>
                                     <constraint firstAttribute="height" constant="20" id="iQD-kK-Hrc"/>
@@ -44,7 +44,7 @@
                         <color key="backgroundColor" red="0.81568627449999997" green="0.78532271229999995" blue="0.6800557263" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="a0I-1C-M4F" firstAttribute="top" secondItem="GE0-vS-TpB" secondAttribute="bottom" constant="-0.5" id="L4M-Uc-DTD"/>
-                            <constraint firstItem="GE0-vS-TpB" firstAttribute="centerY" secondItem="bZl-ma-g3Q" secondAttribute="centerY" constant="-20" id="NsD-JH-wcS"/>
+                            <constraint firstItem="GE0-vS-TpB" firstAttribute="centerY" secondItem="bZl-ma-g3Q" secondAttribute="centerY" constant="-30" id="NsD-JH-wcS"/>
                             <constraint firstItem="a0I-1C-M4F" firstAttribute="centerX" secondItem="GE0-vS-TpB" secondAttribute="centerX" id="cTk-B5-nAn"/>
                             <constraint firstItem="GE0-vS-TpB" firstAttribute="centerX" secondItem="bZl-ma-g3Q" secondAttribute="centerX" id="oeh-dB-PEY"/>
                         </constraints>
