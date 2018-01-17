@@ -74,7 +74,7 @@ class MainViewController: UIViewController {
         super.viewWillAppear(animated)
         animateViews()
         
-        // request review after completed game
+        // request review after completed game if conditions are met
         if #available(iOS 10.3, *) {
             requestReview()
         }
@@ -139,6 +139,7 @@ class MainViewController: UIViewController {
         }
     }
     
+    @available(iOS 10.3, *)
     func requestReview() {
         let gamesFinished = UserDefaults.standard.integer(forKey: "gamesFinished")
         if reviewRequested && gamesFinished >= 3 {
@@ -208,6 +209,9 @@ class MainViewController: UIViewController {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [unowned self] in
                     GCHelper.sharedInstance.findMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)
                     
+                    // maybe eventually!
+                    // GCHelper.sharedInstance.findTurnBasedMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)
+                    
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
                         self.rightImage.alpha = 1
                         self.rightText.alpha = 1
@@ -217,8 +221,10 @@ class MainViewController: UIViewController {
             
             // link copyright text to homepage
             if kjAppsText.frame.contains(touchLocation) {
-                let url = URL(string: "http://kylejohnsonapps.com")
-                UIApplication.shared.open(url!, options: [:])
+                let url = URL(string: "http://kylejohnsonapps.com")!
+                if UIApplication.shared.canOpenURL(url) {
+                    UIApplication.shared.openURL(url)
+                }
             }
         }
     }
