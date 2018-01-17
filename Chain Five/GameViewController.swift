@@ -857,7 +857,7 @@ class GameViewController: UIViewController {
         helpAlertView = SCLAlertView(appearance: appearance)
         helpAlertView.addButton("Done", backgroundColor: UIColor.cfBlue, textColor: UIColor.white) {
         }
-        helpAlertView.showCustom("How to Play", subTitle: "First to 5 in a row wins. \n\nBlack jacks can be placed anywhere open. \n\nRed jacks can remove an opponent's piece. \n\nThe white dot marks your opponent's last move. \n\nOne dead card can be swapped per turn. \n\nTip: Drag your finger through your hand to quickly view possible placements!", color: UIColor.white, icon: UIImage(named: "help")!)
+        helpAlertView.showCustom("How to Play", subTitle: "First to 5 in a row wins! \nDiagonals included. \nCorners count as free spaces. \n\nBlack jacks can be placed anywhere open. Red jacks can remove an opponent's piece. \n\nThe white dot marks your opponent's last move. \n\nA dead card may be replaced from the deck once per turn. \n\nTip: Drag through your cards to quickly view possible placements!", color: UIColor.white, icon: UIImage(named: "help")!)
     }
     
     func presentMessageAlert() {

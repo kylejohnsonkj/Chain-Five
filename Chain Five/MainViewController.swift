@@ -211,11 +211,6 @@ class MainViewController: UIViewController {
                     
                     // maybe eventually!
                     // GCHelper.sharedInstance.findTurnBasedMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [unowned self] in
-                        self.rightImage.alpha = 1
-                        self.rightText.alpha = 1
-                    }
                 }
             }
             

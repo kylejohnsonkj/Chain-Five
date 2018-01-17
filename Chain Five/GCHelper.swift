@@ -296,12 +296,22 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     // MARK: GKMatchmakerViewControllerDelegate
     
     public func matchmakerViewControllerWasCancelled(_ viewController: GKMatchmakerViewController) {
-        presentingViewController.dismiss(animated: true, completion: nil)
+        presentingViewController.dismiss(animated: true, completion: {
+            if let mainVC = UIApplication.getPresentedViewController() as? MainViewController {
+                mainVC.rightImage.alpha = 1
+                mainVC.rightText.alpha = 1
+            }
+        })
     }
     
     public func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFailWithError error: Error) {
-        presentingViewController.dismiss(animated: true, completion: nil)
         print("Error finding match: \(error.localizedDescription)")
+        presentingViewController.dismiss(animated: true, completion: {
+            if let mainVC = UIApplication.getPresentedViewController() as? MainViewController {
+                mainVC.rightImage.alpha = 1
+                mainVC.rightText.alpha = 1
+            }
+        })
     }
     
     public func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFind theMatch: GKMatch) {
