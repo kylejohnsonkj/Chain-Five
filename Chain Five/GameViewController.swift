@@ -450,7 +450,7 @@ class GameViewController: UIViewController {
             self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
         }
         
-        animateNextCardToHand()
+        animateNextCardToHand(false)
         deadSwapped = true
         
         if isMultiplayer {
@@ -580,6 +580,16 @@ class GameViewController: UIViewController {
                         // check if we have a chain
                         let (isValidChain, winningIndices) = detector.isValidChain(cardsOnBoard, currentPlayer)
                         
+                        if cardsInDeck.count == 1 {
+                            self.cardsLeftLabel.text = "\(totalCards)"
+                        } else if cardsInDeck.count == 0 {
+                            self.cardsLeftLabel.text = "\(totalCards - 1)"
+                        } else {
+                            self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
+                        }
+                        
+                        animateNextCardToHand(isValidChain)
+                        
                         if isValidChain {
                             cardsInHand[self.chosenCardIndex].removeFromSuperview()
                             playChainAnimation(winningIndices)
@@ -588,16 +598,6 @@ class GameViewController: UIViewController {
                             AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                             c.pulseMarker()
                             mostRecentIndex = c.index
-                            
-                            if cardsInDeck.count == 1 {
-                                self.cardsLeftLabel.text = "\(totalCards)"
-                            } else if cardsInDeck.count == 0 {
-                                self.cardsLeftLabel.text = "\(totalCards - 1)"
-                            } else {
-                                self.cardsLeftLabel.text = "\(self.cardsInDeck.count - 1)"
-                            }
-                            
-                            animateNextCardToHand()
                             
                             if isMultiplayer {
                                 self.changeTurns()
@@ -684,7 +684,7 @@ class GameViewController: UIViewController {
         }
     }
     
-    func animateNextCardToHand() {
+    func animateNextCardToHand(_ isValidChain: Bool) {
         
         let container = UIView()
         container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.23)
@@ -732,7 +732,7 @@ class GameViewController: UIViewController {
                 }
             }
 
-            if self.isMultiplayer == false && self.deadCard == false {
+            if self.isMultiplayer == false && isValidChain == false && self.deadCard == false {
                 self.swapHands(cardsInHand)
             }
         })
@@ -868,11 +868,21 @@ class GameViewController: UIViewController {
         )
         messageAlertView = SCLAlertView(appearance: appearance)
         let messageTextField = messageAlertView.addTextField("Hurry up, slowpoke!")
+        if self.gameOver.superview != nil {
+            messageTextField.placeholder = "One. More. Game."
+        }
         messageAlertView.addButton("Send", backgroundColor: UIColor.cfGreen, textColor: UIColor.white) {
-            let message = messageTextField.text!.trimmingCharacters(in: CharacterSet.whitespaces)
+            var message = messageTextField.text!.trimmingCharacters(in: CharacterSet.whitespaces)
+            if message == "" {
+                if self.gameOver.superview == nil {
+                    message = "Hurry up, slowpoke!"
+                } else {
+                    message = "One. More. Game."
+                }
+            }
             
             // send message to other player
-            let messageDict = ["message": message == "" ? "Hurry up, slowpoke!" : message] as [String: String]
+            let messageDict = ["message": message] as [String: String]
             let messageData = try! JSONSerialization.data(withJSONObject: messageDict, options: .prettyPrinted)
             do {
                 try GCHelper.sharedInstance.match.sendData(toAllPlayers: messageData, with: .reliable)
@@ -1132,7 +1142,6 @@ class GameViewController: UIViewController {
         if isMultiplayer {
             chainAlertView.addButton("Send a Message", backgroundColor: UIColor.cfGreen, textColor: UIColor.white) {
                 self.presentMessageAlert()
-                // stop hiding background view
             }
             chainAlertView.addButton("Rematch!", backgroundColor: UIColor.cfBlue, textColor: UIColor.white) {
                 if self.rematchDenied == false {
@@ -1375,9 +1384,10 @@ extension GameViewController: GCHelperDelegate {
             // opponenet has made their move or replaced a dead card
             if let cardIndex = data["cardIndex"] as? Int, let owner = data["owner"] as? Int {
                 
+                popLastCard()  // discard other player's drawn card
+                
                 // opponent drew for dead card, update our own deck
                 if cardIndex == -1 {
-                    popLastCard()
                     return
                 }
                 
@@ -1426,7 +1436,6 @@ extension GameViewController: GCHelperDelegate {
                     if isValidChain {
                         playChainAnimation(winningIndices)
                     } else {
-                        popLastCard()  // discard other player's drawn card
                         AudioServicesPlaySystemSound(Taptics.peek.rawValue)
                         cardsOnBoard[cardIndex].pulseMarker()
                         cardsOnBoard[cardIndex].isMostRecent = true
@@ -1442,7 +1451,6 @@ extension GameViewController: GCHelperDelegate {
                     cardsOnBoard[cardIndex].isMostRecent = true
                     cardsOnBoard[cardIndex].owner = 0
                     cardsOnBoard[cardIndex].fadeMarker()
-                    popLastCard()
                     
                     // if player is holding a dead card and an opportunity opens, highlight it
                     if cardsOnBoard[cardIndex].isMarked == false && chosenCardId == "\(cardsOnBoard[cardIndex].id)+" {
