@@ -36,29 +36,29 @@ class GameVCViews {
         
         // title
         gameTitle = UIImageView(image: UIImage(named: "title"))
-        gameTitle.frame = CGRect(x: view.frame.midX - (l.titleWidth / 2), y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
+        gameTitle.frame = CGRect(x: view.frame.midX - (l.titleWidth / 2), y: l.topMargin - l.distance - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
         gameTitle.contentMode = .scaleAspectFit
         view.addSubview(gameTitle)
         
         // player details
         playerIndicator = UIImageView(image: UIImage(named: "orange"))
-        playerIndicator.frame = CGRect(x: -l.cardSize - l.itemWidth * 2, y: l.btmMargin + (2 * l.cardSize * 1.23) + l.cardSize * 0.05, width: l.cardSize * 0.9, height: l.cardSize * 0.9)
+        playerIndicator.frame = CGRect(x: -l.cardSize - l.itemWidth * 2, y: l.btmMargin + l.distance + l.cardSize * 1.46 + l.cardSize * 0.05, width: l.cardSize * 0.9, height: l.cardSize * 0.9)
         view.addSubview(playerIndicator)
         
         playerTurnLabel = UILabel()
         playerTurnLabel.text = "Choosing host..."  // placeholder
         playerTurnLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        playerTurnLabel.frame = CGRect(x: -l.itemWidth * 2, y: l.btmMargin + (2 * l.cardSize * 1.23), width: l.itemWidth * 2, height: l.cardSize)
+        playerTurnLabel.frame = CGRect(x: -l.itemWidth * 2, y: l.btmMargin + l.distance + l.cardSize * 1.46, width: l.cardSize * 5.6, height: l.cardSize)
         playerTurnLabel.textAlignment = .left
         view.addSubview(playerTurnLabel)
         
         // deck and related
         deck = Card(named: "-deck")
-        deck.frame = CGRect(x: view.frame.maxX + l.cardSize * 1.25, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.4)
+        deck.frame = CGRect(x: view.frame.maxX + l.cardSize * 1.25, y: l.btmMargin + l.distance + l.cardSize * 1.23, width: l.cardSize, height: l.cardSize * 1.4)
         view.addSubview(deck)
         
         deckOutline = UIView()
-        deckOutline.frame = CGRect(x: l.leftMargin + l.cardSize * 8 - l.highlight, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23 - l.highlight, width: l.cardSize + (2 * l.highlight), height: l.cardSize * 1.4 + (l.highlight * 2))
+        deckOutline.frame = CGRect(x: l.leftMargin + l.cardSize * 8 - l.highlight, y: l.btmMargin + l.distance + l.cardSize * 1.23 - l.highlight, width: l.cardSize + (2 * l.highlight), height: l.cardSize * 1.4 + (l.highlight * 2))
         deckOutline.layer.borderColor = UIColor.green.cgColor
         deckOutline.layer.borderWidth = 0
         view.addSubview(deckOutline)
@@ -66,13 +66,13 @@ class GameVCViews {
         cardsLeftLabel = UILabel()
         cardsLeftLabel.text = "99"  // placeholder
         cardsLeftLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        cardsLeftLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 9.25, y: l.btmMargin + (2 * l.cardSize * 1.23), width: l.itemWidth, height: l.cardSize)
+        cardsLeftLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 9.25, y: l.btmMargin + l.distance + l.cardSize * 1.46, width: l.cardSize * 0.75, height: l.cardSize)
         cardsLeftLabel.textAlignment = .left
         cardsLeftLabel.alpha = 0
         view.addSubview(cardsLeftLabel)
         
         // snazzy buttons
-        menuIcon = DOFavoriteButton(frame: CGRect(x: -l.cardSize * 2, y: l.topMargin - l.cardSize * 1.9 - l.cardSize / 2, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "menu"))
+        menuIcon = DOFavoriteButton(frame: CGRect(x: -l.cardSize * 2, y: l.topMargin - l.distance - l.titleHeight / 2.3 - l.cardSize, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "menu"))
         menuIcon.imageColorOff = UIColor.black
         menuIcon.imageColorOn = UIColor.cfRed
         menuIcon.circleColor = UIColor.white
@@ -80,7 +80,7 @@ class GameVCViews {
         menuIcon.accessibilityIdentifier = "menu"
         view.addSubview(menuIcon)
         
-        helpIcon = DOFavoriteButton(frame: CGRect(x: view.frame.maxX, y: l.topMargin - l.cardSize * 1.9 - l.cardSize / 2, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "help"))
+        helpIcon = DOFavoriteButton(frame: CGRect(x: view.frame.maxX, y: l.topMargin - l.distance - l.titleHeight / 2.3 - l.cardSize, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "help"))
         helpIcon.imageColorOff = UIColor.black
         helpIcon.imageColorOn = UIColor.cfBlue
         helpIcon.circleColor = UIColor.white
@@ -89,7 +89,7 @@ class GameVCViews {
         view.addSubview(helpIcon)
         
         // multiplayer only
-        messageIcon = DOFavoriteButton(frame: CGRect(x: l.leftMargin + l.cardSize * 6.9 - l.cardSize * 0.45, y: l.btmMargin + (2 * l.cardSize * 1.23) + l.cardSize * 0.05 - l.cardSize * 0.45, width: l.cardSize * 1.8, height: l.cardSize * 1.8), image: UIImage(named: "message"))
+        messageIcon = DOFavoriteButton(frame: CGRect(x: l.leftMargin + l.cardSize * 6.9 - l.cardSize * 0.45, y: l.btmMargin + l.distance + l.cardSize * 1.46 + l.cardSize * 0.05 - l.cardSize * 0.45, width: l.cardSize * 1.8, height: l.cardSize * 1.8), image: UIImage(named: "message"))
         messageIcon.imageColorOff = UIColor.black
         messageIcon.imageColorOn = UIColor.cfGreen
         messageIcon.circleColor = UIColor.white

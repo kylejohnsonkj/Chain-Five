@@ -175,7 +175,7 @@ class MainViewController: UIViewController {
                 UIView.animate(withDuration: 0.2, delay: 0, options: [], animations: {
                     self.leftImage.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
                 }, completion: { _ in
-                    UIView.animate(withDuration: 0.10, animations: {
+                    UIView.animate(withDuration: 0.1, animations: {
                         self.leftImage.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
                     })
                 })
@@ -199,12 +199,12 @@ class MainViewController: UIViewController {
                 UIView.animate(withDuration: 0.2, delay: 0, options: [], animations: {
                     self.rightImage.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
                 }, completion: { _ in
-                    UIView.animate(withDuration: 0.15, animations: {
+                    UIView.animate(withDuration: 0.1, animations: {
                         self.rightImage.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
                     })
                 })
                 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [unowned self] in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [unowned self] in
                     GCHelper.shared.findMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)
                 }
             }
@@ -213,7 +213,11 @@ class MainViewController: UIViewController {
             if kjAppsText.frame.contains(touchLocation) {
                 if let url = URL(string: "http://kylejohnsonapps.com") {
                     if UIApplication.shared.canOpenURL(url) {
-                        UIApplication.shared.openURL(url)
+                        if #available(iOS 10.0, *) {
+                            UIApplication.shared.open(url, options: [:])
+                        } else {
+                            UIApplication.shared.openURL(url)
+                        }
                     }
                 }
             }

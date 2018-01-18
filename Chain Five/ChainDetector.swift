@@ -9,7 +9,7 @@
 /// This class was created to hold one gigantic method to detect any length of chain on a 10x10 game board. Detects horizontal, vertical, and diagonal chains. Also keeps track of the winning indices.
 class ChainDetector {
     
-    let chain = 2
+    let chain = 5
     
     func isValidChain(_ cardsOnBoard: [Card], _ currentPlayer: Int) -> (Bool, [Int]) {
         

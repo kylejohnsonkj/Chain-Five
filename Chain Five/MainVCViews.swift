@@ -34,48 +34,48 @@ class MainVCViews {
         
         // game title
         gameTitle = UIImageView(image: UIImage(named: "title"))
-        gameTitle.frame = CGRect(x: view.frame.midX - (l.titleWidth / 2), y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
+        gameTitle.frame = CGRect(x: view.frame.midX - (l.titleWidth / 2), y: l.topMargin - l.distance - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
         gameTitle.contentMode = .scaleAspectFit
         view.addSubview(gameTitle)
         
         // container for all items below
         container = UIView()
-        container.frame = CGRect(x: view.frame.midX - (l.cardSize * 5), y: l.btmMargin + l.cardSize, width: l.cardSize * 10, height: l.imgSize + l.textPadding - 9)
+        container.frame = CGRect(x: view.frame.midX - (l.cardSize * 5), y: l.btmMargin + l.distance, width: l.cardSize * 10, height: l.imgSize * 0.6 + l.cardSize * 0.6)
         view.addSubview(container)
         
         leftImage = UIImageView(image: UIImage(named: "left"))
-        leftImage.frame = CGRect(x: container.bounds.midX - l.offset - l.itemWidth, y: container.bounds.minY, width: l.itemWidth, height: l.imgSize * 0.6)
+        leftImage.frame = CGRect(x: container.bounds.midX - l.offset - l.itemWidth, y: 0, width: l.itemWidth, height: l.imgSize * 0.6)
         leftImage.contentMode = .scaleAspectFit
         container.addSubview(leftImage)
         
         leftText = UILabel()
         leftText.text = "Same Device"
         leftText.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        leftText.frame = CGRect(x: container.bounds.midX - l.offset - l.itemWidth, y: container.bounds.minY + l.textPadding + leftImage.frame.height, width: l.itemWidth, height: 30)
+        leftText.frame = CGRect(x: container.bounds.midX - l.offset - l.itemWidth, y: leftImage.frame.height + l.textPadding, width: l.itemWidth, height: l.cardSize * 0.6)
         leftText.textAlignment = .center
         container.addSubview(leftText)
         
         rightImage = UIImageView(image: UIImage(named: "right"))
-        rightImage.frame = CGRect(x: container.bounds.midX + l.offset, y: container.bounds.minY, width: l.itemWidth, height: l.imgSize * 0.6)
+        rightImage.frame = CGRect(x: container.bounds.midX + l.offset, y: 0, width: l.itemWidth, height: l.imgSize * 0.6)
         rightImage.contentMode = .scaleAspectFit
         container.addSubview(rightImage)
         
         rightText = UILabel()
         rightText.text = "Online Match"
         rightText.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        rightText.frame = CGRect(x: container.bounds.midX + l.offset, y: container.bounds.minY + l.textPadding + leftImage.frame.height, width: l.itemWidth, height: 30)
+        rightText.frame = CGRect(x: container.bounds.midX + l.offset, y: leftImage.frame.height + l.textPadding , width: l.itemWidth, height: l.cardSize * 0.6)
         rightText.textAlignment = .center
         container.addSubview(rightText)
         
         divider = UIView()
-        divider.frame = CGRect(x: container.bounds.midX - l.stroke, y: container.bounds.minY - l.cardSize / 10, width: 2 * l.stroke, height: leftText.frame.maxY - container.bounds.minY + l.textPadding)
+        divider.frame = CGRect(x: container.bounds.midX - l.stroke, y: -l.cardSize / 10, width: 2 * l.stroke, height: l.imgSize * 0.6 + l.cardSize * 0.7 + l.textPadding)
         divider.backgroundColor = .black
         container.addSubview(divider)
         
         kjAppsText = UILabel()
         kjAppsText.text = "© Kyle Johnson Apps"
         kjAppsText.font = UIFont(name: "GillSans", size: l.cardSize / 3)
-        kjAppsText.frame = CGRect(x: container.bounds.midX - l.itemWidth / 2, y: leftText.frame.maxY - container.bounds.minY + l.textPadding + l.cardSize / 2.2, width: l.itemWidth, height: 30)
+        kjAppsText.frame = CGRect(x: container.bounds.midX - l.itemWidth / 2, y: l.imgSize * 0.6 + l.cardSize * 0.7 + l.textPadding + l.distance * 0.65, width: l.itemWidth, height: l.cardSize * 0.4)
         kjAppsText.textAlignment = .center
         container.addSubview(kjAppsText)
         

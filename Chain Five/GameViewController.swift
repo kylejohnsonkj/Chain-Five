@@ -361,7 +361,7 @@ class GameViewController: UIViewController {
             
             // need image container for flipping animation
             let container = UIView()
-            container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.23)
+            container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.distance + l.cardSize * 1.23, width: l.cardSize, height: l.cardSize * 1.23)
             container.layer.zPosition = 6 - CGFloat(col)
             view.addSubview(container)
             
@@ -373,11 +373,11 @@ class GameViewController: UIViewController {
             if let card = cardsInDeck.popLast() {
                 
                 UIView.animate(withDuration: 1, delay: TimeInterval(0.3 * Double(col)) + 0.3, options: [.curveEaseOut], animations: {
-                    container.frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
+                    container.frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * self.l.cardSize), y: self.l.btmMargin + self.l.distance, width: self.l.cardSize, height: self.l.cardSize * 1.23)
                     
                 }, completion: { _ in
                     
-                    container.frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
+                    container.frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * self.l.cardSize), y: self.l.btmMargin + self.l.distance, width: self.l.cardSize, height: self.l.cardSize * 1.23)
                     card.frame = CGRect(x: 0, y: 0, width: self.l.cardSize, height: self.l.cardSize * 1.23)
                     
                     if player == 1 {
@@ -393,7 +393,7 @@ class GameViewController: UIViewController {
                     }
                     
                     UIView.transition(from: back, to: card, duration: 1, options: [.transitionFlipFromRight], completion: { _ in
-                        card.frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
+                        card.frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * self.l.cardSize), y: self.l.btmMargin + self.l.distance, width: self.l.cardSize, height: self.l.cardSize * 1.23)
                         self.view.addSubview(card)
                     })
                     
@@ -687,7 +687,7 @@ class GameViewController: UIViewController {
     func animateNextCardToHand(_ isValidChain: Bool) {
         
         let container = UIView()
-        container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.cardSize * 2 + l.cardSize * 0.23, width: l.cardSize, height: l.cardSize * 1.23)
+        container.frame = CGRect(x: l.leftMargin + l.cardSize * 8, y: l.btmMargin + l.distance + l.cardSize * 1.23, width: l.cardSize, height: l.cardSize * 1.23)
         container.layer.zPosition = 1
         
         let back = Card(named: "-back")
@@ -722,10 +722,16 @@ class GameViewController: UIViewController {
                 nextCard.frame = CGRect(x: 0, y: 0, width: self.l.cardSize, height: self.l.cardSize * 1.23)
                 
                 UIView.transition(from: back, to: nextCard, duration: 1.0, options: [.transitionFlipFromRight]) { (completed: Bool) in
-                    for i in 0..<5 {
-                        self.cardsInHand1[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(i+1) * self.l.cardSize), y: self.l.btmMargin + self.l.cardSize, width: self.l.cardSize, height: self.l.cardSize * 1.23)
-                        self.view.addSubview(self.cardsInHand1[i])
+                    
+                    // activates the latest drawn card for selection (only really needed in multiplayer)
+                    if self.currentPlayer == 1 || self.isMultiplayer {
+                        self.cardsInHand1[self.chosenCardIndex].frame = CGRect(x: self.l.leftMargin + (CGFloat(self.chosenCardIndex+1) * self.l.cardSize), y: self.l.btmMargin + self.l.distance, width: self.l.cardSize, height: self.l.cardSize * 1.23)
+                        self.view.addSubview(self.cardsInHand1[self.chosenCardIndex])
+                    } else {
+                        self.cardsInHand2[self.chosenCardIndex].frame = CGRect(x: self.l.leftMargin + (CGFloat(self.chosenCardIndex+1) * self.l.cardSize), y: self.l.btmMargin + self.l.distance, width: self.l.cardSize, height: self.l.cardSize * 1.23)
+                        self.view.addSubview(self.cardsInHand2[self.chosenCardIndex])
                     }
+                    
                     if self.isMultiplayer {
                         self.waitForAnimations = false
                     }
@@ -757,7 +763,7 @@ class GameViewController: UIViewController {
     func getNextCardFromDeck() -> Card? {
         
         if let nextCard = cardsInDeck.popLast() {
-            nextCard.frame = CGRect(x: l.leftMargin + (CGFloat(chosenCardIndex + 1) * l.cardSize), y: l.btmMargin + l.cardSize, width: l.cardSize, height: l.cardSize * 1.23)
+            nextCard.frame = CGRect(x: l.leftMargin + (CGFloat(chosenCardIndex + 1) * l.cardSize), y: l.btmMargin + l.distance, width: l.cardSize, height: l.cardSize * 1.23)
             view.addSubview(nextCard)
             return nextCard
         } else {
@@ -976,7 +982,7 @@ class GameViewController: UIViewController {
             
             if cardsInDeck.count < afterP2Deal {
                 for i in 0..<5 {
-                    cardsInHand2[i].frame = CGRect(x: l.leftMargin + (CGFloat(i + 1) * l.cardSize), y: l.btmMargin + l.cardSize, width: l.cardSize, height: l.cardSize * 1.23)
+                    cardsInHand2[i].frame = CGRect(x: l.leftMargin + (CGFloat(i + 1) * l.cardSize), y: l.btmMargin + l.distance, width: l.cardSize, height: l.cardSize * 1.23)
                     view.addSubview(cardsInHand2[i])
                 }
             }
@@ -986,7 +992,7 @@ class GameViewController: UIViewController {
             playerID = 1
             
             for i in 0..<5 {
-                cardsInHand1[i].frame = CGRect(x: l.leftMargin + (CGFloat(i + 1) * l.cardSize), y: l.btmMargin + l.cardSize, width: l.cardSize, height: l.cardSize * 1.23)
+                cardsInHand1[i].frame = CGRect(x: l.leftMargin + (CGFloat(i + 1) * l.cardSize), y: l.btmMargin + l.distance, width: l.cardSize, height: l.cardSize * 1.23)
                 view.addSubview(cardsInHand1[i])
             }
         }
