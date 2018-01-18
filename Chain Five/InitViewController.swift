@@ -17,7 +17,7 @@ class InitViewController: UIViewController {
     
     // this is to fix issues with large status bars screwing up non-modal views
     override func viewDidAppear(_ animated: Bool) {
-        self.performSegue(withIdentifier: "init", sender: self)
+        performSegue(withIdentifier: "init", sender: self)
     }
 }
 

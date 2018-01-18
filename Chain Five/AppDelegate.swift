@@ -14,19 +14,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        
-        GCHelper.sharedInstance.authenticateLocalUser()
+        printVersionInfo()
+        GCHelper.shared.authenticateLocalUser()
         return true
+    }
+    
+    func printVersionInfo() {
+        if let info = Bundle.main.infoDictionary {
+            if let version = info["CFBundleShortVersionString"] as? String {
+                print("Chain Five v\(version)")
+            }
+        }
     }
 }
 
 extension UIApplication {
     class func getPresentedViewController() -> UIViewController? {
-        var presentViewController = UIApplication.shared.keyWindow?.rootViewController
-        while let presentedVC = presentViewController?.presentedViewController {
-            presentViewController = presentedVC
+        var presentedViewController = UIApplication.shared.keyWindow?.rootViewController
+        while let presentedVC = presentedViewController?.presentedViewController {
+            presentedViewController = presentedVC
         }
-        return presentViewController
+        return presentedViewController
     }
 }
 

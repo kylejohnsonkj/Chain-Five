@@ -11,12 +11,13 @@ import UIKit
 /// Since I'm not using storyboards, this class holds all the views needed for the Game VC.
 class GameVCViews {
     
-    let l = Layout()
+    let l = Layout.shared
     var view: UIView
     
-    // title and views
+    // title
     var gameTitle: UIImageView
     
+    // views, labels, buttons
     var playerIndicator: UIImageView
     var playerTurnLabel: UILabel
     var deck: UIImageView
@@ -35,7 +36,7 @@ class GameVCViews {
         
         // title
         gameTitle = UIImageView(image: UIImage(named: "title"))
-        gameTitle.frame = CGRect(x: view.bounds.midX - (l.titleWidth / 2), y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
+        gameTitle.frame = CGRect(x: view.frame.midX - (l.titleWidth / 2), y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
         gameTitle.contentMode = .scaleAspectFit
         view.addSubview(gameTitle)
         
@@ -70,7 +71,7 @@ class GameVCViews {
         cardsLeftLabel.alpha = 0
         view.addSubview(cardsLeftLabel)
         
-        // icons
+        // snazzy buttons
         menuIcon = DOFavoriteButton(frame: CGRect(x: -l.cardSize * 2, y: l.topMargin - l.cardSize * 1.9 - l.cardSize / 2, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "menu"))
         menuIcon.imageColorOff = UIColor.black
         menuIcon.imageColorOn = UIColor.cfRed

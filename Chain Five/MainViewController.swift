@@ -35,7 +35,7 @@ class MainViewController: UIViewController {
         case peek = 1519, pop = 1520, nope = 1521
     }
     
-    let l = Layout()
+    let l = Layout.shared
     var views: MainVCViews!
 
     // main UI views
@@ -56,9 +56,6 @@ class MainViewController: UIViewController {
     var prepareMultiplayer = false
     var reviewRequested = false
     
-    // TESTING!
-    var messagePopupView = SCLAlertView()
-    
     // MARK: - Setup
 
     override func viewDidLoad() {
@@ -72,6 +69,7 @@ class MainViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
         animateViews()
         
         // request review after completed game if conditions are met
@@ -88,10 +86,10 @@ class MainViewController: UIViewController {
         (leftImage, leftText, rightImage, rightText, divider, kjAppsText) = views.getContainerSubviews()
 
         // prepare title and container animations
-        self.gameTitle.frame.origin.y -= 200
-        self.gameTitle.alpha = 0
-        self.container.frame.origin.y += 200
-        self.container.alpha = 0
+        gameTitle.frame.origin.y -= 200
+        gameTitle.alpha = 0
+        container.frame.origin.y += 200
+        container.alpha = 0
     }
     
     func animateViews() {
@@ -101,7 +99,7 @@ class MainViewController: UIViewController {
         UIView.animate(withDuration: 1, animations: {
             for row in 0...9 {
                 for col in 0...9 {
-                    self.cardsOnBoard[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * (self.l.cardSize)), y: self.l.topMargin + (CGFloat(row) * self.l.cardSize), width: self.l.cardSize, height: self.l.cardSize)
+                    self.cardsOnBoard[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * self.l.cardSize), y: self.l.topMargin + (CGFloat(row) * self.l.cardSize), width: self.l.cardSize, height: self.l.cardSize)
                     i += 1
                 }
             }
@@ -131,10 +129,10 @@ class MainViewController: UIViewController {
         // load the 100 cards initially into the center
         var i = 0
         while i < 100 {
-            let card = Card(named: self.cardsLayout[i])
+            let card = Card(named: cardsLayout[i])
             card.frame = CGRect(x: view.frame.midX - l.cardSize / 2, y: l.centerY - l.cardSize / 2, width: l.cardSize, height: l.cardSize)
-            self.view.addSubview(card)
-            self.cardsOnBoard.append(card)
+            view.addSubview(card)
+            cardsOnBoard.append(card)
             i += 1
         }
     }
@@ -142,9 +140,10 @@ class MainViewController: UIViewController {
     @available(iOS 10.3, *)
     func requestReview() {
         let gamesFinished = UserDefaults.standard.integer(forKey: "gamesFinished")
+        
+        // only allow app review after three games have been successfully completed
         if reviewRequested && gamesFinished >= 3 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                // don't interrupt button presses
                 if self.leftImage.alpha != 0.5 && self.rightImage.alpha != 0.5 {
                     SKStoreReviewController.requestReview()
                 }
@@ -154,9 +153,10 @@ class MainViewController: UIViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "toGame" && prepareMultiplayer == true {
-            let gameVC = (segue.destination as! GameViewController)
-            GCHelper.sharedInstance.delegate = gameVC
-            gameVC.isMultiplayer = true
+            if let gameVC = segue.destination as? GameViewController {
+                GCHelper.shared.delegate = gameVC
+                gameVC.isMultiplayer = true
+            }
         }
     }
 
@@ -164,7 +164,7 @@ class MainViewController: UIViewController {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
-            let touchLocation = touch.location(in: self.container)
+            let touchLocation = touch.location(in: container)
             
             if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
@@ -175,17 +175,15 @@ class MainViewController: UIViewController {
                 UIView.animate(withDuration: 0.2, delay: 0, options: [], animations: {
                     self.leftImage.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
                 }, completion: { _ in
-                    UIView.animate(withDuration: 0.15, animations: {
+                    UIView.animate(withDuration: 0.10, animations: {
                         self.leftImage.transform = CGAffineTransform(scaleX: 1.0, y: 1.0)
                     })
                 })
 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [unowned self] in
-                    
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [unowned self] in
                     UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
                         self.container.frame.origin.y += 200
                         self.container.alpha = 0
-
                     }, completion: { _ in
                         self.performSegue(withIdentifier: "toGame", sender: self)
                     })
@@ -207,18 +205,16 @@ class MainViewController: UIViewController {
                 })
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [unowned self] in
-                    GCHelper.sharedInstance.findMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)
-                    
-                    // maybe eventually!
-                    // GCHelper.sharedInstance.findTurnBasedMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)
+                    GCHelper.shared.findMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)
                 }
             }
             
             // link copyright text to homepage
             if kjAppsText.frame.contains(touchLocation) {
-                let url = URL(string: "http://kylejohnsonapps.com")!
-                if UIApplication.shared.canOpenURL(url) {
-                    UIApplication.shared.openURL(url)
+                if let url = URL(string: "http://kylejohnsonapps.com") {
+                    if UIApplication.shared.canOpenURL(url) {
+                        UIApplication.shared.openURL(url)
+                    }
                 }
             }
         }

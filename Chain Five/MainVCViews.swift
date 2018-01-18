@@ -11,13 +11,14 @@ import UIKit
 /// Since I'm not using storyboards, this class holds all the views needed for the Main VC.
 class MainVCViews {
 
-    let l = Layout()
+    let l = Layout.shared
     var view: UIView
     
-    // title and views
+    // main views
     var gameTitle: UIImageView
     var container: UIView
     
+    // container subviews
     var leftImage: UIImageView
     var leftText: UILabel
     var rightImage: UIImageView
@@ -33,13 +34,13 @@ class MainVCViews {
         
         // game title
         gameTitle = UIImageView(image: UIImage(named: "title"))
-        gameTitle.frame = CGRect(x: view.bounds.midX - (l.titleWidth / 2), y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
+        gameTitle.frame = CGRect(x: view.frame.midX - (l.titleWidth / 2), y: l.topMargin - l.cardSize - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
         gameTitle.contentMode = .scaleAspectFit
         view.addSubview(gameTitle)
         
         // container for all items below
         container = UIView()
-        container.frame = CGRect(x: view.bounds.midX - (l.cardSize * 5), y: l.btmMargin + l.cardSize, width: l.cardSize * 10, height: l.imgSize + l.textPadding - 9)
+        container.frame = CGRect(x: view.frame.midX - (l.cardSize * 5), y: l.btmMargin + l.cardSize, width: l.cardSize * 10, height: l.imgSize + l.textPadding - 9)
         view.addSubview(container)
         
         leftImage = UIImageView(image: UIImage(named: "left"))

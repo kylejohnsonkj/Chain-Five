@@ -11,16 +11,16 @@ import UIKit
 /// Just a fancy UIImageView. Stores details like card ID, whether it's selected, marked, and by which player.
 class Card: UIImageView {
     
-    let l = Layout()
+    let l = Layout.shared
     
     var id: String
     var index: Int
     var isSelected: Bool {
         didSet {
             if isSelected {
-                self.layer.borderWidth = l.highlight
+                layer.borderWidth = l.highlight
             } else {
-                self.layer.borderWidth = 0
+                layer.borderWidth = 0
             }
         }
     }
@@ -36,13 +36,13 @@ class Card: UIImageView {
     var isMarked: Bool {
         didSet {
             if isMarked {
-                self.subviews.forEach { $0.removeFromSuperview() }
+                subviews.forEach { $0.removeFromSuperview() }
                 
                 let color = owner == 1 ? "orange" : "blue"
                 let markerImage = UIImage(named: color)
                 marker = UIImageView(image: markerImage)
                 marker.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize)
-                self.addSubview(marker)
+                addSubview(marker)
             }
         }
     }
@@ -75,7 +75,7 @@ class Card: UIImageView {
                 let markerImage = UIImage(named: "\(color)_chain")
                 marker = UIImageView(image: markerImage)
                 marker.frame = CGRect(x: 0, y: 0, width: l.cardSize, height: l.cardSize)
-                self.addSubview(marker)
+                addSubview(marker)
                 
                 // pulse marker when checked
                 pulseMarker()
@@ -85,21 +85,21 @@ class Card: UIImageView {
     
     var isFreeSpace: Bool
     
-    init(named id: String) {
-        self.id = id
-        self.index = -1
-        self.isSelected = false
-        self.prevOwner = 0
-        self.owner = 0
-        self.isMarked = false
-        self.isMostRecent = false
-        self.isChecked = false
+    init(named name: String) {
+        id = name
+        index = -1
+        isSelected = false
+        prevOwner = 0
+        owner = 0
+        isMarked = false
+        isMostRecent = false
+        isChecked = false
         
         // mark the free spaces
         if id == "-free" {
-            self.isFreeSpace = true
+            isFreeSpace = true
         } else {
-            self.isFreeSpace = false
+            isFreeSpace = false
         }
         
         let markerImage = UIImage(named: "orange_chain")
@@ -108,7 +108,7 @@ class Card: UIImageView {
         let image = UIImage(named: id)
         super.init(image: image)
         
-        self.layer.borderColor = UIColor.green.cgColor
+        layer.borderColor = UIColor.green.cgColor
     }
     
     func pulseMarker() {
