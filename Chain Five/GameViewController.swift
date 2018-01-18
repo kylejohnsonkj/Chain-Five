@@ -67,6 +67,7 @@ class GameViewController: UIViewController {
     
     // related to deck
     let totalCards = 104
+    var timesShuffled = 0
     var cardsInDeck = [Card]() {
         didSet {
             if cardsInDeck.count == 0 {
@@ -163,15 +164,18 @@ class GameViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // set these only once per session
+        // set these only once per matchup
         beforeP1Deal = totalCards
         beforeP2Deal = totalCards - 6
         afterP2Deal = totalCards - 11
 
-        // this too
-        print("isMultiplayer: \(isMultiplayer)")
         if isMultiplayer {
             getOpponentName()
+        }
+        
+        print("isMultiplayer: \(isMultiplayer)")
+        if isMultiplayer {
+            UIApplication.shared.isIdleTimerDisabled = true
         }
         
         views = GameVCViews(view: self.view)
@@ -194,6 +198,7 @@ class GameViewController: UIViewController {
             playerTurnLabel.text = "Orange, tap when ready"
             cardsInDeck = createDeck()
             cardsInDeck = shuffleDeck()
+            timesShuffled += 1
             UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
                 self.animateItemsIntoView()
             }, completion: { _ in
@@ -755,14 +760,35 @@ class GameViewController: UIViewController {
         cardsInDeck = createDeck()
         cardsInDeck = shuffleDeck()
         
-        // shuffle it again
-        cardsInDeck = shuffleDeck()
+        // shuffle with same seed number of times needed
+        for _ in 0..<timesShuffled {
+            cardsInDeck = shuffleDeck()
+        }
+        timesShuffled += 1
+    }
+    
+    func showOutOfCardsPopup() {
+        DispatchQueue.main.async {
+            let appearance = SCLAlertView.SCLAppearance(
+                kDefaultShadowOpacity: 0,
+                kTitleTop: 12,
+                kWindowWidth: self.l.iPad ? self.l.titleWidth : 240,
+                kTitleFont: UIFont.boldSystemFont(ofSize: 14),
+                showCloseButton: false,
+                showCircularIcon: false
+            )
+            self.messagePopupView = SCLAlertView(appearance: appearance)
+            self.messagePopupView.showCustom("Out of Cards!", subTitle: "A new deck has been generated. This must be a good game!", color: UIColor.black, icon: UIImage(named: "message_white")!, closeButtonTitle: "", timeout: SCLAlertView.SCLTimeoutConfiguration(timeoutValue: 5, timeoutAction: {}), colorStyle: 0x808080, colorTextButton: 0xFFFFFF, circleIconImage: UIImage(named: "message_white")!, animationStyle: SCLAnimationStyle.topToBottom)
+        }
     }
     
     // called for player on turn
     func getNextCardFromDeck() -> Card? {
         
         if let nextCard = cardsInDeck.popLast() {
+            if cardsInDeck.count == 0 {
+                showOutOfCardsPopup()
+            }
             nextCard.frame = CGRect(x: l.leftMargin + (CGFloat(chosenCardIndex + 1) * l.cardSize), y: l.btmMargin + l.distance, width: l.cardSize, height: l.cardSize * 1.23)
             view.addSubview(nextCard)
             return nextCard
@@ -777,7 +803,10 @@ class GameViewController: UIViewController {
     func popLastCard() {
         
         if let _ = cardsInDeck.popLast() {
-            // removes card from our deck
+            // removes card from our own deck
+            if cardsInDeck.count == 0 {
+                showOutOfCardsPopup()
+            }
         } else {
             // our deck is out of cards, so get a fresh deck
             generateNewDeck()
@@ -845,7 +874,7 @@ class GameViewController: UIViewController {
         )
         menuAlertView = SCLAlertView(appearance: appearance)
         menuAlertView.addButton("Confirm", backgroundColor: UIColor.cfRed, textColor: UIColor.white) {
-            if self.isMultiplayer && GCHelper.shared.match.players.count > 0 {
+            if self.isMultiplayer && GCHelper.shared.match != nil {
                 GCHelper.shared.match.disconnect()
             }
             self.performSegue(withIdentifier: "toMain", sender: self)
@@ -1080,6 +1109,10 @@ class GameViewController: UIViewController {
         showConfetti()
         incrementGamesFinished()
         
+        if isMultiplayer {
+            UIApplication.shared.isIdleTimerDisabled = false
+        }
+        
         if currentPlayer == 1 {
             presentChainAlert(title: "It's a Chain!", message: "Orange has won the game.")
         } else {
@@ -1256,6 +1289,7 @@ class GameViewController: UIViewController {
         view.subviews.forEach({ $0.removeFromSuperview() })
         
         seed = Int()
+        timesShuffled = 0
         
         cardsOnBoard = []
         cardsInDeck = []
@@ -1281,6 +1315,11 @@ class GameViewController: UIViewController {
         rematchDenied = false
         
         messagePopupView.hideView()
+        
+        print("isMultiplayer: \(isMultiplayer)")
+        if isMultiplayer {
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
         
         views = GameVCViews(view: self.view)
 
@@ -1377,6 +1416,7 @@ extension GameViewController: GCHelperDelegate {
                         print("isHost? \(self.isHost)")
                         self.cardsInDeck = self.createDeck()
                         self.cardsInDeck = self.shuffleDeck()
+                        self.timesShuffled += 1
                         self.currentPlayer = 1
                         
                         self.drawCards()
@@ -1488,6 +1528,7 @@ extension GameViewController: GCHelperDelegate {
                     let appearance = SCLAlertView.SCLAppearance(
                         kDefaultShadowOpacity: 0,
                         kTitleTop: 12,
+                        kWindowWidth: self.l.iPad ? self.l.titleWidth : 240,
                         kTitleFont: UIFont.boldSystemFont(ofSize: 14),
                         showCloseButton: false,
                         showCircularIcon: false

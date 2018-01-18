@@ -51,7 +51,7 @@ class Layout {
             // it's an iPad, adapt for different aspect ratio
             iPad = true
             cardSize = view.frame.width / 14
-            push = cardSize * 0.70
+            push = cardSize * 0.73
         } else {
             iPad = false
             cardSize = view.frame.width / 10.7

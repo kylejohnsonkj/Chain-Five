@@ -72,7 +72,7 @@ class GameVCViews {
         view.addSubview(cardsLeftLabel)
         
         // snazzy buttons
-        menuIcon = DOFavoriteButton(frame: CGRect(x: -l.cardSize * 2, y: l.topMargin - l.distance - l.titleHeight / 2.3 - l.cardSize, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "menu"))
+        menuIcon = DOFavoriteButton(frame: CGRect(x: -l.cardSize * 2, y: l.topMargin - l.distance - l.titleHeight / 2.4 - l.cardSize, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "menu"))
         menuIcon.imageColorOff = UIColor.black
         menuIcon.imageColorOn = UIColor.cfRed
         menuIcon.circleColor = UIColor.white
@@ -80,7 +80,7 @@ class GameVCViews {
         menuIcon.accessibilityIdentifier = "menu"
         view.addSubview(menuIcon)
         
-        helpIcon = DOFavoriteButton(frame: CGRect(x: view.frame.maxX, y: l.topMargin - l.distance - l.titleHeight / 2.3 - l.cardSize, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "help"))
+        helpIcon = DOFavoriteButton(frame: CGRect(x: view.frame.maxX, y: l.topMargin - l.distance - l.titleHeight / 2.4 - l.cardSize, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "help"))
         helpIcon.imageColorOff = UIColor.black
         helpIcon.imageColorOn = UIColor.cfBlue
         helpIcon.circleColor = UIColor.white
