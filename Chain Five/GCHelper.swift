@@ -31,7 +31,7 @@ public protocol GCHelperDelegate: class {
     func matchStarted()
     
     /// Method called when the device received data about the match from another device in the match.
-    func match(_ match: GKMatch, didReceiveData: Data, fromPlayer: String)
+    func match(_ match: GKMatch, didReceive data: Data, fromRemotePlayer player: GKPlayer)
     
     /// Method called when the match has ended.
     func matchEnded()
@@ -45,8 +45,8 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     
     /// The match object provided by GameKit.
     public var match: GKMatch!
-    
     weak var delegate: GCHelperDelegate?
+    
     fileprivate var invite: GKInvite!
     fileprivate var invitedPlayer: GKPlayer!
     fileprivate var playersDict = [String: AnyObject]()
@@ -139,11 +139,11 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
      :param: viewController The view controller to present required GameKit view controllers from.
      :param: delegate The delegate receiving data from GCHelper.
      */
-    public func findMatchWithMinPlayers(_ minPlayers: Int, maxPlayers: Int, viewController: UIViewController, delegate theDelegate: GCHelperDelegate) {
+    public func findMatchWithMinPlayers(_ minPlayers: Int, maxPlayers: Int, viewController: UIViewController, delegate: GCHelperDelegate) {
         matchStarted = false
-        match = nil
+        self.match = nil
         presentingViewController = viewController
-        delegate = theDelegate
+        self.delegate = delegate
 //        presentingViewController.dismiss(animated: false, completion: nil)
         
         let request = GKMatchRequest()
@@ -157,11 +157,11 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     }
     
     /*
-    public func findTurnBasedMatchWithMinPlayers(_ minPlayers: Int, maxPlayers: Int, viewController: UIViewController, delegate theDelegate: GCHelperDelegate) {
+    public func findTurnBasedMatchWithMinPlayers(_ minPlayers: Int, maxPlayers: Int, viewController: UIViewController, delegate: GCHelperDelegate) {
         matchStarted = false
-        match = nil
+        self.match = nil
         presentingViewController = viewController
-        delegate = theDelegate
+        self.delegate = delegate
 //        presentingViewController.dismiss(animated: false, completion: nil)
 
         let request = GKMatchRequest()
@@ -314,10 +314,10 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
         })
     }
     
-    public func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFind theMatch: GKMatch) {
+    public func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFind match: GKMatch) {
         presentingViewController.dismiss(animated: true, completion: nil)
-        match = theMatch
-        match.delegate = self
+        self.match = match
+        self.match.delegate = self
         if !matchStarted && match.expectedPlayerCount == 0 {
             print("Ready to start match!")
             self.lookupPlayers()
@@ -326,33 +326,33 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     
     // MARK: GKMatchDelegate
     
-    public func match(_ theMatch: GKMatch, didReceive data: Data, fromPlayer playerID: String) {
-        if match != theMatch {
+    public func match(_ match: GKMatch, didReceive data: Data, fromRemotePlayer player: GKPlayer) {
+        if self.match != match {
             return
         }
         
-        delegate?.match(theMatch, didReceiveData: data, fromPlayer: playerID)
+        delegate?.match(match, didReceive: data, fromRemotePlayer: player)
     }
     
-    public func match(_ theMatch: GKMatch, player playerID: String, didChange state: GKPlayerConnectionState) {
-        if match != theMatch {
+    public func match(_ match: GKMatch, player: GKPlayer, didChange state: GKPlayerConnectionState) {
+        if self.match != match {
             return
         }
         
         switch state {
-        case .stateConnected where !matchStarted && theMatch.expectedPlayerCount == 0:
+        case .stateConnected where !matchStarted && match.expectedPlayerCount == 0:
             lookupPlayers()
         case .stateDisconnected:
             matchStarted = false
             delegate?.matchEnded()
-            match = nil
+            self.match = nil
         default:
             break
         }
     }
     
-    public func match(_ theMatch: GKMatch, didFailWithError error: Error?) {
-        if match != theMatch {
+    public func match(_ match: GKMatch, didFailWithError error: Error?) {
+        if self.match != match {
             return
         }
         
@@ -363,9 +363,9 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     
     // MARK: GKLocalPlayerListener
     
-    public func player(_ player: GKPlayer, didAccept inviteToAccept: GKInvite) {
+    public func player(_ player: GKPlayer, didAccept invite: GKInvite) {
         print("accepted invite!")
-        let mmvc = GKMatchmakerViewController(invite: inviteToAccept)!
+        let mmvc = GKMatchmakerViewController(invite: invite)!
         mmvc.matchmakerDelegate = self
         presentingViewController.present(mmvc, animated: true, completion: nil)
     }

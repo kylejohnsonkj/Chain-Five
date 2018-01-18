@@ -857,7 +857,7 @@ class GameViewController: UIViewController {
         helpAlertView = SCLAlertView(appearance: appearance)
         helpAlertView.addButton("Done", backgroundColor: UIColor.cfBlue, textColor: UIColor.white) {
         }
-        helpAlertView.showCustom("How to Play", subTitle: "First to 5 in a row wins! \nDiagonals included. \nCorners count as free spaces. \n\nBlack jacks can be placed anywhere open. Red jacks can remove an opponent's chip. \n\nThe white dot marks your opponent's last move. \n\nA dead card may be replaced from the deck once per turn. \n\nTip: Drag through your cards to quickly view possible placements!", color: UIColor.white, icon: UIImage(named: "help")!)
+        helpAlertView.showCustom("How to Play", subTitle: "First to 5 in a row wins! \nDiagonals included. \nCorners count as free spaces. \n\nBlack jacks can be placed anywhere open. Red jacks can remove an opponent's marker. \n\nThe white dot marks your opponent's last move. \n\nA dead card may be replaced from the deck once per turn. \n\nTip: Drag through your cards to quickly view possible placements!", color: UIColor.white, icon: UIImage(named: "help")!)
     }
     
     func presentMessageAlert() {
@@ -905,7 +905,7 @@ class GameViewController: UIViewController {
                 }
             }
         }
-        messageAlertView.showCustom("To \"\(opponentName)\"", subTitle: "Your message to \(opponentName)", color: UIColor.black, icon: UIImage(named: "message_white")!)
+        messageAlertView.showCustom("To \"\(opponentName)\"", subTitle: "Your message to \(opponentName).", color: UIColor.black, icon: UIImage(named: "message_white")!)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             messageTextField.becomeFirstResponder()
         }
@@ -1337,7 +1337,7 @@ extension GameViewController: GCHelperDelegate {
         print("matchStarted (GAME -- should never occur)")
     }
     
-    func match(_ theMatch: GKMatch, didReceiveData data: Data, fromPlayer playerID: String) {
+    func match(_ match: GKMatch, didReceive data: Data, fromRemotePlayer player: GKPlayer) {
         
         do {
             let data = try JSONSerialization.jsonObject(with: data as Data, options: JSONSerialization.ReadingOptions.allowFragments) as! NSDictionary

@@ -237,7 +237,7 @@ extension MainViewController: GCHelperDelegate {
         })
     }
     
-    func match(_ theMatch: GKMatch, didReceiveData data: Data, fromPlayer playerID: String) {
+    func match(_ match: GKMatch, didReceive data: Data, fromRemotePlayer player: GKPlayer) {
         print("ignoring received data, on menu")
     }
     
