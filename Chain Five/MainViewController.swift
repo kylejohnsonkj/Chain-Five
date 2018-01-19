@@ -54,6 +54,8 @@ class MainViewController: UIViewController {
     
     // tell Game VC if multiplayer or not
     var prepareMultiplayer = false
+    
+    // told by Main VC if conditions are met
     var reviewRequested = false
     
     // MARK: - Setup
@@ -69,7 +71,6 @@ class MainViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
         animateViews()
         
         // request review after completed game if conditions are met
@@ -92,36 +93,6 @@ class MainViewController: UIViewController {
         container.alpha = 0
     }
     
-    func animateViews() {
-        
-        // animate cards into center of screen
-        var i = 0
-        UIView.animate(withDuration: 1, animations: {
-            for row in 0...9 {
-                for col in 0...9 {
-                    self.cardsOnBoard[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * self.l.cardSize), y: self.l.topMargin + (CGFloat(row) * self.l.cardSize), width: self.l.cardSize, height: self.l.cardSize)
-                    i += 1
-                }
-            }
-            
-        }, completion: { _ in
-            // reveal bottom border when finished
-            self.bottomBorder.alpha = 1
-        })
-        
-        // animate title down
-        UIView.animate(withDuration: 0.5, delay: 0.5, options: [], animations: {
-            self.gameTitle.frame.origin.y += 200
-            self.gameTitle.alpha = 1
-        })
-        
-        // animate container up
-        UIView.animate(withDuration: 0.5, delay: 0.5, options: [], animations: {
-            self.container.frame.origin.y -= 200
-            self.container.alpha = 1
-        })
-    }
-    
     func generateBoard() {
         
         bottomBorder = views.getBottomBorder()
@@ -137,11 +108,36 @@ class MainViewController: UIViewController {
         }
     }
     
+    func animateViews() {
+        
+        // animate cards into layout
+        var i = 0
+        UIView.animate(withDuration: 1, animations: {
+            for row in 0...9 {
+                for col in 0...9 {
+                    self.cardsOnBoard[i].frame = CGRect(x: self.l.leftMargin + (CGFloat(col) * self.l.cardSize), y: self.l.topMargin + (CGFloat(row) * self.l.cardSize), width: self.l.cardSize, height: self.l.cardSize)
+                    i += 1
+                }
+            }
+            
+        }, completion: { _ in
+            // reveal bottom border when finished
+            self.bottomBorder.alpha = 1
+        })
+        
+        // animate title down and container up
+        UIView.animate(withDuration: 0.5, delay: 0.5, options: [], animations: {
+            self.gameTitle.frame.origin.y += 200
+            self.gameTitle.alpha = 1
+            self.container.frame.origin.y -= 200
+            self.container.alpha = 1
+        })
+    }
+    
     @available(iOS 10.3, *)
     func requestReview() {
+        // only allow app review request after three finished games
         let gamesFinished = UserDefaults.standard.integer(forKey: "gamesFinished")
-        
-        // only allow app review after three games have been successfully completed
         if reviewRequested && gamesFinished >= 3 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 if self.leftImage.alpha != 0.5 && self.rightImage.alpha != 0.5 {
@@ -152,10 +148,11 @@ class MainViewController: UIViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "toGame" && prepareMultiplayer == true {
+        if segue.identifier == "toGame" && prepareMultiplayer {
             if let gameVC = segue.destination as? GameViewController {
-                GCHelper.shared.delegate = gameVC
+                // tell Game VC we want a multiplayer game (and set new delegate)
                 gameVC.isMultiplayer = true
+                GCHelper.shared.delegate = gameVC
             }
         }
     }
@@ -166,12 +163,15 @@ class MainViewController: UIViewController {
         if let touch = touches.first {
             let touchLocation = touch.location(in: container)
             
+            // if "Same Device" is tapped
             if leftImage.frame.contains(touchLocation) || leftText.frame.contains(touchLocation) {
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
 
+                // fade button
                 leftImage.alpha = 0.5
                 leftText.alpha = 0.5
                 
+                // animate icon
                 UIView.animate(withDuration: 0.2, delay: 0, options: [], animations: {
                     self.leftImage.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
                 }, completion: { _ in
@@ -180,6 +180,7 @@ class MainViewController: UIViewController {
                     })
                 })
 
+                // slide off screen and enter game
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [unowned self] in
                     UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
                         self.container.frame.origin.y += 200
@@ -190,12 +191,15 @@ class MainViewController: UIViewController {
                 }
             }
             
+            // if "Online Match" is tapped
             if rightImage.frame.contains(touchLocation) || rightText.frame.contains(touchLocation) {
                 AudioServicesPlaySystemSound(Taptics.pop.rawValue)
                 
+                // fade button
                 rightImage.alpha = 0.5
                 rightText.alpha = 0.5
                 
+                // animate icon
                 UIView.animate(withDuration: 0.2, delay: 0, options: [], animations: {
                     self.rightImage.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
                 }, completion: { _ in
@@ -204,12 +208,13 @@ class MainViewController: UIViewController {
                     })
                 })
                 
+                // open Game Center to search for opponents
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [unowned self] in
                     GCHelper.shared.findMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)
                 }
             }
             
-            // link copyright text to homepage
+            // if player taps copyright info, send to website
             if kjAppsText.frame.contains(touchLocation) {
                 if let url = URL(string: "http://kylejohnsonapps.com") {
                     if UIApplication.shared.canOpenURL(url) {
@@ -230,9 +235,10 @@ class MainViewController: UIViewController {
 extension MainViewController: GCHelperDelegate {
     
     func matchStarted() {
-        print("matchStarted (MAIN)")
+        print("matchStarted")
         prepareMultiplayer = true
         
+        // slide off screen and enter game
         UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
             self.container.frame.origin.y += 200
             self.container.alpha = 0
@@ -242,11 +248,9 @@ extension MainViewController: GCHelperDelegate {
     }
     
     func match(_ match: GKMatch, didReceive data: Data, fromRemotePlayer player: GKPlayer) {
-        print("ignoring received data, on menu")
     }
     
     func matchEnded() {
-        print("ignoring match ended data, on menu")
     }
 }
 

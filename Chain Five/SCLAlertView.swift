@@ -1350,3 +1350,4 @@ class SCLAlertViewStyleKit : NSObject {
         return Cache.imageOfQuestion!
     }
 }
+

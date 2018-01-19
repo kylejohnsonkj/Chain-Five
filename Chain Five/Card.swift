@@ -37,7 +37,6 @@ class Card: UIImageView {
         didSet {
             if isMarked {
                 subviews.forEach { $0.removeFromSuperview() }
-                
                 let color = owner == 1 ? "orange" : "blue"
                 let markerImage = UIImage(named: color)
                 marker = UIImageView(image: markerImage)
@@ -47,6 +46,7 @@ class Card: UIImageView {
         }
     }
     
+    // marks opponent's last move
     var isMostRecent: Bool {
         didSet {
             var color: String
@@ -55,11 +55,11 @@ class Card: UIImageView {
             } else if owner == 2 {
                 color = "blue"
             } else {
-                // recently removed and owner == 0
+                // if recently removed (owner == 0)
                 color = prevOwner == 1 ? "blue" : "orange"
             }
             
-            if isMostRecent == true {
+            if isMostRecent {
                 marker.image = UIImage(named: "\(color)_recent")
             } else {
                 marker.image = UIImage(named: color)

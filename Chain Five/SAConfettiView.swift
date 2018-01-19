@@ -122,3 +122,4 @@ public class SAConfettiView: UIView {
         emitter?.emitterSize = CGSize(width: bounds.width, height: 1)
     }
 }
+

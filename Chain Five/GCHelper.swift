@@ -1,8 +1,8 @@
 // GCHelper.swift (v. 0.5.1)
 //
-// Copyright (c) 2017 Jack Cook
+// Copyright (c) 2017 Jack Cook.
 // https://github.com/jackcook/GCHelper
-// Customized by Kyle Johnson
+// Customized by Kyle Johnson.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -297,7 +297,7 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     
     public func matchmakerViewControllerWasCancelled(_ viewController: GKMatchmakerViewController) {
         presentingViewController.dismiss(animated: true, completion: {
-            if let mainVC = UIApplication.getPresentedViewController() as? MainViewController {
+            if let mainVC = UIApplication.getCurrentViewController() as? MainViewController {
                 mainVC.rightImage.alpha = 1
                 mainVC.rightText.alpha = 1
             }
@@ -307,7 +307,7 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     public func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFailWithError error: Error) {
         print("Error finding match: \(error.localizedDescription)")
         presentingViewController.dismiss(animated: true, completion: {
-            if let mainVC = UIApplication.getPresentedViewController() as? MainViewController {
+            if let mainVC = UIApplication.getCurrentViewController() as? MainViewController {
                 mainVC.rightImage.alpha = 1
                 mainVC.rightText.alpha = 1
             }
@@ -364,7 +364,7 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     // MARK: GKLocalPlayerListener
     
     public func player(_ player: GKPlayer, didAccept invite: GKInvite) {
-        print("accepted invite!")
+        print("Accepted invite!")
         let mmvc = GKMatchmakerViewController(invite: invite)!
         mmvc.matchmakerDelegate = self
         presentingViewController.present(mmvc, animated: true, completion: nil)

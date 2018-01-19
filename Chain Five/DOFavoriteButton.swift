@@ -395,3 +395,4 @@ open class DOFavoriteButton: UIButton {
         lines[4].removeAllAnimations()
     }
 }
+

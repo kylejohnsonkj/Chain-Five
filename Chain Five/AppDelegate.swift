@@ -14,12 +14,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        printVersionInfo()
+        printAppVersion()
         GCHelper.shared.authenticateLocalUser()
         return true
     }
     
-    func printVersionInfo() {
+    func printAppVersion() {
         if let info = Bundle.main.infoDictionary {
             if let version = info["CFBundleShortVersionString"] as? String {
                 print("Chain Five v\(version)")
@@ -29,12 +29,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 
 extension UIApplication {
-    class func getPresentedViewController() -> UIViewController? {
-        var presentedViewController = UIApplication.shared.keyWindow?.rootViewController
-        while let presentedVC = presentedViewController?.presentedViewController {
-            presentedViewController = presentedVC
+    class func getCurrentViewController() -> UIViewController? {
+        var currentVC = UIApplication.shared.keyWindow?.rootViewController
+        while let presentedVC = currentVC?.presentedViewController {
+            currentVC = presentedVC
         }
-        return presentedViewController
+        return currentVC
     }
 }
 

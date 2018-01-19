@@ -26,7 +26,7 @@ class MainVCViews {
     var divider: UIView
     var kjAppsText: UILabel
     
-    // board
+    // board related
     var bottomBorder: UIView
     
     init(view: UIView) {
@@ -34,13 +34,13 @@ class MainVCViews {
         
         // game title
         gameTitle = UIImageView(image: UIImage(named: "title"))
-        gameTitle.frame = CGRect(x: view.frame.midX - (l.titleWidth / 2), y: l.topMargin - l.distance - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
+        gameTitle.frame = CGRect(x: view.frame.midX - l.titleWidth / 2, y: l.topMargin - l.distance - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
         gameTitle.contentMode = .scaleAspectFit
         view.addSubview(gameTitle)
         
         // container for all items below
         container = UIView()
-        container.frame = CGRect(x: view.frame.midX - (l.cardSize * 5), y: l.btmMargin + l.distance, width: l.cardSize * 10, height: l.imgSize * 0.6 + l.cardSize * 0.6)
+        container.frame = CGRect(x: view.frame.midX - l.cardSize * 5, y: l.btmMargin + l.distance, width: l.cardSize * 10, height: l.imgSize * 0.6 + l.cardSize * 0.6)
         view.addSubview(container)
         
         leftImage = UIImageView(image: UIImage(named: "left"))
@@ -63,26 +63,26 @@ class MainVCViews {
         rightText = UILabel()
         rightText.text = "Online Match"
         rightText.font = UIFont(name: "GillSans", size: l.cardSize / 2)
-        rightText.frame = CGRect(x: container.bounds.midX + l.offset, y: leftImage.frame.height + l.textPadding , width: l.itemWidth, height: l.cardSize * 0.6)
+        rightText.frame = CGRect(x: container.bounds.midX + l.offset, y: leftImage.frame.height + l.textPadding, width: l.itemWidth, height: l.cardSize * 0.6)
         rightText.textAlignment = .center
         container.addSubview(rightText)
         
         divider = UIView()
-        divider.frame = CGRect(x: container.bounds.midX - l.stroke, y: -l.cardSize / 10, width: 2 * l.stroke, height: l.imgSize * 0.6 + l.cardSize * 0.7 + l.textPadding)
+        divider.frame = CGRect(x: container.bounds.midX - l.stroke, y: -l.cardSize * 0.1, width: l.stroke * 2, height: l.imgSize * 0.6 + l.textPadding + l.cardSize * 0.7)
         divider.backgroundColor = .black
         container.addSubview(divider)
         
         kjAppsText = UILabel()
         kjAppsText.text = "© Kyle Johnson Apps"
         kjAppsText.font = UIFont(name: "GillSans", size: l.cardSize / 3)
-        kjAppsText.frame = CGRect(x: container.bounds.midX - l.itemWidth / 2, y: l.imgSize * 0.6 + l.cardSize * 0.7 + l.textPadding + l.distance * 0.65, width: l.itemWidth, height: l.cardSize * 0.4)
+        kjAppsText.frame = CGRect(x: container.bounds.midX - l.itemWidth / 2, y: l.imgSize * 0.6 + l.textPadding + l.cardSize * 0.7 + l.distance * 0.7, width: l.itemWidth, height: l.cardSize * 0.4)
         kjAppsText.textAlignment = .center
         container.addSubview(kjAppsText)
         
         // adds black line below bottom row of cards
         bottomBorder = UIView()
         bottomBorder.frame = CGRect(x: l.leftMargin, y: l.btmMargin, width: l.cardSize * 10, height: l.stroke)
-        bottomBorder.layer.backgroundColor = UIColor.black.cgColor
+        bottomBorder.backgroundColor = .black
         view.addSubview(bottomBorder)
         bottomBorder.alpha = 0
     }
@@ -95,7 +95,7 @@ class MainVCViews {
         return container
     }
     
-    // tuples FTW
+    // tuples FTW!
     func getContainerSubviews() -> (UIImageView, UILabel, UIImageView, UILabel, UIView, UILabel) {
         return (leftImage, leftText, rightImage, rightText, divider, kjAppsText)
     }

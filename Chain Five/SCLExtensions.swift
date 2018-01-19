@@ -49,5 +49,5 @@ extension String {
         
         return boundingBox.height
     }
-    
 }
+

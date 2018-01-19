@@ -27,7 +27,7 @@ class GameVCViews {
     var helpIcon: DOFavoriteButton
     var messageIcon: DOFavoriteButton
     
-    // board
+    // board related
     var bottomBorder: UIView
     var jackOutline: UIView
     
@@ -36,7 +36,7 @@ class GameVCViews {
         
         // title
         gameTitle = UIImageView(image: UIImage(named: "title"))
-        gameTitle.frame = CGRect(x: view.frame.midX - (l.titleWidth / 2), y: l.topMargin - l.distance - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
+        gameTitle.frame = CGRect(x: view.frame.midX - l.titleWidth / 2, y: l.topMargin - l.distance - l.titleHeight, width: l.titleWidth, height: l.titleHeight)
         gameTitle.contentMode = .scaleAspectFit
         view.addSubview(gameTitle)
         
@@ -46,7 +46,7 @@ class GameVCViews {
         view.addSubview(playerIndicator)
         
         playerTurnLabel = UILabel()
-        playerTurnLabel.text = "Choosing host..."  // placeholder
+        playerTurnLabel.text = "Choosing host..."
         playerTurnLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
         playerTurnLabel.frame = CGRect(x: -l.itemWidth * 2, y: l.btmMargin + l.distance + l.cardSize * 1.46, width: l.cardSize * 5.6, height: l.cardSize)
         playerTurnLabel.textAlignment = .left
@@ -58,7 +58,7 @@ class GameVCViews {
         view.addSubview(deck)
         
         deckOutline = UIView()
-        deckOutline.frame = CGRect(x: l.leftMargin + l.cardSize * 8 - l.highlight, y: l.btmMargin + l.distance + l.cardSize * 1.23 - l.highlight, width: l.cardSize + (2 * l.highlight), height: l.cardSize * 1.4 + (l.highlight * 2))
+        deckOutline.frame = CGRect(x: l.leftMargin + l.cardSize * 8 - l.highlight, y: l.btmMargin + l.distance + l.cardSize * 1.23 - l.highlight, width: l.cardSize + l.highlight * 2, height: l.cardSize * 1.4 + l.highlight * 2)
         deckOutline.layer.borderColor = UIColor.green.cgColor
         deckOutline.layer.borderWidth = 0
         view.addSubview(deckOutline)
@@ -98,7 +98,6 @@ class GameVCViews {
         messageIcon.alpha = 0
         view.addSubview(messageIcon)
         
-        // for board
         // adds black line below bottom row of cards
         bottomBorder = UIView()
         bottomBorder.frame = CGRect(x: l.leftMargin, y: l.btmMargin, width: l.cardSize * 10, height: l.stroke)
@@ -107,7 +106,7 @@ class GameVCViews {
         
         // used for jack highlighting
         jackOutline = UIView()
-        jackOutline.frame = CGRect(x: l.leftMargin - l.highlight, y: l.topMargin - l.highlight, width: (l.cardSize * 10) + (2 * l.highlight), height: (l.cardSize * 10) + (l.highlight * 2) + l.stroke)
+        jackOutline.frame = CGRect(x: l.leftMargin - l.highlight, y: l.topMargin - l.highlight, width: l.cardSize * 10 + l.highlight * 2, height: l.cardSize * 10 + l.highlight * 2 + l.stroke)
         jackOutline.layer.borderColor = UIColor.green.cgColor
         jackOutline.layer.borderWidth = 0
         view.addSubview(jackOutline)
