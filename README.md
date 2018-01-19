@@ -1,5 +1,5 @@
 # Chain Five
-WIP: Recreating one of my favorite board games, Sequence. Now in Swift!
+A classic board and card game. Written in Swift!
 
 <img src="preview.png" width="785" height="292" />
 
