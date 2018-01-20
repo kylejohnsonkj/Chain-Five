@@ -1,5 +1,5 @@
 # Chain Five
-A classic card and board game. Written in Swift!
+Multiplayer card and board game. Written in Swift!
 
 <img src="preview.png" width="785" height="292" />
 
