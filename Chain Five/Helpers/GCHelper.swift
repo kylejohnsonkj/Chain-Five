@@ -101,7 +101,7 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
             }
             
             for player in players {
-                print("Found player: \(String(describing: player.alias))")
+                print("Found player: \(String(describing: player.alias!))")
                 self.playersDict[player.playerID!] = player
             }
             
