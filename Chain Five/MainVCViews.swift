@@ -43,7 +43,7 @@ class MainVCViews {
         container.frame = CGRect(x: view.frame.midX - l.cardSize * 5, y: l.btmMargin + l.distance, width: l.cardSize * 10, height: l.imgSize * 0.6 + l.cardSize * 0.6)
         view.addSubview(container)
         
-        leftImage = UIImageView(image: UIImage(named: "left"))
+        leftImage = UIImageView(image: UIImage(named: "main_left"))
         leftImage.frame = CGRect(x: container.bounds.midX - l.offset - l.itemWidth, y: 0, width: l.itemWidth, height: l.imgSize * 0.6)
         leftImage.contentMode = .scaleAspectFit
         container.addSubview(leftImage)
@@ -55,7 +55,7 @@ class MainVCViews {
         leftText.textAlignment = .center
         container.addSubview(leftText)
         
-        rightImage = UIImageView(image: UIImage(named: "right"))
+        rightImage = UIImageView(image: UIImage(named: "main_right"))
         rightImage.frame = CGRect(x: container.bounds.midX + l.offset, y: 0, width: l.itemWidth, height: l.imgSize * 0.6)
         rightImage.contentMode = .scaleAspectFit
         container.addSubview(rightImage)

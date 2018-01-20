@@ -794,7 +794,7 @@ class GameViewController: UIViewController {
                 showCircularIcon: false
             )
             self.messagePopupView = SCLAlertView(appearance: appearance)
-            self.messagePopupView.showCustom("Out of Cards!", subTitle: "A new deck has been generated. This must be a good game!", color: UIColor.black, icon: UIImage(named: "message_white")!, closeButtonTitle: "", timeout: SCLAlertView.SCLTimeoutConfiguration(timeoutValue: 5, timeoutAction: {}), colorStyle: 0x808080, colorTextButton: 0xFFFFFF, circleIconImage: UIImage(named: "message_white")!, animationStyle: SCLAnimationStyle.topToBottom)
+            self.messagePopupView.showCustom("Out of Cards!", subTitle: "A new deck has been generated. This must be a good game!", color: UIColor.black, icon: UIImage(named: "alert_message")!, closeButtonTitle: "", timeout: SCLAlertView.SCLTimeoutConfiguration(timeoutValue: 5, timeoutAction: {}), colorStyle: 0x808080, colorTextButton: 0xFFFFFF, circleIconImage: UIImage(named: "alert_message")!, animationStyle: SCLAnimationStyle.topToBottom)
         }
     }
     
@@ -903,7 +903,7 @@ class GameViewController: UIViewController {
         }
         menuAlertView.addButton("Cancel", backgroundColor: UIColor.gray, textColor: UIColor.white) {
         }
-        menuAlertView.showCustom("Exit to menu?", subTitle: "This will end the current game in progress.", color: UIColor.white, icon: UIImage(named: "menu")!)
+        menuAlertView.showCustom("Exit to menu?", subTitle: "This will end the current game in progress.", color: UIColor.white, icon: UIImage(named: "alert_menu")!)
     }
     
     // show game tutorial
@@ -916,7 +916,7 @@ class GameViewController: UIViewController {
         helpAlertView = SCLAlertView(appearance: appearance)
         helpAlertView.addButton("Done", backgroundColor: UIColor.cfBlue, textColor: UIColor.white) {
         }
-        helpAlertView.showCustom("How to Play", subTitle: "First to 5 in a row wins!\n(Diagonals included)\nCorners count as free spaces.\n\nBlack jacks can be placed anywhere open. Red jacks can remove an opponent's marker.\n\nThe white dot marks your opponent's last move.\n\nA dead card may be replaced from the deck once per turn.\n\nTip: Drag through your cards to quickly view possible placements!", color: UIColor.white, icon: UIImage(named: "help")!)
+        helpAlertView.showCustom("How to Play", subTitle: "First to 5 in a row wins!\n(Diagonals included)\nCorners count as free spaces.\n\nBlack jacks can be placed anywhere open. Red jacks can remove an opponent's marker.\n\nThe white dot marks your opponent's last move.\n\nA dead card may be replaced from the deck once per turn.\n\nTip: Drag through your cards to quickly view possible placements!", color: UIColor.white, icon: UIImage(named: "alert_help")!)
     }
     
     // compose message view
@@ -957,7 +957,7 @@ class GameViewController: UIViewController {
                 self.presentChainAlert()
             }
         }
-        messageAlertView.showCustom("To \"\(opponentName)\"", subTitle: "Your message to \(opponentName).", color: UIColor.black, icon: UIImage(named: "message_white")!)
+        messageAlertView.showCustom("To \"\(opponentName)\"", subTitle: "Your message to \(opponentName).", color: UIColor.black, icon: UIImage(named: "alert_message")!)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             messageTextField.becomeFirstResponder()
         }
@@ -1559,7 +1559,7 @@ extension GameViewController: GCHelperDelegate {
                         showCircularIcon: false
                     )
                     self.messagePopupView = SCLAlertView(appearance: appearance)
-                    self.messagePopupView.showCustom("From \"\(self.opponentName)\"", subTitle: message, color: UIColor.black, icon: UIImage(named: "message_white")!, closeButtonTitle: "", timeout: SCLAlertView.SCLTimeoutConfiguration(timeoutValue: 5, timeoutAction: {}), colorStyle: 0x808080, colorTextButton: 0xFFFFFF, circleIconImage: UIImage(named: "message_white")!, animationStyle: SCLAnimationStyle.topToBottom)
+                    self.messagePopupView.showCustom("From \"\(self.opponentName)\"", subTitle: message, color: UIColor.black, icon: UIImage(named: "alert_message")!, closeButtonTitle: "", timeout: SCLAlertView.SCLTimeoutConfiguration(timeoutValue: 5, timeoutAction: {}), colorStyle: 0x808080, colorTextButton: 0xFFFFFF, circleIconImage: UIImage(named: "alert_message")!, animationStyle: SCLAnimationStyle.topToBottom)
                 }
             }
             

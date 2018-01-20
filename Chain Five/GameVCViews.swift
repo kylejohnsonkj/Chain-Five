@@ -72,7 +72,7 @@ class GameVCViews {
         view.addSubview(cardsLeftLabel)
         
         // snazzy buttons
-        menuIcon = DOFavoriteButton(frame: CGRect(x: -l.cardSize * 2, y: l.topMargin - l.distance - l.titleHeight / 2.4 - l.cardSize, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "menu"))
+        menuIcon = DOFavoriteButton(frame: CGRect(x: -l.cardSize * 2, y: l.topMargin - l.distance - l.titleHeight / 2.4 - l.cardSize, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "icon_menu"))
         menuIcon.imageColorOff = UIColor.black
         menuIcon.imageColorOn = UIColor.cfRed
         menuIcon.circleColor = UIColor.white
@@ -80,7 +80,7 @@ class GameVCViews {
         menuIcon.accessibilityIdentifier = "menu"
         view.addSubview(menuIcon)
         
-        helpIcon = DOFavoriteButton(frame: CGRect(x: view.frame.maxX, y: l.topMargin - l.distance - l.titleHeight / 2.4 - l.cardSize, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "help"))
+        helpIcon = DOFavoriteButton(frame: CGRect(x: view.frame.maxX, y: l.topMargin - l.distance - l.titleHeight / 2.4 - l.cardSize, width: l.cardSize * 2, height: l.cardSize * 2), image: UIImage(named: "icon_help"))
         helpIcon.imageColorOff = UIColor.black
         helpIcon.imageColorOn = UIColor.cfBlue
         helpIcon.circleColor = UIColor.white
@@ -89,7 +89,7 @@ class GameVCViews {
         view.addSubview(helpIcon)
         
         // multiplayer only
-        messageIcon = DOFavoriteButton(frame: CGRect(x: l.leftMargin + l.cardSize * 6.9 - l.cardSize * 0.45, y: l.btmMargin + l.distance + l.cardSize * 1.46 + l.cardSize * 0.05 - l.cardSize * 0.45, width: l.cardSize * 1.8, height: l.cardSize * 1.8), image: UIImage(named: "message"))
+        messageIcon = DOFavoriteButton(frame: CGRect(x: l.leftMargin + l.cardSize * 6.9 - l.cardSize * 0.45, y: l.btmMargin + l.distance + l.cardSize * 1.46 + l.cardSize * 0.05 - l.cardSize * 0.45, width: l.cardSize * 1.8, height: l.cardSize * 1.8), image: UIImage(named: "icon_message"))
         messageIcon.imageColorOff = UIColor.black
         messageIcon.imageColorOn = UIColor.cfGreen
         messageIcon.circleColor = UIColor.white
