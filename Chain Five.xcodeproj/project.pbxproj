@@ -62,7 +62,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		E5234A22200C0CDC0047BBA9 /* Helpers */ = {
+		E573FC702012E45800ABFCA7 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
 				E52B2AB420030F5100C03B81 /* GCHelper.swift */,
@@ -71,7 +71,7 @@
 				E59F9C23200AB609000A58DD /* SCLExtensions.swift */,
 				E5234A25200C0DC10047BBA9 /* DOFavoriteButton.swift */,
 			);
-			name = Helpers;
+			path = Helpers;
 			sourceTree = "<group>";
 		};
 		E5C63C482003E48A00FEF710 /* Frameworks */ = {
@@ -111,7 +111,7 @@
 				E511BB90200850F1004B1936 /* GameVCViews.swift */,
 				E505403D1FD25B2F0040F5F4 /* Card.swift */,
 				E5A53F841FD3D14E00B109A1 /* ChainDetector.swift */,
-				E5234A22200C0CDC0047BBA9 /* Helpers */,
+				E573FC702012E45800ABFCA7 /* Helpers */,
 				E5EF7C701FC7C4DE00E09193 /* Main.storyboard */,
 				E5EF7C751FC7C4DE00E09193 /* LaunchScreen.storyboard */,
 				E5EF7C731FC7C4DE00E09193 /* Assets.xcassets */,

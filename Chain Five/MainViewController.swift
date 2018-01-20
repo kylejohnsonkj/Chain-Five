@@ -55,7 +55,7 @@ class MainViewController: UIViewController {
     // tell Game VC if multiplayer or not
     var prepareMultiplayer = false
     
-    // told by Main VC if conditions are met
+    // set by Main VC after game
     var reviewRequested = false
     
     // MARK: - Setup
@@ -63,6 +63,7 @@ class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        UIApplication.shared.isIdleTimerDisabled = false
         views = MainVCViews(view: self.view)
         
         generateTitleAndViews()
@@ -119,7 +120,6 @@ class MainViewController: UIViewController {
                     i += 1
                 }
             }
-            
         }, completion: { _ in
             // reveal bottom border when finished
             self.bottomBorder.alpha = 1
@@ -136,7 +136,7 @@ class MainViewController: UIViewController {
     
     @available(iOS 10.3, *)
     func requestReview() {
-        // only allow app review request after three finished games
+        // only allow review request after three finished games
         let gamesFinished = UserDefaults.standard.integer(forKey: "gamesFinished")
         if reviewRequested && gamesFinished >= 3 {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {

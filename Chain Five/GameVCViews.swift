@@ -8,7 +8,7 @@
 
 import UIKit
 
-/// Since I'm not using storyboards, this class holds all the views needed for the Game VC.
+/// This class holds all the views needed for the Game Screen.
 class GameVCViews {
     
     let l = Layout.shared
@@ -64,7 +64,7 @@ class GameVCViews {
         view.addSubview(deckOutline)
         
         cardsLeftLabel = UILabel()
-        cardsLeftLabel.text = "99"  // placeholder
+        cardsLeftLabel.text = "99"
         cardsLeftLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
         cardsLeftLabel.frame = CGRect(x: l.leftMargin + l.cardSize * 9.25, y: l.btmMargin + l.distance + l.cardSize * 1.46, width: l.cardSize * 0.75, height: l.cardSize)
         cardsLeftLabel.textAlignment = .left

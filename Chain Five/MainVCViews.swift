@@ -8,7 +8,7 @@
 
 import UIKit
 
-/// Since I'm not using storyboards, this class holds all the views needed for the Main VC.
+/// This class holds all the views needed for the Main Menu.
 class MainVCViews {
 
     let l = Layout.shared
