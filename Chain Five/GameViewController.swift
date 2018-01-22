@@ -948,13 +948,17 @@ class GameViewController: UIViewController {
             } catch {
                 print("An unknown error occured while sending data")
             }
-            if self.gameOver.superview != nil {
-                self.presentChainAlert()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                if self.gameOver.superview != nil {
+                    self.presentChainAlert()
+                }
             }
         }
         messageAlertView.addButton("Cancel", backgroundColor: UIColor.gray, textColor: UIColor.white) {
-            if self.gameOver.superview != nil {
-                self.presentChainAlert()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                if self.gameOver.superview != nil {
+                    self.presentChainAlert()
+                }
             }
         }
         messageAlertView.showCustom("To \"\(opponentName)\"", subTitle: "Your message to \(opponentName).", color: UIColor.black, icon: UIImage(named: "alert_message")!)
@@ -1183,7 +1187,9 @@ class GameViewController: UIViewController {
         chainAlertView = SCLAlertView(appearance: appearance)
         if isMultiplayer {
             chainAlertView.addButton("Send a Message", backgroundColor: UIColor.cfGreen, textColor: UIColor.white) {
-                self.presentMessageAlert()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    self.presentMessageAlert()
+                }
             }
             chainAlertView.addButton("Rematch!", backgroundColor: UIColor.cfBlue, textColor: UIColor.white) {
                 if self.rematchDenied == false {
