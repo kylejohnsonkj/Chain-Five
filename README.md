@@ -1,6 +1,8 @@
 # Chain Five
 Multiplayer card and board game. Written in Swift!
 
+App Store link: https://itunes.apple.com/us/app/chain-five/id1325490441
+
 <img src="preview.png" width="785" height="292" />
 
 # License
