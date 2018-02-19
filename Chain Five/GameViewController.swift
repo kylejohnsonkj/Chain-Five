@@ -915,7 +915,7 @@ class GameViewController: UIViewController {
         helpAlertView = SCLAlertView(appearance: appearance)
         helpAlertView.addButton("Done", backgroundColor: UIColor.cfBlue, textColor: UIColor.white) {
         }
-        helpAlertView.showCustom("How to Play", subTitle: "Tap your cards to view possible placements. Tap any highlighted location to make your move.\n\n☆ Corners = FREE spaces.\n\nBlack jacks can be placed anywhere open. Red jacks can remove an opponent's marker.\n\nA dead card may be replaced from the deck once per turn.\n\nThe first player to get 5 in a row wins the game! :)", color: UIColor.white, icon: UIImage(named: "alert_help")!)
+        helpAlertView.showCustom("How to Play", subTitle: "Tap your cards to view possible placements. Tap any highlighted location to make your move.\n\n☆ Corners = FREE spaces.\n\nBlack jacks can be placed anywhere open. Red jacks can remove an opponent's marker.\n\nA dead card may be replaced from the deck once per turn.\n\nThe first player to get 5 in a row wins the game!", color: UIColor.white, icon: UIImage(named: "alert_help")!)
     }
 
     // compose message view
