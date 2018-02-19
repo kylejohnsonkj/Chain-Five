@@ -8,7 +8,7 @@
 
 import UIKit
 
-/// Everything needed for my custom AutoLayout.
+/// Everything needed for my custom layout.
 class Layout {
     
     // primary scale indicators
@@ -36,6 +36,7 @@ class Layout {
     var itemWidth: CGFloat
     var highlight: CGFloat
     
+    // shared instance for multiple classes
     public class var shared: Layout {
         struct Static {
             static let instance = Layout()

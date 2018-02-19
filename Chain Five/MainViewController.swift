@@ -181,7 +181,7 @@ class MainViewController: UIViewController {
                 })
 
                 // slide off screen and enter game
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [unowned self] in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
                         self.container.frame.origin.y += 200
                         self.container.alpha = 0
@@ -209,7 +209,7 @@ class MainViewController: UIViewController {
                 })
                 
                 // open Game Center to search for opponents
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [unowned self] in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     GCHelper.shared.findMatchWithMinPlayers(2, maxPlayers: 2, viewController: self, delegate: self)
                 }
             }

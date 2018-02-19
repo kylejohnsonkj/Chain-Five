@@ -14,9 +14,16 @@ class ChainDetector {
     func isValidChain(_ cardsOnBoard: [Card], _ currentPlayer: Int) -> (Bool, [Int]) {
         
         var winningIndices: [Int] = []
+        var length = Int() {
+            didSet {
+                if length == 0 {
+                    winningIndices = []
+                }
+            }
+        }
         
         // MARK: - Horizontal Chains
-        var length = 0
+        length = 0
         for column in 0..<10 {
             for row in 0..<10 {
                 let current = (column * 10) + row
@@ -28,7 +35,6 @@ class ChainDetector {
                     winningIndices.append(current)
                 } else {
                     length = 0
-                    winningIndices = []
                 }
                 if length == chain {
                     print("horizontal chain")
@@ -38,7 +44,6 @@ class ChainDetector {
             }
             length = 0
         }
-        winningIndices = []
         
         // MARK: - Vertical Chains
         length = 0
@@ -53,7 +58,6 @@ class ChainDetector {
                     winningIndices.append(current)
                 } else {
                     length = 0
-                    winningIndices = []
                 }
                 if length == chain {
                     print("vertical chain")
@@ -63,11 +67,10 @@ class ChainDetector {
             }
             length = 0
         }
-        winningIndices = []
         
         // MARK: - Diagonal Chains
         var iterations: Int
-
+        
         // left up right
         length = 0
         iterations = 0
@@ -82,7 +85,6 @@ class ChainDetector {
                     winningIndices.append(current)
                 } else {
                     length = 0
-                    winningIndices = []
                 }
                 if length == chain {
                     print("diagonal left up right")
@@ -95,7 +97,6 @@ class ChainDetector {
             length = 0
             iterations = 0
         }
-        winningIndices = []
         
         // btm up right
         length = 0
@@ -111,7 +112,6 @@ class ChainDetector {
                     winningIndices.append(current)
                 } else {
                     length = 0
-                    winningIndices = []
                 }
                 if length == chain {
                     print("diagonal btm up right")
@@ -124,7 +124,6 @@ class ChainDetector {
             length = 0
             iterations = 0
         }
-        winningIndices = []
         
         // left down right
         length = 0
@@ -140,7 +139,6 @@ class ChainDetector {
                     winningIndices.append(current)
                 } else {
                     length = 0
-                    winningIndices = []
                 }
                 if length == chain {
                     print("diagonal left down right")
@@ -153,7 +151,6 @@ class ChainDetector {
             length = 0
             iterations = 0
         }
-        winningIndices = []
         
         // top down right
         length = 0
@@ -169,7 +166,6 @@ class ChainDetector {
                     winningIndices.append(current)
                 } else {
                     length = 0
-                    winningIndices = []
                 }
                 if length == chain {
                     print("diagonal top down right")
@@ -182,7 +178,6 @@ class ChainDetector {
             length = 0
             iterations = 0
         }
-        winningIndices = []
         
         return (false, winningIndices)
     }

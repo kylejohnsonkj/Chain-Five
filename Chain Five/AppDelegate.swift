@@ -14,12 +14,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        printAppVersion()
+        printApplicationVersion()
         GCHelper.shared.authenticateLocalUser()
         return true
     }
     
-    func printAppVersion() {
+    func printApplicationVersion() {
         if let info = Bundle.main.infoDictionary {
             if let version = info["CFBundleShortVersionString"] as? String {
                 print("Chain Five v\(version)")

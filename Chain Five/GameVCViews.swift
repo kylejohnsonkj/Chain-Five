@@ -46,7 +46,7 @@ class GameVCViews {
         view.addSubview(playerIndicator)
         
         playerTurnLabel = UILabel()
-        playerTurnLabel.text = "Choosing host..."
+        playerTurnLabel.text = "Your turn"
         playerTurnLabel.font = UIFont(name: "GillSans", size: l.cardSize / 2)
         playerTurnLabel.frame = CGRect(x: -l.itemWidth * 2, y: l.btmMargin + l.distance + l.cardSize * 1.46, width: l.cardSize * 5.6, height: l.cardSize)
         playerTurnLabel.textAlignment = .left
