@@ -1377,7 +1377,6 @@ class GameViewController: UIViewController {
         }
         
         views = GameVCViews(view: self.view)
-
         generateTitleAndViews()
         generateBoard()
         generateRandomSeed()
@@ -1458,6 +1457,14 @@ extension UIColor {
 extension GameViewController: GCHelperDelegate {
     
     func matchStarted() {
+        // called when game invite is accepted in-game
+        if GCHelper.shared.match != nil {
+            isMultiplayer = true
+            getOpponentName()
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
+        
+        reloadGame()
     }
     
     func match(_ match: GKMatch, didReceive data: Data, fromRemotePlayer player: GKPlayer) {
