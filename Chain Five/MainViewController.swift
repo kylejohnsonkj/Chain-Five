@@ -238,6 +238,7 @@ extension MainViewController: GCHelperDelegate {
     }
     
     func matchEnded() {
+        print("matchEnded")
     }
 }
 

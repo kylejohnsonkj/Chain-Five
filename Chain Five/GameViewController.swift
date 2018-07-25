@@ -1457,6 +1457,8 @@ extension UIColor {
 extension GameViewController: GCHelperDelegate {
     
     func matchStarted() {
+        print("matchStarted")
+        
         // called when game invite is accepted in-game
         if GCHelper.shared.match != nil {
             isMultiplayer = true
