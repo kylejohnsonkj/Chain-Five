@@ -8,7 +8,6 @@
 
 import UIKit
 import AudioToolbox
-import StoreKit
 import GameKit
 
 // MARK: - Main
@@ -18,7 +17,6 @@ class MainViewController: UIViewController {
     
     // MARK: - Instance Variables
     
-    // board layout
     let cardsLayout = ["-free", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "-free",
                        "D10", "D13", "C6", "C5", "C4", "H4", "H5", "H6", "S13", "S10",
                        "D9", "D6", "D12", "C3", "C2", "H2", "H3", "S12", "S6", "S9",
@@ -52,32 +50,35 @@ class MainViewController: UIViewController {
     var divider = UIView()
     var kjAppsText = UILabel()
     
-    // tell Game VC if multiplayer or not
-    var prepareMultiplayer = false
-    
-    // set by Main VC after game
-    var reviewRequested = false
-    
     // MARK: - Setup
+    
+    deinit {
+        print("MainViewController: deinit called")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        UIApplication.shared.isIdleTimerDisabled = false
-        views = MainVCViews(view: self.view)
-        
-        generateTitleAndViews()
-        generateBoard()
+        print("MainViewController: viewDidLoad() called")
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        animateViews()
+        print("MainViewController: viewDidAppear() called")
         
-        // request review after completed game if conditions are met
-        if #available(iOS 10.3, *) {
-            requestReview()
-        }
+        UIApplication.shared.isIdleTimerDisabled = false
+        
+        gameTitle.removeFromSuperview()
+        container.removeFromSuperview()
+        bottomBorder.removeFromSuperview()
+        _ = cardsOnBoard.map { $0.removeFromSuperview() }
+        cardsOnBoard.removeAll()
+        
+        views = MainVCViews(view: self.view)
+        GCHelper.shared.delegate = self
+        
+        generateTitleAndViews()
+        generateBoard()
+        animateViews()
     }
     
     func generateTitleAndViews() {
@@ -132,29 +133,6 @@ class MainViewController: UIViewController {
             self.container.frame.origin.y -= 200
             self.container.alpha = 1
         })
-    }
-    
-    @available(iOS 10.3, *)
-    func requestReview() {
-        // only allow review request after three finished games
-        let gamesFinished = UserDefaults.standard.integer(forKey: "gamesFinished")
-        if reviewRequested && gamesFinished >= 3 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                if self.leftImage.alpha != 0.5 && self.rightImage.alpha != 0.5 {
-                    SKStoreReviewController.requestReview()
-                }
-            }
-        }
-    }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "toGame" && prepareMultiplayer {
-            if let gameVC = segue.destination as? GameViewController {
-                // tell Game VC we want a multiplayer game (and set new delegate)
-                gameVC.isMultiplayer = true
-                GCHelper.shared.delegate = gameVC
-            }
-        }
     }
 
     // MARK: - Touch Events
@@ -236,8 +214,7 @@ extension MainViewController: GCHelperDelegate {
     
     func matchStarted() {
         print("matchStarted")
-        prepareMultiplayer = true
-        
+
         // slide off screen and enter game
         UIView.animate(withDuration: 0.5, delay: 0, options: [], animations: {
             self.container.frame.origin.y += 200
@@ -248,6 +225,16 @@ extension MainViewController: GCHelperDelegate {
     }
     
     func match(_ match: GKMatch, didReceive data: Data, fromRemotePlayer player: GKPlayer) {
+        do {
+            let data = try JSONSerialization.jsonObject(with: data as Data, options: JSONSerialization.ReadingOptions.allowFragments) as! NSDictionary
+            
+            if let opponentSeed = data["seed"] as? Int {
+                GCHelper.shared.opponentSeed = opponentSeed
+                print("MAIN RECEIVED SEED \(opponentSeed)")
+            }
+        } catch {
+            print("An unknown error occured while receiving data")
+        }
     }
     
     func matchEnded() {

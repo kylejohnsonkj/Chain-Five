@@ -1,33 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Q5P-Lc-5X1">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14113" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Eal-4D-Xr4">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--Init-->
-        <scene sceneID="Eh6-cd-OGA">
-            <objects>
-                <viewController title="Init" id="Q5P-Lc-5X1" customClass="InitViewController" customModule="Chain_Five" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="bZl-ma-g3Q">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" red="0.81568627449999997" green="0.78532271229999995" blue="0.6800557263" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                        <viewLayoutGuide key="safeArea" id="fic-tN-TDS"/>
-                    </view>
-                    <connections>
-                        <segue destination="Eal-4D-Xr4" kind="presentation" identifier="init" modalPresentationStyle="overCurrentContext" id="psp-oB-BYK"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="jwx-n9-bGq" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-1657" y="32"/>
-        </scene>
         <!--Main-->
         <scene sceneID="Wzs-14-rAT">
             <objects>
@@ -39,7 +21,7 @@
                         <viewLayoutGuide key="safeArea" id="UoX-Aa-7q1"/>
                     </view>
                     <connections>
-                        <segue destination="BYZ-38-t0r" kind="presentation" identifier="toGame" modalPresentationStyle="overCurrentContext" id="5aj-C8-5io"/>
+                        <segue destination="BYZ-38-t0r" kind="show" identifier="toGame" animates="NO" id="5aj-C8-5io"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="esk-Dc-o7k" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -56,16 +38,10 @@
                         <color key="backgroundColor" red="0.81568627449999997" green="0.78532271229999995" blue="0.6800557263" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
-                    <connections>
-                        <segue destination="Eal-4D-Xr4" kind="presentation" identifier="toMain" modalPresentationStyle="overCurrentContext" id="tu8-s9-1JI"/>
-                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-122.40000000000001" y="31.934032983508249"/>
         </scene>
     </scenes>
-    <inferredMetricsTieBreakers>
-        <segue reference="psp-oB-BYK"/>
-    </inferredMetricsTieBreakers>
 </document>

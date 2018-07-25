@@ -38,7 +38,7 @@ public protocol GCHelperDelegate: class {
 }
 
 /// A GCHelper instance represents a wrapper around a GameKit match.
-public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCenterControllerDelegate, GKMatchDelegate, GKLocalPlayerListener /*, GKTurnBasedMatchmakerViewControllerDelegate */ {
+public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCenterControllerDelegate, GKMatchDelegate, GKLocalPlayerListener /*, GKTurnBasedMatchmakerViewControllerDelegate*/ {
     
     /// An array of retrieved achievements. `loadAllAchievements(completion:)` must be called in advance.
     public var achievements = [String: GKAchievement]()
@@ -51,6 +51,8 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     fileprivate var invitedPlayer: GKPlayer!
     fileprivate var playersDict = [String: AnyObject]()
     fileprivate weak var presentingViewController: UIViewController!
+    
+    var opponentSeed: Int?
     
     fileprivate var authenticated = false {
         didSet {
@@ -123,7 +125,7 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
                     print("Authentication error: \(String(describing: error?.localizedDescription))")
                     return
                 }
-                
+                GKLocalPlayer.localPlayer().register(self)
                 self.authenticated = true
             }
         } else {
@@ -156,7 +158,7 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
         presentingViewController.present(mmvc, animated: true, completion: nil)
     }
     
-    /*
+ /*
     public func findTurnBasedMatchWithMinPlayers(_ minPlayers: Int, maxPlayers: Int, viewController: UIViewController, delegate: GCHelperDelegate) {
         matchStarted = false
         self.match = nil
@@ -282,7 +284,7 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     
     // GKTurnBasedMatchmakerViewControllerDelegate
     
-    /*
+ /*
     public func turnBasedMatchmakerViewControllerWasCancelled(_ viewController: GKTurnBasedMatchmakerViewController) {
         presentingViewController.dismiss(animated: true, completion: nil)
     }
@@ -291,7 +293,7 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
         presentingViewController.dismiss(animated: true, completion: nil)
         print("Error finding match: \(error.localizedDescription)")
     }
-    */
+ */
     
     // MARK: GKMatchmakerViewControllerDelegate
     
@@ -365,9 +367,26 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     
     public func player(_ player: GKPlayer, didAccept invite: GKInvite) {
         print("Accepted invite!")
-        let mmvc = GKMatchmakerViewController(invite: invite)!
-        mmvc.matchmakerDelegate = self
-        presentingViewController.present(mmvc, animated: true, completion: nil)
+
+        GKMatchmaker.shared().match(for: invite) { (match, error) in
+            
+            guard error == nil else {
+                print("Error retrieving player info")
+                self.matchStarted = false
+                self.delegate?.matchEnded()
+                return
+            }
+
+            guard match != nil else { return }
+            
+            if self.presentingViewController != nil {
+                self.presentingViewController.dismiss(animated: true)
+            }
+            
+            print("Preparing match...")
+            self.match = match
+            self.match.delegate = self
+        }
     }
 }
 

@@ -10,6 +10,7 @@ import UIKit
 import AudioToolbox
 import GameplayKit
 import GameKit
+import StoreKit
 
 // MARK: - Game
 
@@ -18,10 +19,6 @@ class GameViewController: UIViewController {
     
     // MARK: - Instance Variables
     
-    // clubs, diamonds, hearts, spades
-    let suits = ["C", "D", "H", "S"]
-
-    // board layout
     let cardsLayout = ["-free", "C10", "C9", "C8", "C7", "H7", "H8", "H9", "H10", "-free",
                        "D10", "D13", "C6", "C5", "C4", "H4", "H5", "H6", "S13", "S10",
                        "D9", "D6", "D12", "C3", "C2", "H2", "H3", "S12", "S6", "S9",
@@ -32,7 +29,10 @@ class GameViewController: UIViewController {
                        "S9", "S6", "S12", "H3", "H2", "C2", "C3", "D12", "D6", "D9",
                        "S10", "S13", "H6", "H5", "H4", "C4", "C5", "C6", "D13", "D10",
                        "-free", "H10", "H9", "H8", "H7", "C7", "C8", "C9", "C10", "-free"]
-
+    
+    // clubs, diamonds, hearts, spades
+    let suits = ["C", "D", "H", "S"]
+    
     // taptic engine shortcuts
     enum Taptics: SystemSoundID {
         case peek = 1519, pop = 1520, nope = 1521
@@ -44,7 +44,8 @@ class GameViewController: UIViewController {
     var confettiView = SAConfettiView()
     
     // random seed for shuffle
-    var seed = Int()
+    var seed: Int? = nil
+    var originalSeed: Int? = nil
     
     // main UI views
     var cardsOnBoard = [Card]()    // 10x10 grid -- 100 cards total
@@ -153,6 +154,7 @@ class GameViewController: UIViewController {
     
     // rematch prompt related
     var rematchSent = false
+    var rematchDenied = false
     
     // other multiplayer stuff
     var opponentName = String()
@@ -169,22 +171,30 @@ class GameViewController: UIViewController {
     
     // MARK: - Setup
     
+    deinit {
+        print("GameViewController: deinit called")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("GameViewController: viewDidLoad() called")
         
         // set once per matchup, for dealing purposes
         beforeP1Deal = totalCards
         beforeP2Deal = totalCards - 6
         afterP2Deal = totalCards - 11
 
-        print("isMultiplayer: \(isMultiplayer)")
-        if isMultiplayer {
+        GCHelper.shared.delegate = self
+        
+        // determine if multiplayer
+        if GCHelper.shared.match != nil {
+            isMultiplayer = true
             getOpponentName()
             UIApplication.shared.isIdleTimerDisabled = true
         }
+        print("isMultiplayer: \(isMultiplayer)")
         
         views = GameVCViews(view: self.view)
-        
         generateTitleAndViews()
         generateBoard()
         generateRandomSeed()
@@ -192,6 +202,8 @@ class GameViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        print("GameViewController: viewDidAppear() called")
+        
         beginGame()
     }
     
@@ -199,7 +211,18 @@ class GameViewController: UIViewController {
         
         if isMultiplayer {
             playerTurnLabel.text = "Choosing host…"
-            sendRandomSeed()
+            
+            if let opponentSeed = GCHelper.shared.opponentSeed {
+                determineHost(opponentSeed)
+            }
+            
+            UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
+                self.animateItemsIntoView()
+            })
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.sendRandomSeed()
+            }
         } else {
             playerTurnLabel.text = "Orange, tap when ready"
             cardsInDeck = createDeck()
@@ -224,18 +247,31 @@ class GameViewController: UIViewController {
     }
     
     func generateRandomSeed() {
-        seed = Int(arc4random_uniform(1000000))  // 1 million possibilities
+        originalSeed = Int(arc4random_uniform(1000000))  // 1 million possibilities
+        if isMultiplayer == false {
+            seed = originalSeed
+        }
     }
     
     func sendRandomSeed() {
         
         // convert seed to json data
-        let seedDict = ["seed": seed] as [String: Int]
-        let seedData = try! JSONSerialization.data(withJSONObject: seedDict, options: .prettyPrinted)
+        var seedDataWrapped: Data?
+        if let seed = originalSeed {
+            let seedDict = ["seed": seed] as [String: Int]
+            seedDataWrapped = try! JSONSerialization.data(withJSONObject: seedDict, options: .prettyPrinted)
+        }
+
+        guard GCHelper.shared.match != nil else { return }
         
         // try to send the data
         do {
-            try GCHelper.shared.match.sendData(toAllPlayers: seedData, with: .reliable)
+            if let seedData = seedDataWrapped {
+                try GCHelper.shared.match.sendData(toAllPlayers: seedData, with: .reliable)
+                if let seed = originalSeed {
+                    print("SENT SEED TO OPPONENT \(seed)")
+                }
+            }
         } catch {
             print("An unknown error occured while sending data")
         }
@@ -261,36 +297,32 @@ class GameViewController: UIViewController {
     @objc func iconTapped(sender: DOFavoriteButton) {
         
         if sender.accessibilityIdentifier == "menu" {
-            sender.select()
-            AudioServicesPlaySystemSound(Taptics.pop.rawValue)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            presentAlert(sender) {
                 self.presentMenuAlert()
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                sender.deselect()
             }
         }
         
         if sender.accessibilityIdentifier == "help" {
-            sender.select()
-            AudioServicesPlaySystemSound(Taptics.pop.rawValue)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            presentAlert(sender) {
                 self.presentHelpAlert()
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                sender.deselect()
             }
         }
         
-        if sender.accessibilityIdentifier == "message" && messageIcon.alpha == 1 {
-            sender.select()
-            AudioServicesPlaySystemSound(Taptics.pop.rawValue)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        if sender.accessibilityIdentifier == "message" {
+            presentAlert(sender) {
                 self.presentMessageAlert()
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                sender.deselect()
-            }
+        }
+    }
+    
+    func presentAlert(_ sender: DOFavoriteButton, presentAlert: @escaping ()->()) {
+        sender.select()
+        AudioServicesPlaySystemSound(Taptics.pop.rawValue)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            presentAlert()
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            sender.deselect()
         }
     }
     
@@ -347,9 +379,12 @@ class GameViewController: UIViewController {
     func shuffleDeck() -> [Card] {
         
         var deck = cardsInDeck
+        var lcg: GKLinearCongruentialRandomSource!
         
-        let lcg = GKLinearCongruentialRandomSource(seed: UInt64(seed))
-        deck = lcg.arrayByShufflingObjects(in: cardsInDeck) as! [Card]
+        if let seed = self.seed {
+            lcg = GKLinearCongruentialRandomSource(seed: UInt64(seed))
+            deck = lcg.arrayByShufflingObjects(in: cardsInDeck) as! [Card]
+        }
         
         for i in 0..<deck.count {
             deck[i].index = i
@@ -469,7 +504,7 @@ class GameViewController: UIViewController {
         animateNextCardToHand(false)
         alreadySwapped = true
         
-        if isMultiplayer {
+        if isMultiplayer && GCHelper.shared.match != nil {
             // convert card info to json data
             let cardIndexDict = ["cardIndex": -1, "owner": currentPlayer] as [String: Int]
             let cardIndexData = try! JSONSerialization.data(withJSONObject: cardIndexDict, options: .prettyPrinted)
@@ -586,7 +621,7 @@ class GameViewController: UIViewController {
                         let cardIndexDict = ["cardIndex": c.index, "owner": c.owner] as [String: Int]
                         let cardIndexData = try! JSONSerialization.data(withJSONObject: cardIndexDict, options: .prettyPrinted)
                         
-                        if isMultiplayer {
+                        if isMultiplayer && GCHelper.shared.match != nil {
                             // update other player with our move
                             do {
                                 try GCHelper.shared.match.sendData(toAllPlayers: cardIndexData, with: .reliable)
@@ -898,7 +933,9 @@ class GameViewController: UIViewController {
             if self.isMultiplayer && GCHelper.shared.match != nil {
                 GCHelper.shared.match.disconnect()
             }
-            self.performSegue(withIdentifier: "toMain", sender: self)
+            self.dismiss(animated: true)
+            GCHelper.shared.delegate = nil
+            GCHelper.shared.opponentSeed = nil
         }
         menuAlertView.addButton("Cancel", backgroundColor: UIColor.gray, textColor: UIColor.white) {
         }
@@ -915,7 +952,7 @@ class GameViewController: UIViewController {
         helpAlertView = SCLAlertView(appearance: appearance)
         helpAlertView.addButton("Done", backgroundColor: UIColor.cfBlue, textColor: UIColor.white) {
         }
-        helpAlertView.showCustom("How to Play", subTitle: "Tap your cards to view possible placements. Tap any highlighted location to make your move.\n\n☆ Corners = FREE spaces.\n\nBlack jacks can be placed anywhere open. Red jacks can remove an opponent's marker.\n\nA dead card may be replaced from the deck once per turn.\n\nThe first player to get 5 in a row wins the game!", color: UIColor.white, icon: UIImage(named: "alert_help")!)
+        helpAlertView.showCustom("How to Play", subTitle: "Tap your cards to view possible placements. Tap any highlighted location to make your move.\n\nCorners count as FREE spaces.\n\nBlack jacks can be placed anywhere open. Red jacks can remove an opponent's marker.\n\nA dead card may be replaced from the deck once per turn.\n\nThe first player to get 5 markers in a row wins the game!", color: UIColor.white, icon: UIImage(named: "alert_help")!)
     }
 
     // compose message view
@@ -942,10 +979,12 @@ class GameViewController: UIViewController {
             // send message to other player
             let messageDict = ["message": message] as [String: String]
             let messageData = try! JSONSerialization.data(withJSONObject: messageDict, options: .prettyPrinted)
-            do {
-                try GCHelper.shared.match.sendData(toAllPlayers: messageData, with: .reliable)
-            } catch {
-                print("An unknown error occured while sending data")
+            if self.isMultiplayer && GCHelper.shared.match != nil {
+                do {
+                    try GCHelper.shared.match.sendData(toAllPlayers: messageData, with: .reliable)
+                } catch {
+                    print("An unknown error occured while sending data")
+                }
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 if self.gameOver.superview != nil {
@@ -1133,14 +1172,27 @@ class GameViewController: UIViewController {
     }
     
     func presentWinScreen() {
-        
         incrementGamesFinished()
         showWinningColor()
         showConfetti()
         presentChainAlert()
         
+        if #available(iOS 10.3, *) {
+            requestReview()
+        }
+        
         if isMultiplayer {
             UIApplication.shared.isIdleTimerDisabled = false
+        }
+    }
+    
+    @available(iOS 10.3, *)
+    func requestReview() {
+        // only allow review request after three finished games
+        if currentPlayer == playerID && UserDefaults.standard.integer(forKey: "gamesFinished") >= 3 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                SKStoreReviewController.requestReview()
+            }
         }
     }
     
@@ -1148,7 +1200,6 @@ class GameViewController: UIViewController {
     func incrementGamesFinished() {
         let gamesFinished = UserDefaults.standard.integer(forKey: "gamesFinished")
         UserDefaults.standard.set(gamesFinished + 1, forKey: "gamesFinished")
-        UserDefaults.standard.synchronize()
     }
     
     func showWinningColor() {
@@ -1209,10 +1260,12 @@ class GameViewController: UIViewController {
         }
         chainAlertView.addButton("Exit to Menu", backgroundColor: UIColor.gray, textColor: UIColor.white) {
             self.chainAlertView.hideView()
-            if self.isMultiplayer {
-                self.sendRematchStatus(status: 0)
+            if self.isMultiplayer && GCHelper.shared.match != nil {
+                GCHelper.shared.match.disconnect()
             }
-            self.performSegue(withIdentifier: "toMain", sender: self)
+            self.dismiss(animated: true)
+            GCHelper.shared.delegate = nil
+            GCHelper.shared.opponentSeed = nil
         }
         let alertIcon = currentPlayer == 1 ? "orange_chain" : "blue_chain"
         if self.currentPlayer == 1 {
@@ -1230,13 +1283,18 @@ class GameViewController: UIViewController {
             buttonsLayout: SCLAlertButtonLayout.horizontal
         )
         rematchAlertView = SCLAlertView(appearance: appearance)
+        rematchAlertView.addButton("Deny", backgroundColor: UIColor.cfRed, textColor: UIColor.white) {
+            if self.isMultiplayer && GCHelper.shared.match != nil {
+                self.sendRematchStatus(status: 0)
+                GCHelper.shared.match.disconnect()
+            }
+            self.dismiss(animated: true)
+            GCHelper.shared.delegate = nil
+            GCHelper.shared.opponentSeed = nil
+        }
         rematchAlertView.addButton("Accept", backgroundColor: UIColor.cfGreen, textColor: UIColor.white) {
             self.sendRematchStatus(status: 1)
             self.reloadGame()
-        }
-        rematchAlertView.addButton("Deny", backgroundColor: UIColor.cfRed, textColor: UIColor.white) {
-            self.sendRematchStatus(status: 0)
-            self.performSegue(withIdentifier: "toMain", sender: self)
         }
         rematchAlertView.showCustom("Rematch?", subTitle: "Opponent requests to play again.", color: UIColor.white, icon: UIImage(named: "alert_rematch")!)
     }
@@ -1246,6 +1304,8 @@ class GameViewController: UIViewController {
         // convert rematch status to json data
         let rematchDict = ["rematch": status] as [String: Int]
         let rematchData = try! JSONSerialization.data(withJSONObject: rematchDict, options: .prettyPrinted)
+        
+        guard GCHelper.shared.match != nil else { return }
         
         // try to send the data
         do {
@@ -1263,7 +1323,13 @@ class GameViewController: UIViewController {
             )
             self.denyAlertView = SCLAlertView(appearance: appearance)
             self.denyAlertView.addButton("Exit to Menu", backgroundColor: UIColor.gray, textColor: UIColor.white) {
-                self.performSegue(withIdentifier: "toMain", sender: self)
+                if self.isMultiplayer && GCHelper.shared.match != nil {
+                    self.sendRematchStatus(status: 0)
+                    GCHelper.shared.match.disconnect()
+                }
+                self.dismiss(animated: true)
+                GCHelper.shared.delegate = nil
+                GCHelper.shared.opponentSeed = nil
             }
             self.denyAlertView.showError("Rematch Denied", subTitle: "Opponent has left the game!")
         }
@@ -1274,7 +1340,9 @@ class GameViewController: UIViewController {
         // remove all current views
         view.subviews.forEach({ $0.removeFromSuperview() })
         
-        seed = Int()
+        seed = nil
+        originalSeed = nil
+        GCHelper.shared.opponentSeed = nil
         timesShuffled = 0
         
         cardsOnBoard = []
@@ -1299,6 +1367,7 @@ class GameViewController: UIViewController {
         
         isHost = false
         rematchSent = false
+        rematchDenied = false
         
         messagePopupView.hideView()
         
@@ -1318,17 +1387,31 @@ class GameViewController: UIViewController {
         }
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "toMain" {
-            if let mainVC = segue.destination as? MainViewController {
-                // set delegate back to Main VC
-                GCHelper.shared.delegate = mainVC
-                
-                // tell Main VC we will now allow a review request on load
-                if gameOver.superview != nil && currentPlayer == playerID {
-                    mainVC.reviewRequested = true
-                }
+    func determineHost(_ opponentSeed: Int) {
+
+        if let seed = originalSeed {
+            if seed > opponentSeed {
+                self.isHost = true
+                self.seed = seed
+                self.playerID = 1
+            } else {
+                self.isHost = false
+                self.seed = opponentSeed
+                self.playerID = 2
             }
+        }
+        
+        print("isHost? \(self.isHost)")
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.cardsInDeck = self.createDeck()
+            self.cardsInDeck = self.shuffleDeck()
+            self.timesShuffled += 1
+            
+            self.currentPlayer = 1
+            
+            print("DRAWING CARDS")
+            self.drawCards()
         }
     }
 }
@@ -1383,41 +1466,9 @@ extension GameViewController: GCHelperDelegate {
             let data = try JSONSerialization.jsonObject(with: data as Data, options: JSONSerialization.ReadingOptions.allowFragments) as! NSDictionary
             
             // determine who goes first based off highest seed and generate same decks
-            if let opponentSeed = data["seed"] as? Int, currentPlayer == 0 {
-                
-                print("my seed: \(seed)")
-                print("opponent seed: \(opponentSeed)")
-                
-                UIView.animate(withDuration: 0.5, delay: 0, options: [.curveEaseOut], animations: {
-                    self.animateItemsIntoView()
-                    
-                }, completion: { _ in
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        // "I mean, there's a 1 in a million chance…" - literally.
-                        guard self.seed != opponentSeed else {
-                            self.reloadGame()
-                            return
-                        }
-                        
-                        if self.seed > opponentSeed {
-                            self.isHost = true
-                            self.playerID = 1
-                        } else {
-                            self.seed = opponentSeed
-                            self.playerID = 2
-                        }
-                        
-                        print("isHost? \(self.isHost)")
-                        
-                        self.cardsInDeck = self.createDeck()
-                        self.cardsInDeck = self.shuffleDeck()
-                        self.timesShuffled += 1
-                        
-                        self.currentPlayer = 1
-                        self.drawCards()
-                    }
-                })
+            if let opponentSeed = data["seed"] as? Int, GCHelper.shared.opponentSeed == nil {
+                print("GAME RECEIVED SEED \(opponentSeed)")
+                determineHost(opponentSeed)
             }
             
             // opponent has made their move or replaced a dead card
@@ -1522,6 +1573,7 @@ extension GameViewController: GCHelperDelegate {
                         }
                     } else {
                         // rematch denied
+                        self.rematchDenied = true
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                             self.denyRematch()
                         }
@@ -1554,6 +1606,7 @@ extension GameViewController: GCHelperDelegate {
     
     func matchEnded() {
         print("matchEnded")
+        guard rematchDenied == false else { return }
         
         DispatchQueue.main.async {
             self.chainAlertView.hideView()
@@ -1569,7 +1622,12 @@ extension GameViewController: GCHelperDelegate {
             )
             self.connectionAlertView = SCLAlertView(appearance: appearance)
             self.connectionAlertView.addButton("Exit to Menu", backgroundColor: UIColor.gray, textColor: UIColor.white) {
-                self.performSegue(withIdentifier: "toMain", sender: self)
+                if self.isMultiplayer && GCHelper.shared.match != nil {
+                    GCHelper.shared.match.disconnect()
+                }
+                self.dismiss(animated: true)
+                GCHelper.shared.delegate = nil
+                GCHelper.shared.opponentSeed = nil
             }
             self.connectionAlertView.showError("Connection Lost", subTitle: "Opponent has left the game!")
         }

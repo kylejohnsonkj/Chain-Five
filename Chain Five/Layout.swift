@@ -45,24 +45,24 @@ class Layout {
     }
     
     init() {
-        let view = UIApplication.shared.keyWindow!
+        let bounds = UIScreen.main.bounds
         
         // determine if iPad or not
-        if view.frame.width > CGFloat(414) {
+        if bounds.width > CGFloat(414) {
             // it's an iPad, adapt for different aspect ratio
             iPad = true
-            cardSize = view.frame.width / 14
+            cardSize = bounds.width / 14
             push = cardSize * 0.73
         } else {
             iPad = false
-            cardSize = view.frame.width / 10.7
+            cardSize = bounds.width / 10.7
             push = cardSize * 0.63
         }
         
-        leftMargin = view.frame.midX - (cardSize * 5)
-        topMargin = view.frame.midY - (cardSize * 5) - push
-        btmMargin = view.frame.midY + (cardSize * 5) - push
-        centerY = view.frame.midY - push
+        leftMargin = bounds.midX - (cardSize * 5)
+        topMargin = bounds.midY - (cardSize * 5) - push
+        btmMargin = bounds.midY + (cardSize * 5) - push
+        centerY = bounds.midY - push
         
         if iPad {
             scale = 3
@@ -78,10 +78,10 @@ class Layout {
         
         textPadding = cardSize / 10
         distance = cardSize
-        titleWidth = view.frame.width / scale
+        titleWidth = bounds.width / scale
         
         // screens smaller than 4 inches
-        if view.frame.height < CGFloat(568) {
+        if bounds.height < CGFloat(568) {
             distance = cardSize / 2
             titleWidth = titleWidth * 0.9
         }
