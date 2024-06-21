@@ -58,7 +58,7 @@ public class SAConfettiView: UIView {
         emitter = CAEmitterLayer()
 
         recalculatePositionAndSize()
-        emitter.emitterShape = kCAEmitterLayerLine
+        emitter.emitterShape = .line
 
         var cells = [CAEmitterCell]()
         for color in colors {

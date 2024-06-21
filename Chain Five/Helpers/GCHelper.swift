@@ -25,7 +25,7 @@
 import GameKit
 
 /// Custom delegate used to provide information to the application implementing GCHelper.
-public protocol GCHelperDelegate: class {
+public protocol GCHelperDelegate: AnyObject {
     
     /// Method called when a match has been initiated.
     func matchStarted()
@@ -79,7 +79,7 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     // MARK: Private functions
     
     @objc fileprivate func authenticationChanged() {
-        if GKLocalPlayer.localPlayer().isAuthenticated && !authenticated {
+        if GKLocalPlayer.local.isAuthenticated && !authenticated {
             authenticated = true
         } else {
             authenticated = false
@@ -103,8 +103,8 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
             }
             
             for player in players {
-                print("Found player: \(String(describing: player.alias!))")
-                self.playersDict[player.playerID!] = player
+                print("Found player: \(String(describing: player.alias))")
+                self.playersDict[player.playerID] = player
             }
             
             self.matchStarted = true
@@ -119,13 +119,13 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
     public func authenticateLocalUser() {
         print("Authenticating local user...")
         
-        if GKLocalPlayer.localPlayer().isAuthenticated == false {
-            GKLocalPlayer.localPlayer().authenticateHandler = { (view, error) in
+        if GKLocalPlayer.local.isAuthenticated == false {
+            GKLocalPlayer.local.authenticateHandler = { (view, error) in
                 guard error == nil else {
                     print("Authentication error: \(String(describing: error?.localizedDescription))")
                     return
                 }
-                GKLocalPlayer.localPlayer().register(self)
+                GKLocalPlayer.local.register(self)
                 self.authenticated = true
             }
         } else {
@@ -210,9 +210,8 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
             }
             
             for achievement in achievements {
-                if let id = achievement.identifier {
-                    self.achievements[id] = achievement
-                }
+                let id = achievement.identifier
+                self.achievements[id] = achievement
             }
             
             completion?()
@@ -342,9 +341,9 @@ public class GCHelper: NSObject, GKMatchmakerViewControllerDelegate, GKGameCente
         }
         
         switch state {
-        case .stateConnected where !matchStarted && match.expectedPlayerCount == 0:
+        case .connected where !matchStarted && match.expectedPlayerCount == 0:
             lookupPlayers()
-        case .stateDisconnected:
+        case .disconnected:
             matchStarted = false
             delegate?.matchEnded()
             self.match = nil

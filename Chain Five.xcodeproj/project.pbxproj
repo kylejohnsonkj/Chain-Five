@@ -152,6 +152,7 @@
 				TargetAttributes = {
 					E5EF7C681FC7C4DD00E09193 = {
 						CreatedOnToolsVersion = 9.1;
+						LastSwiftMigration = 1540;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.GameCenter = {
@@ -372,7 +373,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.kjapps.Chain-Five";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -393,7 +394,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.kjapps.Chain-Five";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
