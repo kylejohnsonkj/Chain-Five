@@ -535,7 +535,7 @@ class GameViewController: UIViewController {
             }
             
             // ensure we have the current hand for the current player
-            var cardsInHand = getCurrentHand()
+            let cardsInHand = getCurrentHand()
             
             // check if we are trading out a dead card (doesn't count as a turn)
             if deckOutline.isOutlined() && deck.frame.contains(touchLocation) {
